@@ -1,10 +1,4 @@
 <?
-################################################################################
-# copyright 2019 by Markus Olderdissen
-# free for private use or inspiration.
-# public use need written permission.
-################################################################################
-
 include("pdf-api.php");
 
 _pdf_main();
@@ -17,9 +11,9 @@ function _pdf_main()
 	$pdf["objects"] = _pdf_parse_document($data);
 
 #	_pdf_add_font($pdf, "Verdana");
-	_pdf_filter_change($pdf);
+#	_pdf_filter_change($pdf);
 #	_pdf_filter_change($pdf, "/FlateDecode");
-#	_pdf_filter_change($pdf, "/ASCIIHexDecode /FlateDecode");
+	_pdf_filter_change($pdf, "/ASCIIHexDecode /FlateDecode");
 #	_pdf_add_linearized($pdf);
 #	print_r($pdf); exit;
 
