@@ -1,4 +1,8 @@
 <?
+################################################################################
+# written 2019 by markus olderdissen
+################################################################################
+
 define("FONTDESCRIPTOR_FLAG_FIXEDPITCH", 1 << 1);
 define("FONTDESCRIPTOR_FLAG_SERIF", 1 << 2);
 define("FONTDESCRIPTOR_FLAG_SYMBOLIC", 1 << 3);
@@ -827,7 +831,7 @@ function _pdf_add_linearized(& $pdf)
 
 	$t = strlen(implode("\n", $retval)) + 1;
 
-	$t = $t + strlen($n) + strlen($t) + strlen($o);
+	$t = $t - strlen($n) - strlen($t) - strlen($o) + 154;
 
 	list($l, $e, $ho, $hl) = array(0, 0, $this_id + 1, 0);
 

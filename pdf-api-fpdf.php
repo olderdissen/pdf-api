@@ -1,4 +1,9 @@
 <?
+################################################################################
+# written 2019 by markus olderdissen
+# contains material from olivier plathey
+################################################################################
+
 date_default_timezone_set("UTC");
 
 #ini_set("error_reporting", E_ALL);

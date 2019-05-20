@@ -1,5 +1,9 @@
 <?
 ################################################################################
+# written 2019 by markus olderdissen
+################################################################################
+
+################################################################################
 # _pdf_parse_array ( string $data ) : array
 # returns array of found element as array and unparsed data as string.
 ################################################################################
@@ -619,7 +623,7 @@ function _pdf_parse_object($data)
 	$retval["id"] = $id;
 	$retval["version"] = $version;
 
-	$data = ltrim($data);
+	$data = ltrim($data); # try to overcome this
 
  	if(substr($data, 0, 2) == "<<")
 		{		
@@ -631,7 +635,7 @@ function _pdf_parse_object($data)
 
 		$retval["dictionary"] = $dictionary;
 
-		$data = ltrim($data);
+		$data = ltrim($data); # try to overcome this
 
 		if(preg_match("/^stream[\s|\n]*(.+)[\s|\n]*endstream.*/is", $data, $matches) == 1)
 			{

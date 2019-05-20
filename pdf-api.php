@@ -1,11 +1,15 @@
 <?
-include("pdf-lib-lite-clone-extra.php");
-include("pdf-lib-lite-clone-fpdf.php");
-include("pdf-lib-lite-clone-filter.php");
-include("pdf-lib-lite-clone-glue.php");
-include("pdf-lib-lite-clone-lib.php");
-include("pdf-lib-lite-clone-parse.php");
-include("pdf-lib-lite-clone-x.php");
+################################################################################
+# written 2019 by markus olderdissen
+################################################################################
+
+include("pdf-api-extra.php");
+include("pdf-api-fpdf.php");
+include("pdf-api-filter.php");
+include("pdf-api-glue.php");
+include("pdf-api-lib.php");
+include("pdf-api-parse.php");
+include("pdf-api-x.php");
 
 ################################################################################
 # PDF_activate_item - Activate structure element or other content item
