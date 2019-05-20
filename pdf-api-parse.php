@@ -100,7 +100,6 @@ function _pdf_parse_array($data)
 ################################################################################
 # _pdf_parse_comment ( string $data ) : array
 # returns array of found element as string and unparsed data as string.
-# PDF 1.3 - 3.1.2 - Comments
 ################################################################################
 
 function _pdf_parse_comment($data)
@@ -290,7 +289,17 @@ function _pdf_parse_document($data)
 	{
 	$retval = array();
 
-	if(preg_match("/^%PDF-(\d+)\.(\d+)[\s|\n]+(.*)[\s|\n]+startxref[\s|\n]+(\d+)[\s|\n]+%%EOF[\s|\n]+(.*)/is", $data, $matches) == 0)
+	$pattern = array
+		(
+		"%PDF-(\d+)\.(\d+)[\s|\n]+",
+		"(.*)[\s|\n]+",
+		"startxref[\s|\n]+",
+		"(\d+)[\s|\n]+",
+		"%%EOF[\s|\n]+",
+		"(.*)"
+		);
+
+	if(preg_match("/^" . implode("", $pattern) . "/is", $data, $matches) == 0)
 		die("_pdf_parse_document: something is seriously wrong (invalid structure).");
 
 	list($null, $major, $minor, $body, $startxref, $null) = $matches;
@@ -314,6 +323,7 @@ function _pdf_parse_document($data)
 			{
 			$table = substr($table, 4);
 
+			# start
 			while(1)
 				{
 				if(strlen($table) == 0)
@@ -328,6 +338,7 @@ function _pdf_parse_document($data)
 					}
 				}
 
+			# count
 			while(1)
 				{
 				if(strlen($table) == 0)
@@ -344,6 +355,7 @@ function _pdf_parse_document($data)
 
 			foreach(range($first, $first + $count - 1) as $index)
 				{
+				# offset
 				while(1)
 					{
 					if(strlen($table) == 0)
@@ -358,6 +370,7 @@ function _pdf_parse_document($data)
 						}
 					}
 
+				# generation
 				while(1)
 					{
 					if(strlen($table) == 0)
@@ -372,6 +385,7 @@ function _pdf_parse_document($data)
 						}
 					}
 
+				# used
 				while(1)
 					{
 					if(strlen($table) == 0)
@@ -417,41 +431,59 @@ function _pdf_parse_document($data)
 			}
 		elseif(substr($table, 0, 9) == "startxref")
 			{
-			if(isset($trailer["/Prev"]))
+			if(isset($retval[0]["dictionary"]["/Prev"]))
 				{
-				$startxref = $trailer["/Prev"];
+				$startxref = $retval[0]["dictionary"]["/Prev"];
 
 				unset($retval[0]["dictionary"]["/Prev"]);
 
 				$table = substr($data, $startxref);
 				}
 			else
-				{
 				break;
-				}
 			}
 		else
 			{
-			if(preg_match_all("/(\d+[\s|\n]+\d+[\s|\n]+obj[\s|\n]+.*?[\s|\n]+endobj|xref[\s|\n]+.*|trailer[\s|\n]+.*|startxref[\s|\n]+\d+[\s|\n]+.*)/is", $data, $matches) == 0)
+			$pattern = array
+				(
+				"\d+[\s|\n]+\d+[\s|\n]+obj[\s|\n]+.*?[\s|\n]+endobj",
+				"xref[\s|\n]+.*",
+				"trailer[\s|\n]+.*",
+				"startxref[\s|\n]+\d+[\s|\n]+"
+				);
+
+			if(preg_match_all("/(" . implode("|", $pattern) . ")/is", $data, $matches) == 0)
 				die("111");
 
 			foreach($matches[0] as $object)
 				{
-				if(substr($object, 0, 9) == "startxref")
-					continue;
-
 				if(substr($object, 0, 7) == "trailer")
 					{
 					$object = substr($object, 7);
 
-					$object = ltrim($object);
+					while(1)
+						{
+						if(strlen($object) == 0)
+							break;
+						elseif(in_array($object[0], array("\t", "\n", "\r", " ")))
+							$object = substr($object, 1);
+						elseif(substr($object, 0, 2) == "<<")
+							{
+							$object = substr($object, 2);
 
-					$object = substr($object, 2);
-					list($retval[0]["dictionary"], $null) = _pdf_parse_dictionary($object);
-					$object = substr($object, 2);
+							list($retval[0]["dictionary"], $object) = _pdf_parse_dictionary($object);
+
+							$object = substr($object, 2);
+
+							break;
+							}
+						}
 
 					continue;
 					}
+
+				if(substr($object, 0, 9) == "startxref")
+					continue;
 
 				list($k, $null) = _pdf_parse_object($object);
 
@@ -579,44 +611,45 @@ function _pdf_parse_object($data)
 	{
 	$retval = array();
 
-	if(preg_match("/^(\d+)[\s|\n]+(\d+)[\s|\n]+obj[\s|\n]*(.+)[\s|\n]*endobj[\s|\n]*/is", $data, $matches) == 0)
-		{
-		print($data);
-
+	if(preg_match("/^(\d+)[\s|\n]+(\d+)[\s|\n]+obj[\s|\n]*(.+)[\s|\n]*endobj.*/is", $data, $matches) == 0)
 		die("_pdf_parse_object: something is seriously wrong");
-		}
 
-	list($null, $id, $version, $temp) = $matches;
+	list($null, $id, $version, $data) = $matches;
 
 	$retval["id"] = $id;
 	$retval["version"] = $version;
 
- 	if(substr($temp, 0, 2) == "<<")
+	$data = ltrim($data);
+
+ 	if(substr($data, 0, 2) == "<<")
 		{		
-		$temp = substr($temp, 2);
+		$data = substr($data, 2);
 
-		list($value, $temp) = _pdf_parse_dictionary($temp);
+		list($dictionary, $data) = _pdf_parse_dictionary($data);
 
-		$temp = substr($temp, 2);
+		$data = substr($data, 2);
 
-		$retval["dictionary"] = $value;
+		$retval["dictionary"] = $dictionary;
+
+		$data = ltrim($data);
+
+		if(preg_match("/^stream[\s|\n]*(.+)[\s|\n]*endstream.*/is", $data, $matches) == 1)
+			{
+			list($null, $stream) = $matches; # data for value
+
+			$retval["stream"] = $stream;
+			}
 		}
-
-	$temp = ltrim($temp);
-
-	if(preg_match("/^stream[\s|\n]+(.+)[\s|\n]+endstream(.*)/is", $temp, $matches) == 1)
+	elseif(preg_match("/^stream[\s|\n]*(.+)[\s|\n]*endstream.*/is", $data, $matches) == 1)
 		{
-		list($null, $stream, $temp) = $matches; # data for value
+		list($null, $stream) = $matches; # data for value
 
 		$retval["stream"] = $stream;
 		}
+	else
+		$retval["value"] = $data;
 
-	$temp = ltrim($temp);
-
-	if(strlen($temp) > 0)
-		$retval["value"] = $temp;
-
-	return(array($retval, $data));
+	return(array($retval, ""));
 	}
 
 ################################################################################
