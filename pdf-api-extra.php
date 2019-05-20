@@ -283,12 +283,12 @@ function _pdf_core_fonts()
 
 function _pdf_add_acroform(& $pdf, $parent, $resources)
 	{
-	$this_id = _pdf_get_free_id($pdf);
-
 	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
 		die("_pdf_add_acroform: invalid parent: " . $parent);
 
-	$pdf["objects"][$parent_id]["dictionary"]["/AcroForm"] = sprintf("%d 0 R", $this_id);
+	################################################################################
+
+	$this_id = _pdf_get_free_id($pdf);
 
 	$pdf["objects"][$this_id] = array
 		(
@@ -300,6 +300,12 @@ function _pdf_add_acroform(& $pdf, $parent, $resources)
 			)
 		);
 
+	################################################################################
+
+	$pdf["objects"][$parent_id]["dictionary"]["/AcroForm"] = sprintf("%d 0 R", $this_id);
+
+	################################################################################
+
 	return(sprintf("%d 0 R", $this_id));
 	}
 
@@ -309,28 +315,15 @@ function _pdf_add_acroform(& $pdf, $parent, $resources)
 
 function _pdf_add_annotation(& $pdf, $parent, $rect, $type, $optlist)
 	{
-	$this_id = _pdf_get_free_id($pdf);
-
 	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
 		die("_pdf_add_annots: invalid parent: " . $parent);
 
-	if(isset($pdf["objects"][$parent_id]["dictionary"]["/Annots"]))
-		$data = $pdf["objects"][$parent_id]["dictionary"]["/Annots"];
-	else
-		$data = "[]";
-
-	$data = substr($data, 1);
-
-	list($annots, $data) = _pdf_parse_array($data);
-
-	$data = substr($data, 1);
-	
-	$annots[] = sprintf("%d 0 R", $this_id);
-	
-	$pdf["objects"][$parent_id]["dictionary"]["/Annots"] = sprintf("[%s]", _pdf_glue_array($annots));
+	################################################################################
 
 	if($type == "link")
 		{
+		$this_id = _pdf_get_free_id($pdf);
+
 		$pdf["objects"][$this_id] = array
 			(
 			"id" => $this_id,
@@ -348,6 +341,8 @@ function _pdf_add_annotation(& $pdf, $parent, $rect, $type, $optlist)
 
 	if($type == "uri")
 		{
+		$this_id = _pdf_get_free_id($pdf);
+
 		$pdf["objects"][$this_id] = array
 			(
 			"id" => $this_id,
@@ -375,6 +370,20 @@ function _pdf_add_annotation(& $pdf, $parent, $rect, $type, $optlist)
 
 	if($type == "widget")
 		{
+		$resources = array
+			(
+			"/ProcSet" => "[/PDF /Text]",
+			"/Font" => "<< /F0 4 0 R >>"
+			);
+
+		$stream = "/Tx BMC q 1 1 98 8 re W n BT /F0 8 Tf 0 g 1 1 Td (static) Tj ET Q EMC";
+
+		$a = _pdf_add_form($pdf, $resources, "[0 0 100 10]", $stream);
+
+		################################################################################
+
+		$this_id = _pdf_get_free_id($pdf);
+
 		$pdf["objects"][$this_id] = array
 			(
 			"id" => $this_id,
@@ -390,21 +399,36 @@ function _pdf_add_annotation(& $pdf, $parent, $rect, $type, $optlist)
 				"/T" => "(javascript_name_a)",
 				"/AP" => array
 					(
-					"/N" => sprintf("%d 0 R", $this_is + 1)
+					"/N" => $a
 					)
 				)
 			);
-
-		$resources = array
-			(
-			"/ProcSet" => "[/PDF /Text]",
-			"/Font" => "<< /F0 4 0 R >>"
-			);
-
-		$stream = "/Tx BMC q 1 1 98 8 re W n BT /F0 8 Tf 0 g 1 1 Td (static) Tj ET Q EMC";
-
-		_pdf_add_form($pdf, $resources, "[0 0 100 10]", $stream);
 		}
+
+	################################################################################
+
+	if(isset($pdf["objects"][$parent_id]["dictionary"]["/Annots"]))
+		$data = $pdf["objects"][$parent_id]["dictionary"]["/Annots"];
+	else
+		$data = "[]";
+
+	################################################################################
+
+	$data = substr($data, 1);
+
+	list($annots, $data) = _pdf_parse_array($data);
+
+	$data = substr($data, 1);
+
+	################################################################################
+
+	$annots[] = sprintf("%d 0 R", $this_id);
+
+	################################################################################
+
+	$pdf["objects"][$parent_id]["dictionary"]["/Annots"] = sprintf("[%s]", _pdf_glue_array($annots));
+
+	################################################################################
 
 	return(sprintf("%d 0 R", $this_id));
 	}
@@ -416,8 +440,6 @@ function _pdf_add_annotation(& $pdf, $parent, $rect, $type, $optlist)
 function _pdf_add_catalog(& $pdf)
 	{
 	$this_id = _pdf_get_free_id($pdf);
-
-	$pdf["objects"][0]["dictionary"]["/Root"] = sprintf("%d 0 R", $this_id);
 
 	$pdf["objects"][] = array
 		(
@@ -431,6 +453,12 @@ function _pdf_add_catalog(& $pdf)
 			)
 		);
 
+	################################################################################
+
+	$pdf["objects"][0]["dictionary"]["/Root"] = sprintf("%d 0 R", $this_id);
+
+	################################################################################
+
 	return(sprintf("%d 0 R", $this_id));
 	}
 
@@ -443,10 +471,14 @@ function _pdf_add_field(& $pdf, $parent, $field)
 	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
 		die("_pdf_add_field: invalid parent: " . $parent);
 
+	################################################################################
+
 	if(isset($pdf["objects"][$parent_id]["dictionary"]["/Fields"]))
 		$data = $pdf["objects"][$parent_id]["dictionary"]["/Fields"];
 	else
 		$data = "[]";
+
+	################################################################################
 
 	$data = substr($data, 1);
 
@@ -454,16 +486,20 @@ function _pdf_add_field(& $pdf, $parent, $field)
 
 	$data = substr($data, 1);
 	
+	################################################################################
+
 	$fields[] = $field;
 	
+	################################################################################
+
 	$pdf["objects"][$parent_id]["dictionary"]["/Fields"] = sprintf("[%s]", _pdf_glue_array($fields));
 	}
 
 ################################################################################
-# _pdf_add_font ( array $pdf , string $fontname ) : string
+# _pdf_add_font ( array $pdf , string $fontname , string $encoding ) : string
 ################################################################################
 
-function _pdf_add_font(& $pdf, $fontname)
+function _pdf_add_font(& $pdf, $fontname, $encoding = "")
 	{
 	foreach($pdf["objects"] as $index => $object)
 		{
@@ -492,7 +528,7 @@ function _pdf_add_font(& $pdf, $fontname)
 			return(sprintf("%d 0 R", $index));
 		}
 
-	$this_id = _pdf_get_free_id($pdf);
+	################################################################################
 
 	$core_fonts = _pdf_core_fonts();
 
@@ -500,6 +536,8 @@ function _pdf_add_font(& $pdf, $fontname)
 		{
 		if($v["/BaseFont"] != "/" . $fontname)
 			continue;
+
+		$this_id = _pdf_get_free_id($pdf);
 
 		$pdf["objects"][$this_id] = array
 			(
@@ -514,6 +552,8 @@ function _pdf_add_font(& $pdf, $fontname)
 				)
 			);
 
+		################################################################################
+
 		# resources of page
 
 		if(isset($pdf["loaded-resources"]["/Font"]))
@@ -523,8 +563,12 @@ function _pdf_add_font(& $pdf, $fontname)
 
 		$pdf["loaded-resources"]["/Font"][$id] = sprintf("%d 0 R", $this_id);
 
+		################################################################################
+
 		return(sprintf("%d 0 R", $this_id));
 		}
+
+	################################################################################
 
 #	$filename = "/home/nomatrix/externe_platte/daten/ttf/" . strtolower($fontname[0]) . "/" . $fontname . ".ttf";
 	$filename = "/usr/share/fonts/truetype/freefont/" . $fontname . ".ttf";
@@ -532,10 +576,20 @@ function _pdf_add_font(& $pdf, $fontname)
 	if(file_exists($filename) === false)
 		return(_pdf_add_font($pdf["objects"], "/Courier"));
 
+	################################################################################
+
 	$widths = array();
 
 	foreach(range(0x20, 0xFF) as $char)
 		$widths[chr($char)] = (($image_ttf_bbox = imagettfbbox(720, 0, $filename, chr($char))) ? $image_ttf_bbox[2] : 1000);
+
+	################################################################################
+
+	$a = _pdf_add_font_file($pdf, $filename);
+
+	################################################################################
+
+	$this_id = _pdf_get_free_id($pdf);
 
 	$pdf["objects"][$this_id] = array
 		(
@@ -562,12 +616,12 @@ function _pdf_add_font(& $pdf, $fontname)
 #				"/ItalicAngle" => 0,
 #				"/FontBBox" => "[0 -240 1440 1000]",
 				"/FontName" => "/" . $fontname,
-				"/FontFile2" => sprintf("%d 0 R", $this_id + 1)
+				"/FontFile2" => $a
 				)
 			)
 		);
 
-	_pdf_add_font_file($pdf, $filename);
+	################################################################################
 
 	# resources of page
 
@@ -576,7 +630,71 @@ function _pdf_add_font(& $pdf, $fontname)
 	else
 		$id = sprintf("/F%d", 1);
 
-	$pdf["loaded-resources"]["/Font"][$this_id] = sprintf("%d 0 R", $id);
+	$pdf["loaded-resources"]["/Font"][$id] = sprintf("%d 0 R", $this_id);
+
+	################################################################################
+
+	return(sprintf("%d 0 R", $this_id));
+	}
+
+################################################################################
+# _pdf_add_font_encoding ( array $pdf , string $differences ) : string
+################################################################################
+
+function _pdf_add_font_encoding(& $pdf, $differences)
+	{
+	$this_id = _pdf_get_free_id($pdf);
+
+	$pdf["objects"][$this_id] = array
+		(
+		"id" => $this_id,
+		"version" => 0,
+		"dictionary" => array
+			(
+			"/Type" => "/Encoding",
+			"/BaseEncoding" => "/WinAnsiEncoding",
+			"/Differences" => "[65 /A /B /C]"
+			)
+		);
+
+	################################################################################
+
+	return(sprintf("%d 0 R", $this_id));
+	}
+
+################################################################################
+# pending
+################################################################################
+
+function _pdf_add_font_definition(& $pdf)
+	{
+	$a = _pdf_add_font_encoding($pdf);
+
+	$b = _pdf_add_page_content($pdf, "8 0 0 0 8 8 d1 q 8 0 0 8 0 0 cm BI /IM true /W 8 /H 8 /BPC 1 /D [1 0] /F /CCF /DP << /K -1 /Columns 8 /Filter /ASCIIHexEncode >> ID 0000000000000000 EI Q");
+
+	################################################################################
+
+	$this_id = _pdf_get_free_id($pdf);
+
+	$pdf["objects"][$this_id] = array
+		(
+		"id" => $this_id,
+		"version" => 0,
+		"dictionary" => array
+			(
+			"/Type" => "/Font",
+			"/Subtype" => "/Type3",
+			"/Encoding" => $a,
+			"/CharProcs" => sprintf("<< /C %s /B %s /A %s >>", $b, $b, $b),
+			"/FontMatrix" => "[1 0 0 -1 0 0]",
+			"/FontBBox" => "[0 0 1000 1000]",
+			"/FirstChar" => 65,
+			"/LastChar" => 67,
+			"/Widths" => "[8 8 8]"
+			)
+		);
+
+	################################################################################
 
 	return(sprintf("%d 0 R", $this_id));
 	}
@@ -600,6 +718,8 @@ function _pdf_add_font_file(& $pdf, $filename)
 			),
 		"stream" => file_get_contents($filename)
 		);
+
+	################################################################################
 
 	return(sprintf("%d 0 R", $this_id));
 	}
@@ -628,6 +748,8 @@ function _pdf_add_form(& $pdf, $resources, $bbox, $stream)
 		"stream" => $stream
 		);
 
+	################################################################################
+
 	# resources of page
 
 	if(isset($pdf["loaded-resources"]["/XObject"]))
@@ -636,6 +758,8 @@ function _pdf_add_form(& $pdf, $resources, $bbox, $stream)
 		$id = sprintf("/X%d", 1);
 
 	$pdf["loaded-resources"]["/XObject"][$id] = sprintf("%d 0 R", $this_id);
+
+	################################################################################
 
 	return(sprintf("%d 0 R", $this_id));
 	}
@@ -646,30 +770,32 @@ function _pdf_add_form(& $pdf, $resources, $bbox, $stream)
 
 function _pdf_add_image(& $pdf, $imagetype, $filename)
 	{
-	$this_id = _pdf_get_free_id($pdf);
-
 	if($imagetype == "jpg")
 		{
-		$this_id = _pdf_add_image_jpg($pdf, $filename);
+		$retval = _pdf_add_image_jpg($pdf, $filename);
 		}
 	else
 		{
 		system("convert " . $filename . " -quality 15 lolo.jpg");
 
-		$this_id = _pdf_add_image($pdf, "jpg", "lolo.jpg");
+		$retval = _pdf_add_image($pdf, "jpg", "lolo.jpg");
 
 		unlink("lolo.jpg"); # don't change it. keep this name. don't make fun here. :)
 		}
 
-	return(sprintf("%d 0 R", $this_id));
+	return($retval);
 	}
+
+################################################################################
+# _pdf_add_image_jpeg ( array $pdf , string $filename ) : string
+################################################################################
 
 function _pdf_add_image_jpg(& $pdf, $filename)
 	{
-	$this_id = _pdf_get_free_id($pdf);
-
 	if(($get_image_size = getimagesize($filename)) === false)
 		die("missing or incorrect image file: " . $filename);
+
+	################################################################################
 
 	$width = $get_image_size[0];
 	$height = $get_image_size[1];
@@ -691,6 +817,10 @@ function _pdf_add_image_jpg(& $pdf, $filename)
 	else
 		$bits_per_component = 8;
 
+	################################################################################
+
+	$this_id = _pdf_get_free_id($pdf);
+
 	$pdf["objects"][$this_id] = array
 		(
 		"id" => $this_id,
@@ -708,6 +838,8 @@ function _pdf_add_image_jpg(& $pdf, $filename)
 			),
 		"stream" => file_get_contents($filename)
 		);
+
+	################################################################################
 
 	# resources of page
 
@@ -729,12 +861,16 @@ function _pdf_add_image_jpg(& $pdf, $filename)
 		elseif(in_array("/ImageI", $pdf["loaded-resources"]["/ProcSet"]) === false)
 			$pdf["loaded-resources"]["/ProcSet"][] = "/ImageI";
 
+	# resources of page
+
 	if(isset($pdf["loaded-resources"]["/XObject"]))
 		$id = sprintf("/X%d", count($pdf["loaded-resources"]["/XObject"]) + 1);
 	else
 		$id = sprintf("/X%d", 1);
 
 	$pdf["loaded-resources"]["/XObject"][$id] = sprintf("%d 0 R", $this_id);
+
+	################################################################################
 
 	return(sprintf("%d 0 R", $this_id));
 	}
@@ -746,8 +882,6 @@ function _pdf_add_image_jpg(& $pdf, $filename)
 function _pdf_add_info(& $pdf, $optlist)
 	{
 	$this_id = _pdf_get_free_id($pdf);
-
-	$pdf["objects"][0]["dictionary"]["/Info"] = sprintf("%d 0 R", $this_id);
 
 	$objects[$this_id] = array
 		(
@@ -761,8 +895,14 @@ function _pdf_add_info(& $pdf, $optlist)
 			)
 		);
 
+	################################################################################
+
 	foreach($optlist as $key => $value)
 		$objects[$this_id]["dictionary"][$key] = sprintf("(%s)", _pdf_glue_string($value));
+
+	$pdf["objects"][0]["dictionary"]["/Info"] = sprintf("%d 0 R", $this_id);
+
+	################################################################################
 
 	return(sprintf("%d 0 R", $this_id));
 	}
@@ -773,8 +913,6 @@ function _pdf_add_info(& $pdf, $optlist)
 
 function _pdf_add_linearized(& $pdf)
 	{
-	$this_id = _pdf_get_free_id($pdf);
-
 	$root = $pdf["objects"][0]["dictionary"]["/Root"];
 
 	if(sscanf($root, "%d %d R", $root_id, $root_version) != 2)
@@ -811,6 +949,10 @@ function _pdf_add_linearized(& $pdf)
 		die("_pdf_glue_document: invalid kids.");
 
 	$o = $kids_id;
+
+	################################################################################
+
+	$this_id = _pdf_get_free_id($pdf);
 
 #/*
 	$retval = array("%PDF-1.0");
@@ -865,6 +1007,8 @@ function _pdf_add_linearized(& $pdf)
 		"stream" => $stream # Page offset hint table, Shared object hint table, Possibly other hint tables
 		);
 
+	################################################################################
+
 	return(sprintf("%d 0 R", $this_id));
 	}
 
@@ -874,15 +1018,15 @@ function _pdf_add_linearized(& $pdf)
 
 function _pdf_add_metadata(& $pdf, $parent, $data = "")
 	{
-	$this_id = _pdf_get_free_id($pdf);
-
 	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
 		die("_pdf_add_metadata: invalid parent: " . $parent);
 
-	$pdf["objects"][$parent_id]["dictionary"]["/Metadata"] = sprintf("%d 0 R", $this_id);
+	################################################################################
 
 	if(strlen($data) == 0)
 		$data = '<?xpacket?><x:xmpmeta xmlns:x="adobe:ns:meta/"><r:RDF xmlns:r="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><r:Description xmlns:p="http://www.aiim.org/pdfa/ns/id/"><p:part>1</p:part><p:conformance>A</p:conformance></r:Description></r:RDF></x:xmpmeta><?xpacket?>';
+
+	$this_id = _pdf_get_free_id($pdf);
 
 	$pdf["objects"][$this_id] = array
 		(
@@ -897,6 +1041,12 @@ function _pdf_add_metadata(& $pdf, $parent, $data = "")
 		"stream" => $data
 		);
 
+	################################################################################
+
+	$pdf["objects"][$parent_id]["dictionary"]["/Metadata"] = sprintf("%d 0 R", $this_id);
+
+	################################################################################
+
 	return(sprintf("%d 0 R", $this_id));
 	}
 
@@ -906,17 +1056,12 @@ function _pdf_add_metadata(& $pdf, $parent, $data = "")
 
 function _pdf_add_outline(& $pdf, $parent, $open, $title)
 	{
-	$this_id = _pdf_get_free_id($pdf);
-
 	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
 		die("_pdf_add_outline: invalid parent: " . $parent);
 
-	if(isset($pdf["objects"][$parent_id]["dictionary"]["/Count"]))
-		$count = $pdf["objects"][$parent_id]["dictionary"]["/Count"];
-	else
-		$count = 0;
+	################################################################################
 
-	$pdf["objects"][$parent_id]["dictionary"]["/Count"] = $count - 1;
+	$this_id = _pdf_get_free_id($pdf);
 
 	$pdf["objects"][$this_id] = array
 		(
@@ -929,6 +1074,15 @@ function _pdf_add_outline(& $pdf, $parent, $open, $title)
 			"/Dest" => sprintf("[%s /Fit]", $open)
 			)
 		);
+
+	################################################################################
+
+	if(isset($pdf["objects"][$parent_id]["dictionary"]["/Count"]))
+		$count = $pdf["objects"][$parent_id]["dictionary"]["/Count"];
+	else
+		$count = 0;
+
+	$pdf["objects"][$parent_id]["dictionary"]["/Count"] = $count - 1;
 
 	if(isset($pdf["objects"][$parent_id]["dictionary"]["/First"]) === false)
 		$pdf["objects"][$parent_id]["dictionary"]["/First"] = sprintf("%d 0 R", $this_id);
@@ -945,6 +1099,8 @@ function _pdf_add_outline(& $pdf, $parent, $open, $title)
 
 	$pdf["objects"][$parent_id]["dictionary"]["/Last"] = sprintf("%d 0 R", $this_id);
 
+	################################################################################
+
 	return(sprintf("%d 0 R", $this_id));
 	}
 
@@ -954,12 +1110,12 @@ function _pdf_add_outline(& $pdf, $parent, $open, $title)
 
 function _pdf_add_outlines(& $pdf, $parent)
 	{
-	$this_id = _pdf_get_free_id($pdf);
-
 	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
 		die("_pdf_add_outlines: invalid parent:" . $parent);
 
-	$pdf["objects"][$parent_id]["dictionary"]["/Outlines"] = sprintf("%d 0 R", $this_id);
+	################################################################################
+
+	$this_id = _pdf_get_free_id($pdf);
 
 	$pdf["objects"][$this_id] = array
 		(
@@ -972,8 +1128,14 @@ function _pdf_add_outlines(& $pdf, $parent)
 			)
 		);
 
+	################################################################################
+
+	$pdf["objects"][$parent_id]["dictionary"]["/Outlines"] = sprintf("%d 0 R", $this_id);
+
 	if($pdf["objects"][$parent_id]["dictionary"]["/Type"] == "/Pages")
 		$pdf["objects"][$this_id]["dictionary"]["/Parent"] = $parent;
+
+	################################################################################
 
 	return(sprintf("%d 0 R", $this_id));
 	}
@@ -984,26 +1146,16 @@ function _pdf_add_outlines(& $pdf, $parent)
 
 function _pdf_add_page(& $pdf, $parent, $resources, $mediabox, $contents)
 	{
-	$this_id = _pdf_get_free_id($pdf);
-
 	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
 		die("_pdf_add_pages: invalid parent: " . $parent);
 
-	if(isset($pdf["objects"][$parent_id]["dictionary"]["/Kids"]))
-		$data = $pdf["objects"][$parent_id]["dictionary"]["/Kids"];
-	else
-		$data = "[]";
+	################################################################################
 
-	$data = substr($data, 1);
+	$a = _pdf_add_page_content($pdf, $contents);
 
-	list($kids, $data) = _pdf_parse_array($data);
+	################################################################################
 
-	$data = substr($data, 1);
-	
-	$kids[] = sprintf("%d 0 R", $this_id);
-	
-	$pdf["objects"][$parent_id]["dictionary"]["/Kids"] = sprintf("[%s]", _pdf_glue_array($kids));
-	$pdf["objects"][$parent_id]["dictionary"]["/Count"] = count($kids);
+	$this_id = _pdf_get_free_id($pdf);
 
 	$pdf["objects"][$this_id] = array
 		(
@@ -1015,21 +1167,45 @@ function _pdf_add_page(& $pdf, $parent, $resources, $mediabox, $contents)
 			"/Parent" => $parent,
 			"/Resources" => $resources,
 			"/MediaBox" => $mediabox,
-			"/Contents" => sprintf("%d 0 R", $this_id + 1),
+			"/Contents" => $a,
 #			"/Group" => "<< /Type /Group /S /Transparency /CS /DeviceRGB >>"
 			)
 		);
 
-	_pdf_add_page_content($pdf, $contents);
+	################################################################################
+
+	if(isset($pdf["objects"][$parent_id]["dictionary"]["/Kids"]))
+		$data = $pdf["objects"][$parent_id]["dictionary"]["/Kids"];
+	else
+		$data = "[]";
+
+	################################################################################
+
+	$data = substr($data, 1);
+
+	list($kids, $data) = _pdf_parse_array($data);
+
+	$data = substr($data, 1);
+
+	################################################################################
+
+	$kids[] = sprintf("%d 0 R", $this_id);
+	
+	################################################################################
+
+	$pdf["objects"][$parent_id]["dictionary"]["/Kids"] = sprintf("[%s]", _pdf_glue_array($kids));
+	$pdf["objects"][$parent_id]["dictionary"]["/Count"] = count($kids);
+
+	################################################################################
 
 	return(sprintf("%d 0 R", $this_id));
 	}
 
 ################################################################################
-# _pdf_add_pagedata ( array $pdf , string $content ) : string
+# _pdf_add_page_content ( array $pdf , string $stream ) : string
 ################################################################################
 
-function _pdf_add_page_content(& $pdf, $content)
+function _pdf_add_page_content(& $pdf, $stream)
 	{
 	$this_id = _pdf_get_free_id($pdf);
 
@@ -1039,10 +1215,12 @@ function _pdf_add_page_content(& $pdf, $content)
 		"version" => 0,
 		"dictionary" => array
 			(
-			"/Length" => strlen($content)
+			"/Length" => strlen($stream)
 			),
-		"stream" => $content
+		"stream" => $stream
 		);
+
+	################################################################################
 
 	return(sprintf("%d 0 R", $this_id));
 	}
@@ -1053,12 +1231,12 @@ function _pdf_add_page_content(& $pdf, $content)
 
 function _pdf_add_pages(& $pdf, $parent)
 	{
-	$this_id = _pdf_get_free_id($pdf);
-
 	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
 		die("_pdf_add_page: invalid parent: " . $parent);
 
-	$pdf["objects"][$parent_id]["dictionary"]["/Pages"] = sprintf("%d 0 R", $this_id);
+	################################################################################
+
+	$this_id = _pdf_get_free_id($pdf);
 
 	$pdf["objects"][$this_id] = array
 		(
@@ -1072,6 +1250,12 @@ function _pdf_add_pages(& $pdf, $parent)
 			"/Count" => 0
 			)
 		);
+
+	################################################################################
+
+	$pdf["objects"][$parent_id]["dictionary"]["/Pages"] = sprintf("%d 0 R", $this_id);
+
+	################################################################################
 
 	return(sprintf("%d 0 R", $this_id));
 	}
