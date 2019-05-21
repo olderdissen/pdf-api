@@ -329,6 +329,18 @@ function pdf_begin_layer(& $pdfdoc, $layer)
 	}
 
 ################################################################################
+# PDF_begin_page - Start new page [deprecated]
+# PDF_begin_page ( resource $pdfdoc , float $width , float $height ) : bool
+# Adds a new page to the document. Returns TRUE on success or FALSE on failure.
+# This function is deprecated since PDFlib version 6, use PDF_begin_page_ext() instead.
+################################################################################
+
+function pdf_begin_page(& $pdfdoc, $width, $height)
+	{
+	pdf_begin_page_ext($pdfdoc, $width, $height, array());
+	}
+
+################################################################################
 # PDF_begin_page_ext - Start new page
 # PDF_begin_page_ext ( resource $pdfdoc , float $width , float $height , string $optlist ) : bool
 # Adds a new page to the document, and specifies various options. The parameters width and height are the dimensions of the new page in points. Returns TRUE on success or FALSE on failure.
@@ -372,18 +384,6 @@ function pdf_begin_page_ext(& $pdfdoc, $width, $height, $optlist)
 	$pdfdoc["/Height"] = intval($height);
 
 	return($pdfdoc["stream"] = array());
-	}
-
-################################################################################
-# PDF_begin_page - Start new page [deprecated]
-# PDF_begin_page ( resource $pdfdoc , float $width , float $height ) : bool
-# Adds a new page to the document. Returns TRUE on success or FALSE on failure.
-# This function is deprecated since PDFlib version 6, use PDF_begin_page_ext() instead.
-################################################################################
-
-function pdf_begin_page(& $pdfdoc, $width, $height)
-	{
-	pdf_begin_page_ext($pdfdoc, $width, $height, array());
 	}
 
 ################################################################################
@@ -449,6 +449,18 @@ function pdf_clip(& $p)
 	}
 
 ################################################################################
+# PDF_close - Close pdf resource [deprecated]
+# PDF_close ( resource $p ) : bool
+# Closes the generated PDF file, and frees all document-related resources. Returns TRUE on success or FALSE on failure.
+# This function is deprecated since PDFlib version 6, use PDF_end_document() instead.
+################################################################################
+
+function pdf_close(& $p)
+	{
+	return(pdf_end_document($p, array()));
+	}
+
+################################################################################
 # PDF_close_image - Close image
 # PDF_close_image ( resource $p , int $image ) : bool
 # Closes an image retrieved with the PDF_open_image() function.
@@ -489,18 +501,6 @@ function pdf_close_pdi_document(& $p, $doc)
 function pdf_close_pdi(& $p, $doc)
 	{
 	return(pdf_close_pdi_document($p));
-	}
-
-################################################################################
-# PDF_close - Close pdf resource [deprecated]
-# PDF_close ( resource $p ) : bool
-# Closes the generated PDF file, and frees all document-related resources. Returns TRUE on success or FALSE on failure.
-# This function is deprecated since PDFlib version 6, use PDF_end_document() instead.
-################################################################################
-
-function pdf_close(& $p)
-	{
-	return(pdf_end_document($p, array()));
 	}
 
 ################################################################################
@@ -1277,6 +1277,17 @@ function pdf_end_layer(& $pdfdoc)
 	}
 
 ################################################################################
+# PDF_end_page - Finish page
+# PDF_end_page ( resource $p ) : bool
+# Finishes the page. Returns TRUE on success or FALSE on failure.
+################################################################################
+
+function pdf_end_page(& $p)
+	{
+	return(pdf_end_page_ext($p, array()));
+	}
+
+################################################################################
 # PDF_end_page_ext - Finish page
 # PDF_end_page_ext ( resource $pdfdoc , string $optlist ) : bool
 # Finishes a page, and applies various options. Returns TRUE on success or FALSE on failure.
@@ -1310,17 +1321,6 @@ function pdf_end_page_ext(& $pdfdoc, $optlist)
 	$pdfdoc["page-dictionary"][] = $object;
 
 	return($pdfdoc["reference-id"] = $pdfdoc["reference-id"] + 2);
-	}
-
-################################################################################
-# PDF_end_page - Finish page
-# PDF_end_page ( resource $p ) : bool
-# Finishes the page. Returns TRUE on success or FALSE on failure.
-################################################################################
-
-function pdf_end_page(& $p)
-	{
-	return(pdf_end_page_ext($p, array()));
 	}
 
 ################################################################################
