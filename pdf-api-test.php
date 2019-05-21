@@ -12,7 +12,7 @@ _pdf_main();
 
 function _pdf_main()
 	{
-	$data = file_get_contents("test.pdf");
+	$data = file_get_contents("pdf-api-test.pdf");
 
 	$pdf["objects"] = _pdf_parse_document($data);
 
