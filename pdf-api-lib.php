@@ -77,6 +77,10 @@ function _pdf_end_document(& $pdf)
 
 function _pdf_end_page(& $pdf)
 	{
+	$resources = array();
+
+	################################################################################
+
 	if(isset($pdf["loaded-resources"]["/ProcSet"]))
 		foreach($pdf["loaded-resources"]["/ProcSet"] as $object)
 			$resources["/ProcSet"][] = $object;
@@ -89,6 +93,8 @@ function _pdf_end_page(& $pdf)
 		foreach($pdf["loaded-resources"]["/XObject"] as $id => $object)
 			$resources["/XObject"]["/X" . $id] = $object;
 
+	################################################################################
+
 	if(isset($resources["/ProcSet"]))
 		$resources["/ProcSet"] = sprintf("[%s]", _pdf_glue_array($$resources["/ProcSet"]));
 
@@ -98,11 +104,11 @@ function _pdf_end_page(& $pdf)
 	if(isset($resources["/XObject"]))
 		$resources["/XObject"] = sprintf("<< %s >>", _pdf_glue_dictionary($resources["/XObject"]));
 
-	$parent = $pdf["pages"];
+	################################################################################
 
+	$parent = $pdf["pages"];
 	$mediabox = sprintf("[%d %d %d %d]", 0, 0 , $pdf["width"], $pdf["height"]);
 	$resources = sprintf("<< %s >>", _pdf_glue_dictionary($resources));
-
 	$contents = implode(" ", $pdf["stream"]);
 
 	$contents = _pdf_add_stream($pdf, $contents);
@@ -122,6 +128,45 @@ function _pdf_get_buffer(& $pdf)
 	}
 
 ################################################################################
+# _pdf_get_free_object_id ( array $pdf ) : int
+################################################################################
+
+function _pdf_get_free_object_id(& $pdf, $id = 1)
+	{
+	if(isset($pdf["objects"]))
+		while(isset($pdf["objects"][$id]))
+			$id ++;
+
+	return($id);
+	}
+
+################################################################################
+# _pdf_get_free_font_id ( array $pdf ) : int
+################################################################################
+
+function _pdf_get_free_font_id(& $pdf, $id = 1)
+	{
+	if(isset($pdf["loaded-resources"]["/Font"]))
+		while(isset($pdf["loaded-resources"]["/Font"][$id]))
+			$id ++;
+
+	return($id);
+	}
+
+################################################################################
+# _pdf_get_free_font_id ( array $pdf ) : int
+################################################################################
+
+function _pdf_get_free_xobject_id(& $pdf, $id = 1)
+	{
+	if(isset($pdf["loaded-resources"]["/XObject"]))
+		while(isset($pdf["loaded-resources"]["/Font"][$id]))
+			$id ++;
+
+	return($id);
+	}
+
+################################################################################
 # _pdf_load_font ( array $pdf , string $fontname ) : string
 ################################################################################
 
@@ -134,6 +179,21 @@ function _pdf_load_font(& $pdf, $fontname)
 	$pdf["loaded-resources"]["/Font"][$b] = sprintf("%d 0 R", $a);
 
 	return("/F" . $b);
+	}
+
+################################################################################
+# _pdf_load_image ( array $pdf , string $filename ) : string
+################################################################################
+
+function _pdf_load_image(& $pdf, $filename)
+	{
+	$a = _pdf_add_imge($pdf, $filename);
+
+	$b = _pdf_get_free_xobject_id($pdf);
+
+	$pdf["loaded-resources"]["/XObject"][$b] = sprintf("%d 0 R", $a);
+
+	return("/X" . $b);
 	}
 
 ################################################################################
