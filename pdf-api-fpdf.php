@@ -1,6 +1,9 @@
 <?
 ################################################################################
-# written 2019 by markus olderdissen
+# copyright 2019 by Markus Olderdissen
+# free for private use or inspiration.
+# public use need written permission.
+#
 # contains material from olivier plathey
 ################################################################################
 
