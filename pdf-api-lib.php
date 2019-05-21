@@ -11,11 +11,11 @@
 
 function _pdf_begin_document(& $pdf)
 	{
-	$catalog = _pdf_add_catalog($pdf);
+	$catalog = _pdf_add_catalog($pdf); # pdf-api-extra.php
 
-	$outlines = _pdf_add_outlines($pdf, $catalog);
+	$outlines = _pdf_add_outlines($pdf, $catalog); # pdf-api-extra.php
 
-	$pages = _pdf_add_pages($pdf, $catalog);
+	$pages = _pdf_add_pages($pdf, $catalog); # pdf-api-extra.php
 
 	$pdf["outlines"] = $outlines;
 	$pdf["pages"] = $pages;
@@ -96,24 +96,24 @@ function _pdf_end_page(& $pdf)
 	################################################################################
 
 	if(isset($resources["/ProcSet"]))
-		$resources["/ProcSet"] = sprintf("[%s]", _pdf_glue_array($$resources["/ProcSet"]));
+		$resources["/ProcSet"] = sprintf("[%s]", _pdf_glue_array($$resources["/ProcSet"])); # pdf-api-glue.php
 
 	if(isset($resources["/Font"]))
-		$resources["/Font"] = sprintf("<< %s >>", _pdf_glue_dictionary($resources["/Font"]));
+		$resources["/Font"] = sprintf("<< %s >>", _pdf_glue_dictionary($resources["/Font"])); # pdf-api-glue.php
 
 	if(isset($resources["/XObject"]))
-		$resources["/XObject"] = sprintf("<< %s >>", _pdf_glue_dictionary($resources["/XObject"]));
+		$resources["/XObject"] = sprintf("<< %s >>", _pdf_glue_dictionary($resources["/XObject"])); # pdf-api-glue.php
 
 	################################################################################
 
 	$parent = $pdf["pages"];
 	$mediabox = sprintf("[%d %d %d %d]", 0, 0 , $pdf["width"], $pdf["height"]);
-	$resources = sprintf("<< %s >>", _pdf_glue_dictionary($resources));
+	$resources = sprintf("<< %s >>", _pdf_glue_dictionary($resources)); # pdf-api-glue.php
 	$contents = implode(" ", $pdf["stream"]);
 
-	$contents = _pdf_add_stream($pdf, $contents);
+	$contents = _pdf_add_stream($pdf, $contents); # pdf-api-extra.php
 
-	$retval = _pdf_add_page($pdf, $parent, $resources, $mediabox, $contents);
+	$retval = _pdf_add_page($pdf, $parent, $resources, $mediabox, $contents); # pdf-api-extra.php
 
 	return($retval);
 	}
@@ -172,7 +172,7 @@ function _pdf_get_free_xobject_id(& $pdf, $id = 1)
 
 function _pdf_load_font(& $pdf, $fontname)
 	{
-	$a = _pdf_add_font($pdf, $fontname);
+	$a = _pdf_add_font($pdf, $fontname); # pdf-api-extra.php
 
 	$b = _pdf_get_free_font_id($pdf);
 
@@ -187,7 +187,7 @@ function _pdf_load_font(& $pdf, $fontname)
 
 function _pdf_load_image(& $pdf, $filename)
 	{
-	$a = _pdf_add_imge($pdf, $filename);
+	$a = _pdf_add_imge($pdf, $filename); # pdf-api-extra.php
 
 	$b = _pdf_get_free_xobject_id($pdf);
 

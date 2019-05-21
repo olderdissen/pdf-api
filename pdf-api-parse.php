@@ -46,7 +46,7 @@ function _pdf_parse_array($data)
 
 			$data = substr($data, 2);
 
-			$retval[] = sprintf("<< %s >>", _pdf_glue_dictionary($value));
+			$retval[] = sprintf("<< %s >>", _pdf_glue_dictionary($value)); # pdf-api-glue.php
 			}
 		elseif($data[0] == "<")
 			{
@@ -66,7 +66,7 @@ function _pdf_parse_array($data)
 
 			$data = substr($data, 1);
 
-			$retval[] = sprintf("[%s]", _pdf_glue_array($value));
+			$retval[] = sprintf("[%s]", _pdf_glue_array($value)); # pdf-api-glue.php
 			}
 		elseif($data[0] == "]")
 			break;
@@ -216,7 +216,7 @@ function _pdf_parse_dictionary($data)
 
 					$data = substr($data, 2);
 
-					$value = sprintf("<< %s >>", _pdf_glue_dictionary($value));
+					$value = sprintf("<< %s >>", _pdf_glue_dictionary($value)); # pdf-api-glue.php
 
 					break;
 					}
@@ -240,7 +240,7 @@ function _pdf_parse_dictionary($data)
 
 					$data = substr($data, 1);
 
-					$value = sprintf("[%s]", _pdf_glue_array($value));
+					$value = sprintf("[%s]", _pdf_glue_array($value)); # pdf-api-glue.php
 
 					break;
 					}

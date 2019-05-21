@@ -7,7 +7,7 @@
 
 include("pdf-api.php");
 
-#_pdf_main();
+_pdf_main();
 _pdf_test();
 
 function _pdf_main()
@@ -20,7 +20,7 @@ function _pdf_main()
 #	_pdf_filter_change($pdf);
 #	_pdf_filter_change($pdf, "/FlateDecode");
 	_pdf_filter_change($pdf, "/ASCIIHexDecode /FlateDecode");
-#	_pdf_add_linearized($pdf);
+	_pdf_add_linearized($pdf);
 #	print_r($pdf); exit;
 
 	$data = _pdf_glue_document($pdf["objects"]);
@@ -44,14 +44,14 @@ function _pdf_test()
 		{
 		_pdf_begin_page($pdf, 595, 842);
 		$pdf["stream"][] = "BT";
-		_pdf_set_font($pdf, $font, 12); # use return value of _add_font as fontname
+		_pdf_set_font($pdf, $font, 12); # use return value of _add_font as fontname ... pending
 		_pdf_set_leading($pdf, 12);
 		_pdf_set_xy($pdf, 3, 3);
 		_pdf_set_text($pdf, "ABC " . $i);
 		$pdf["stream"][] = "ET";
 		$page = _pdf_end_page($pdf); # store loaded resources
 
-		$outline = _pdf_add_outline($pdf, $pdf["outlines"], $page, "Seite " . $i);
+#		$outline = _pdf_add_outline($pdf, $pdf["outlines"], $page, "Seite " . $i);
 		}
 
 	_pdf_end_document($pdf);

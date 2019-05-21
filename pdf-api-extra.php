@@ -285,7 +285,10 @@ function _pdf_core_fonts()
 
 function _pdf_add_acroform(& $pdf, $parent, $resources)
 	{
-	$this_id = _pdf_get_free_object_id($pdf);
+	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
+		die("_pdf_add_acroform: invalid parent: " . $parent);
+
+	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
 
 	$pdf["objects"][$this_id] = array
 		(
@@ -297,10 +300,30 @@ function _pdf_add_acroform(& $pdf, $parent, $resources)
 			)
 		);
 
-	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
-		die("_pdf_add_acroform: invalid parent: " . $parent);
-
 	$pdf["objects"][$parent_id]["dictionary"]["/AcroForm"] = sprintf("%d 0 R", $this_id);
+
+	return(sprintf("%d 0 R", $this_id));
+	}
+
+################################################################################
+# _pdf_add_action ( array $pdf  ) : string
+################################################################################
+
+function _pdf_add_action(& $pdf, $optlist)
+	{
+	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
+
+	$pdf["objects"][$this_id] = array
+		(
+		"id" => $this_id,
+		"version" => 0,
+		"dictionary" => array
+			(
+			"/Type" => "/Action",
+			"/S" => "/URI",
+			"/URI" => sprintf("(%s)", _pdf_glue_string($optlist["uri"])) # pdf-api-glue.php
+			)
+		);
 
 	return(sprintf("%d 0 R", $this_id));
 	}
@@ -311,10 +334,13 @@ function _pdf_add_acroform(& $pdf, $parent, $resources)
 
 function _pdf_add_annotation(& $pdf, $parent, $rect, $type, $optlist)
 	{
+	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
+		die("_pdf_add_annots: invalid parent: " . $parent);
+
+	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
+
 	if($type == "link")
 		{
-		$this_id = _pdf_get_free_object_id($pdf);
-
 		$pdf["objects"][$this_id] = array
 			(
 			"id" => $this_id,
@@ -334,8 +360,6 @@ function _pdf_add_annotation(& $pdf, $parent, $rect, $type, $optlist)
 
 	if($type == "uri")
 		{
-		$this_id = _pdf_get_free_object_id($pdf);
-
 		$pdf["objects"][$this_id] = array
 			(
 			"id" => $this_id,
@@ -346,12 +370,7 @@ function _pdf_add_annotation(& $pdf, $parent, $rect, $type, $optlist)
 				"/Subtype" => "/Link",
 				"/Rect" => $rect,
 
-				"/A" => array
-					(
-					"/Type" => "/Action",
-					"/S" => "/URI",
-					"/URI" => sprintf("(%s)", _pdf_glue_string($optlist["uri"]))
-					)
+				"/A" => $optlist["action"]
 				)
 			);
 		}
@@ -360,20 +379,6 @@ function _pdf_add_annotation(& $pdf, $parent, $rect, $type, $optlist)
 
 	if($type == "widget")
 		{
-		$resources = array
-			(
-			"/ProcSet" => "[/PDF /Text]",
-			"/Font" => "<< /F0 4 0 R >>"
-			);
-
-		$stream = "/Tx BMC q 1 1 98 8 re W n BT /F0 8 Tf 0 g 1 1 Td (static) Tj ET Q EMC";
-
-		$a = _pdf_add_form($pdf, $resources, "[0 0 100 10]", $stream);
-
-		################################################################################
-
-		$this_id = _pdf_get_free_object_id($pdf);
-
 		$pdf["objects"][$this_id] = array
 			(
 			"id" => $this_id,
@@ -389,16 +394,11 @@ function _pdf_add_annotation(& $pdf, $parent, $rect, $type, $optlist)
 				"/T" => "(javascript_name_a)",
 				"/AP" => array
 					(
-					"/N" => $a
+					"/N" => $optlist["form"]
 					)
 				)
 			);
 		}
-
-	################################################################################
-
-	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
-		die("_pdf_add_annots: invalid parent: " . $parent);
 
 	################################################################################
 
@@ -411,7 +411,7 @@ function _pdf_add_annotation(& $pdf, $parent, $rect, $type, $optlist)
 
 	$data = substr($data, 1);
 
-	list($annots, $data) = _pdf_parse_array($data);
+	list($annots, $data) = _pdf_parse_array($data); # pdf-api-parse.php
 
 	$data = substr($data, 1);
 
@@ -421,7 +421,7 @@ function _pdf_add_annotation(& $pdf, $parent, $rect, $type, $optlist)
 
 	################################################################################
 
-	$pdf["objects"][$parent_id]["dictionary"]["/Annots"] = sprintf("[%s]", _pdf_glue_array($annots));
+	$pdf["objects"][$parent_id]["dictionary"]["/Annots"] = sprintf("[%s]", _pdf_glue_array($annots)); # pdf-api-glue.php
 
 	################################################################################
 
@@ -434,7 +434,7 @@ function _pdf_add_annotation(& $pdf, $parent, $rect, $type, $optlist)
 
 function _pdf_add_catalog(& $pdf)
 	{
-	$this_id = _pdf_get_free_object_id($pdf);
+	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
 
 	$pdf["objects"][] = array
 		(
@@ -473,7 +473,7 @@ function _pdf_add_field(& $pdf, $parent, $field)
 
 	$data = substr($data, 1);
 
-	list($fields, $data) = _pdf_parse_array($data);
+	list($fields, $data) = _pdf_parse_array($data); # pdf-api-parse.php
 
 	$data = substr($data, 1);
 	
@@ -483,7 +483,7 @@ function _pdf_add_field(& $pdf, $parent, $field)
 	
 	################################################################################
 
-	$pdf["objects"][$parent_id]["dictionary"]["/Fields"] = sprintf("[%s]", _pdf_glue_array($fields));
+	$pdf["objects"][$parent_id]["dictionary"]["/Fields"] = sprintf("[%s]", _pdf_glue_array($fields)); # pdf-api-glue.php
 	}
 
 ################################################################################
@@ -528,7 +528,7 @@ function _pdf_add_font(& $pdf, $fontname, $encoding = "/WinAnsiEncoding")
 		if($v["/BaseFont"] != "/" . $fontname)
 			continue;
 
-		$this_id = _pdf_get_free_object_id($pdf);
+		$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
 
 		$pdf["objects"][$this_id] = array
 			(
@@ -565,7 +565,9 @@ function _pdf_add_font(& $pdf, $fontname, $encoding = "/WinAnsiEncoding")
 
 	$a = _pdf_add_font_file($pdf, $filename);
 
-	$this_id = _pdf_get_free_object_id($pdf);
+	$b = _pdf_add_font_descriptor($pdf, $fontname, $a);
+
+	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
 
 	$pdf["objects"][$this_id] = array
 		(
@@ -579,21 +581,39 @@ function _pdf_add_font(& $pdf, $fontname, $encoding = "/WinAnsiEncoding")
 			"/Encoding" => $encoding,
 			"/FirstChar" => 32,
 			"/LastChar" => 255,
-			"/Widths" => sprintf("[%s]", _pdf_glue_array($widths)),
-			"/FontDescriptor" => array
-				(
-#				"/Type" => "/FontDescriptor",
-#				"/Flags" => FONTDESCRIPTOR_FLAG_SERIF | FONTDESCRIPTOR_FLAG_SCRIPT,
-#				"/StemV" => 90,
-#				"/CapHeight" => 720,
-#				"/XHeight" => 480,
-#				"/Ascent" => 720,
-#				"/Descent" => 0 - 250,
-#				"/ItalicAngle" => 0,
-#				"/FontBBox" => "[0 -240 1440 1000]",
-				"/FontName" => "/" . $fontname,
-				"/FontFile2" => $a
-				)
+			"/Widths" => sprintf("[%s]", _pdf_glue_array($widths)), # pdf-api-glue.php
+			"/FontDescriptor" => $b
+			)
+		);
+
+	return(sprintf("%d 0 R", $this_id));
+	}
+
+################################################################################
+# _pdf_add_font_encoding ( array $pdf , string $differences ) : string
+################################################################################
+
+function _pdf_add_font_descriptor(& $pdf, $fontname, $fontfile)
+	{
+	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
+
+	$pdf["objects"][$this_id] = array
+		(
+		"id" => $this_id,
+		"version" => 0,
+		"dictionary" => array
+			(
+			"/Type" => "/FontDescriptor",
+#			"/Flags" => FONTDESCRIPTOR_FLAG_SERIF | FONTDESCRIPTOR_FLAG_SCRIPT,
+#			"/StemV" => 90,
+#			"/CapHeight" => 720,
+#			"/XHeight" => 480,
+#			"/Ascent" => 720,
+#			"/Descent" => 0 - 250,
+#			"/ItalicAngle" => 0,
+#			"/FontBBox" => "[0 -240 1440 1000]",
+			"/FontName" => "/" . $fontname,
+			"/FontFile2" => $fontfile
 			)
 		);
 
@@ -606,7 +626,7 @@ function _pdf_add_font(& $pdf, $fontname, $encoding = "/WinAnsiEncoding")
 
 function _pdf_add_font_encoding(& $pdf, $encoding = "/WinAnsiEncoding", $differences = "[65 /A /B /C]")
 	{
-	$this_id = _pdf_get_free_object_id($pdf);
+	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
 
 	$pdf["objects"][$this_id] = array
 		(
@@ -633,7 +653,7 @@ function _pdf_add_font_definition(& $pdf)
 
 	$b = _pdf_add_page_content($pdf, "");
 
-	$this_id = _pdf_get_free_object_id($pdf);
+	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
 
 	$pdf["objects"][$this_id] = array
 		(
@@ -662,7 +682,7 @@ function _pdf_add_font_definition(& $pdf)
 
 function _pdf_add_font_file(& $pdf, $filename)
 	{
-	$this_id = _pdf_get_free_object_id($pdf);
+	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
 
 	$pdf["objects"][$this_id] = array
 		(
@@ -685,7 +705,7 @@ function _pdf_add_font_file(& $pdf, $filename)
 
 function _pdf_add_form(& $pdf, $resources, $bbox, $stream)
 	{
-	$this_id = _pdf_get_free_object_id($pdf);
+	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
 
 	$pdf["objects"][$this_id] = array
 		(
@@ -703,7 +723,7 @@ function _pdf_add_form(& $pdf, $resources, $bbox, $stream)
 		"stream" => $stream
 		);
 
-	$id = _pdf_get_free_xobject_id($pdf);
+	$id = _pdf_get_free_xobject_id($pdf); # pdf-api-lib.php
 
 	$pdf["loaded-resources"]["/XObject"][$id] = sprintf("%d 0 R", $this_id);
 
@@ -763,7 +783,7 @@ function _pdf_add_image_jpg(& $pdf, $filename)
 
 	################################################################################
 
-	$this_id = _pdf_get_free_object_id($pdf);
+	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
 
 	$pdf["objects"][$this_id] = array
 		(
@@ -810,9 +830,9 @@ function _pdf_add_image_jpg(& $pdf, $filename)
 
 function _pdf_add_info(& $pdf, $optlist)
 	{
-	$this_id = _pdf_get_free_object_id($pdf);
+	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
 
-	$objects[$this_id] = array
+	$pdf["objects"][$this_id] = array
 		(
 		"id" => $this_id,
 		"version" => 0,
@@ -825,7 +845,7 @@ function _pdf_add_info(& $pdf, $optlist)
 		);
 
 	foreach($optlist as $key => $value)
-		$objects[$this_id]["dictionary"][$key] = sprintf("(%s)", _pdf_glue_string($value));
+		$pdf["objects"][$this_id]["dictionary"][$key] = sprintf("(%s)", _pdf_glue_string($value)); # pdf-api-glue.php
 
 	$pdf["objects"][0]["dictionary"]["/Info"] = sprintf("%d 0 R", $this_id);
 
@@ -838,6 +858,35 @@ function _pdf_add_info(& $pdf, $optlist)
 
 function _pdf_add_linearized(& $pdf)
 	{
+	$hint = _pdf_add_linearized_hints($pdf);
+
+	if(sscanf($hint, "%d %d R", $hint_id, $hint_version) != 2)
+		die("_pdf_add_linearized: invalid hint stream offset.");
+
+	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
+
+	foreach($pdf["objects"] as $index => $object)
+		if(isset($object["dictionary"]["/Linearized"]))
+			$this_id = $index;
+
+#	$pdf["objects"][$this_id] = array
+#		(
+#		"id" => $this_id,
+#		"version" => 0,
+#		"dictionary" => array
+#			(
+#			"/Linearized" => 1,
+#			"/E" => 0, # Offset of end of first page
+#			"/H" => "[0 0]", # Primary hint stream offset and length  int.: offset is equal to number in xref table
+#			"/L" => 0, # File length int.: startxret + 10 + length of lineraized things
+#			"/N" => 0, # Number of pages in document
+#			"/O" => 0, # Object number of first page’s page object
+#			"/T" => 0 # Offset of first entry in main cross-reference table int.: startxret + 10
+#			)
+#		);
+
+	################################################################################
+
 	$root = $pdf["objects"][0]["dictionary"]["/Root"];
 
 	if(sscanf($root, "%d %d R", $root_id, $root_version) != 2)
@@ -883,15 +932,6 @@ function _pdf_add_linearized(& $pdf)
 
 	################################################################################
 
-	$hint = _pdf_add_linearized_hints($pdf);
-
-	if(sscanf($hint, "%d %d R", $hint_id, $hint_version) != 2)
-		die("_pdf_add_linearized: invalid hint stream offset.");
-
-	################################################################################
-
-	$this_id = _pdf_get_free_object_id($pdf);
-
 	$retval = array("%PDF-1.0");
 
 	$offsets = array();
@@ -909,7 +949,7 @@ function _pdf_add_linearized(& $pdf)
 		if($index == $hint_id)
 			$hint_offset = strlen(implode("\n", $retval)) + 1;
 
-		$retval[] = _pdf_glue_object($object);
+		$retval[] = _pdf_glue_object($object); # pdf-api-glue.php
 
 		if($index == $hint_id)
 			$hint_length = strlen(implode("\n", $retval)) - $hint_offset + 1;
@@ -920,45 +960,7 @@ function _pdf_add_linearized(& $pdf)
 
 	$startxref = strlen(implode("\n", $retval)) + 1;
 
-	$h = sprintf("[%d %d]", $hint_offset, $hint_length);
-	$n = $count;
-	$o = $page_id;
-
-	$x = $startxref + strlen($startxref) + strlen($e) + strlen($h) + strlen($n) + strlen($o);
-
-	$l = $x + strlen($x) + 70 + (count($offsets) * 10) + strlen(sprintf("<< %s >>", _pdf_glue_dictionary($pdf["objects"][0]["dictionary"]))) + 203;
-	$t = $x + strlen($x) + 70;
-
-	$pdf["objects"][$this_id] = array
-		(
-		"id" => $this_id,
-		"version" => 0,
-		"dictionary" => array
-			(
-			"/Linearized" => 1,
-
-			# Offset of end of first page
-			"/E" => $e,
-
-			# Primary hint stream offset and length
-			# int.: offset is equal to number in xref table
-			"/H" => $h,
-
-			# File length
-			# startxret + 10 + length of lineraized things
-			"/L" => $l,
-
-			# Number of pages in document
-			"/N" => $n,
-
-			# Object number of first page’s page object
-			"/O" => $o,
-
-			# Offset of first entry in main cross-reference table
-			# startxret + 10
-			"/T" => $t
-			)
-		);
+	################################################################################
 
 	return(sprintf("%d 0 R", $this_id));
 	}
@@ -967,13 +969,56 @@ function _pdf_add_linearized_hints(& $pdf)
 	{
 	$stream = array();
 
-	foreach($pdf["objects"] as $index => $object)
-		if($index != 0)
-			$stream[] = "0000000000 00000 n";
+	# the least number of objects in first page
+	$stream[] = sprintf("%08x", 0);
 
-	$stream = implode("\n", $stream);
+	# the location of the first pages page object
+	$stream[] = sprintf("%08x", 0);
 
-	$this_id = _pdf_get_free_object_id($pdf);
+	# the number of bits needed to represent the difference between the greatest and least number of objects in a page.
+	$stream[] = sprintf("%04x", 0);
+
+	# The least length of a page in bytes. 
+	# This shall be the least length from the beginning of a page object to the last byte of the last object used by that page.
+	$stream[] = sprintf("%08x", 0);
+
+	# The number of bits needed to represent the difference between the greatest and least length of a page, in bytes.
+	$stream[] = sprintf("%04x", 0);
+
+	# The least offset of the start of any content stream, relative to the beginning of its page.
+	$stream[] = sprintf("%08x", 0);
+	
+	# The number of bits needed to represent the difference between the greatest and least offset to the start of the content stream.
+	$stream[] = sprintf("%04x", 0);
+
+	# The least content stream length.
+	$stream[] = sprintf("%08x", 0);
+
+	# The number of bits needed to represent the difference between the greatest and least content stream length.
+	$stream[] = sprintf("%04x", 0);
+
+	# The number of bits needed to represent the greatest number of shared object references.
+	$stream[] = sprintf("%04x", 0);
+
+	# The number of bits needed to represent the numerically greatest shared object identifier used by the pages (discussed further in Table F.4, item 4).	
+	$stream[] = sprintf("%04x", 0);
+
+	# The number of bits needed to represent the numerator of the fractional position for each shared object reference.
+	# For each shared object referenced from a page, there shall be an indication of where in the page’s content stream the object is first referenced.
+	# That position shall be given as the numerator of a fraction, whose denominator is specified once for the entire document (in the next item in this table).
+	# The fraction is explained in more detail in Table F.4, item 5.
+	$stream[] = sprintf("%04x", 0);
+
+	# The denominator of the fractional position for each shared object reference.
+	$stream[] = sprintf("%04x", 0);
+
+	$stream = implode("", $stream);
+
+	$stream = hex2bin($stream);
+	$stream = gzcompress($stream);
+	$stream = bin2hex($stream);
+
+	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
 
 	$pdf["objects"][$this_id] = array
 		(
@@ -982,6 +1027,7 @@ function _pdf_add_linearized_hints(& $pdf)
 		"dictionary" => array
 			(
 			"/S" => 0, # Position of shared object hint table
+			"/Filter" => "[/ASCIIHexDecode /FlateDecode]",
 			"/Length" => strlen($stream)
 			),
 		"stream" => $stream # Page offset hint table, Shared object hint table, Possibly other hint tables
@@ -994,12 +1040,12 @@ function _pdf_add_linearized_hints(& $pdf)
 # _pdf_add_metadata ( array $pdf , string $parent , string $stream ) : string
 ################################################################################
 
-function _pdf_add_metadata(& $pdf, $parent, $stream = "")
+function _pdf_add_metadata(& $pdf, $parent, $stream = '<?xpacket?><x:xmpmeta xmlns:x="adobe:ns:meta/"><r:RDF xmlns:r="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><r:Description xmlns:p="http://www.aiim.org/pdfa/ns/id/"><p:part>1</p:part><p:conformance>A</p:conformance></r:Description></r:RDF></x:xmpmeta><?xpacket?>')
 	{
-	if(strlen($stream) == 0)
-		$stream = '<?xpacket?><x:xmpmeta xmlns:x="adobe:ns:meta/"><r:RDF xmlns:r="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><r:Description xmlns:p="http://www.aiim.org/pdfa/ns/id/"><p:part>1</p:part><p:conformance>A</p:conformance></r:Description></r:RDF></x:xmpmeta><?xpacket?>';
+	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
+		die("_pdf_add_metadata: invalid parent: " . $parent);
 
-	$this_id = _pdf_get_free_object_id($pdf);
+	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
 
 	$pdf["objects"][$this_id] = array
 		(
@@ -1014,9 +1060,6 @@ function _pdf_add_metadata(& $pdf, $parent, $stream = "")
 		"stream" => $stream
 		);
 
-	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
-		die("_pdf_add_metadata: invalid parent: " . $parent);
-
 	$pdf["objects"][$parent_id]["dictionary"]["/Metadata"] = sprintf("%d 0 R", $this_id);
 
 	return(sprintf("%d 0 R", $this_id));
@@ -1028,7 +1071,10 @@ function _pdf_add_metadata(& $pdf, $parent, $stream = "")
 
 function _pdf_add_outline(& $pdf, $parent, $open, $title)
 	{
-	$this_id = _pdf_get_free_object_id($pdf);
+	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
+		die("_pdf_add_outline: invalid parent: " . $parent);
+
+	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
 
 	$pdf["objects"][$this_id] = array
 		(
@@ -1036,14 +1082,11 @@ function _pdf_add_outline(& $pdf, $parent, $open, $title)
 		"version" => 0,
 		"dictionary" => array
 			(
-			"/Title" => sprintf("(%s)", _pdf_glue_string($title)),
+			"/Title" => sprintf("(%s)", _pdf_glue_string($title)), # pdf-api-glue.php
 			"/Parent" => $parent,
 			"/Dest" => sprintf("[%s /Fit]", $open)
 			)
 		);
-
-	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
-		die("_pdf_add_outline: invalid parent: " . $parent);
 
 	if(isset($pdf["objects"][$parent_id]["dictionary"]["/Count"]))
 		$count = $pdf["objects"][$parent_id]["dictionary"]["/Count"];
@@ -1076,7 +1119,10 @@ function _pdf_add_outline(& $pdf, $parent, $open, $title)
 
 function _pdf_add_outlines(& $pdf, $parent)
 	{
-	$this_id = _pdf_get_free_object_id($pdf);
+	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
+		die("_pdf_add_outlines: invalid parent:" . $parent);
+
+	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
 
 	$pdf["objects"][$this_id] = array
 		(
@@ -1088,9 +1134,6 @@ function _pdf_add_outlines(& $pdf, $parent)
 			"/Count" => 0
 			)
 		);
-
-	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
-		die("_pdf_add_outlines: invalid parent:" . $parent);
 
 	if($pdf["objects"][$parent_id]["dictionary"]["/Type"] == "/Pages")
 		$pdf["objects"][$this_id]["dictionary"]["/Parent"] = $parent;
@@ -1106,7 +1149,10 @@ function _pdf_add_outlines(& $pdf, $parent)
 
 function _pdf_add_page(& $pdf, $parent, $resources, $mediabox, $contents)
 	{
-	$this_id = _pdf_get_free_object_id($pdf);
+	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
+		die("_pdf_add_pages: invalid parent: " . $parent);
+
+	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
 
 	$pdf["objects"][$this_id] = array
 		(
@@ -1125,11 +1171,6 @@ function _pdf_add_page(& $pdf, $parent, $resources, $mediabox, $contents)
 
 	################################################################################
 
-	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
-		die("_pdf_add_pages: invalid parent: " . $parent);
-
-	################################################################################
-
 	if(isset($pdf["objects"][$parent_id]["dictionary"]["/Kids"]))
 		$data = $pdf["objects"][$parent_id]["dictionary"]["/Kids"];
 	else
@@ -1139,7 +1180,7 @@ function _pdf_add_page(& $pdf, $parent, $resources, $mediabox, $contents)
 
 	$data = substr($data, 1);
 
-	list($kids, $data) = _pdf_parse_array($data);
+	list($kids, $data) = _pdf_parse_array($data); # pdf-api-parse.php
 
 	$data = substr($data, 1);
 
@@ -1149,7 +1190,7 @@ function _pdf_add_page(& $pdf, $parent, $resources, $mediabox, $contents)
 	
 	################################################################################
 
-	$pdf["objects"][$parent_id]["dictionary"]["/Kids"] = sprintf("[%s]", _pdf_glue_array($kids));
+	$pdf["objects"][$parent_id]["dictionary"]["/Kids"] = sprintf("[%s]", _pdf_glue_array($kids)); # pdf-api-glue.php
 	$pdf["objects"][$parent_id]["dictionary"]["/Count"] = count($kids);
 
 	################################################################################
@@ -1163,7 +1204,10 @@ function _pdf_add_page(& $pdf, $parent, $resources, $mediabox, $contents)
 
 function _pdf_add_pages(& $pdf, $parent)
 	{
-	$this_id = _pdf_get_free_object_id($pdf);
+	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
+		die("_pdf_add_page: invalid parent: " . $parent);
+
+	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
 
 	$pdf["objects"][$this_id] = array
 		(
@@ -1177,8 +1221,6 @@ function _pdf_add_pages(& $pdf, $parent)
 			)
 		);
 
-	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
-		die("_pdf_add_page: invalid parent: " . $parent);
 
 	if($pdf["objects"][$parent_id]["dictionary"]["/Type"] == "/Page")
 		$pdf["objects"][$this_id]["dictionary"]["/Parent"] = $parent;
@@ -1194,7 +1236,7 @@ function _pdf_add_pages(& $pdf, $parent)
 
 function _pdf_add_stream(& $pdf, $stream)
 	{
-	$this_id = _pdf_get_free_object_id($pdf);
+	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
 
 	$pdf["objects"][$this_id] = array
 		(
