@@ -40,50 +40,26 @@ function _pdf_test()
 
 	$pages = _pdf_add_pages($pdf, $catalog);
 
-	$procset = array
-		(
-		"/PDF",
-		"/Text"
-		);
+	$pdf["loaded-resources"]["/ProcSet"] = array("/PDF", "/Text");
+	$pdf["loaded-resources"]["/Font"] = array("/F1" => _pdf_add_font($pdf, "Courier"));
 
-	$font = array
-		(
-		"/F1" => _pdf_add_font($pdf, "Courier"),
-#		"/F2" => _pdf_add_font($objects, "Courier-Bold")
-		);
+	# procset is array. array need to be glued. dictionary will be glued later in any case.
 
-	$xobject = array
-		(
-		);
+	if(isset($pdf["loaded-resources"]["/ProcSet"]))
+		$pdf["loaded-resources"]["/ProcSet"] = sprintf("[%s]", _pdf_glue_array($pdf["loaded-resources"]["/ProcSet"]));
+
+	$resources = $pdf["loaded-resources"];
 
 	foreach(range(1, 1) as $i)
 		{
-		$resources = array
-			(
-			"/ProcSet" => sprintf("[%s]", _pdf_glue_array($procset)),
-			"/Font" => sprintf("<< %s >>", _pdf_glue_dictionary($font)),
-			"/XObject" => sprintf("<< %s >>", _pdf_glue_dictionary($xobject)),
-			);
-
-		if(count($procset) == 0)
-			unset($resources["/Procset"]);
-
-		if(count($font) == 0)
-			unset($resources["/Font"]);
-
-		if(count($xobject) == 0)
-			unset($resources["/XObject"]);
-
-		$resources = sprintf("<< %s >>", _pdf_glue_dictionary($resources));
-
 		_pdf_begin_page($pdf, 595, 842);
 		$pdf["stream"][] = "BT";
-		_pdf_set_font($pdf, "/F1", 12);
+		_pdf_set_font($pdf, "/F1", 12); # use return value of _add_font as fontname
 		_pdf_set_leading($pdf, 12);
 		_pdf_set_xy($pdf, 3, 3);
 		_pdf_set_text($pdf, "ABC " . $i);
 		$pdf["stream"][] = "ET";
-		_pdf_end_page($pdf);
+		_pdf_end_page($pdf); # store loaded resources
 
 		$contents = _pdf_get_buffer($pdf);
 

@@ -637,14 +637,14 @@ function _pdf_parse_object($data)
 
 		$data = ltrim($data); # try to overcome this
 
-		if(preg_match("/^stream[\s|\n]*(.+)[\s|\n]*endstream.*/is", $data, $matches) == 1)
+		if(preg_match("/^stream[\s|\n]+(.+)[\s|\n]+endstream.*/is", $data, $matches) == 1) # !!! fails on hex streams sometimes
 			{
 			list($null, $stream) = $matches; # data for value
 
 			$retval["stream"] = $stream;
 			}
 		}
-	elseif(preg_match("/^stream[\s|\n]*(.+)[\s|\n]*endstream.*/is", $data, $matches) == 1)
+	elseif(preg_match("/^stream[\s|\n]+(.+)[\s|\n]+endstream.*/is", $data, $matches) == 1) # !!! fails on hex streams sometimes
 		{
 		list($null, $stream) = $matches; # data for value
 
