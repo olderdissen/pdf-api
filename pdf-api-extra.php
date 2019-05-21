@@ -883,7 +883,7 @@ function _pdf_add_linearized(& $pdf)
 
 	################################################################################
 
-	$hint = _pdf_add_linearized_hints($pdf, "");
+	$hint = _pdf_add_linearized_hints($pdf);
 
 	if(sscanf($hint, "%d %d R", $hint_id, $hint_version) != 2)
 		die("_pdf_add_linearized: invalid hint stream offset.");
@@ -906,17 +906,28 @@ function _pdf_add_linearized(& $pdf)
 
 		$offsets[$index] = strlen(implode("\n", $retval)) + 1;
 
+		if($index == $hint_id)
+			$hint_offset = strlen(implode("\n", $retval)) + 1;
+
 		$retval[] = _pdf_glue_object($object);
+
+		if($index == $hint_id)
+			$hint_length = strlen(implode("\n", $retval)) - $hint_offset + 1;
+
+		if($index == $page_id)
+			$e = strlen(implode("\n", $retval)) + 1;
 		}
 
 	$startxref = strlen(implode("\n", $retval)) + 1;
 
-	$h = sprintf("[%d %d]", $hint_id, $offsets[$hint_id]);
+	$h = sprintf("[%d %d]", $hint_offset, $hint_length);
+	$n = $count;
+	$o = $page_id;
 
-	$x = $startxref + 10 + strlen($startxref) + strlen($offsets[$page_id]) + strlen($h) + strlen($count) + strlen($page_id);
+	$x = $startxref + strlen($startxref) + strlen($e) + strlen($h) + strlen($n) + strlen($o);
 
-	$l = $x + strlen($x) + 6 + strlen("");
-	$t = $x + strlen($x) + 50;
+	$l = $x + strlen($x) + 70 + (count($offsets) * 10) + strlen(sprintf("<< %s >>", _pdf_glue_dictionary($pdf["objects"][0]["dictionary"]))) + 203;
+	$t = $x + strlen($x) + 70;
 
 	$pdf["objects"][$this_id] = array
 		(
@@ -927,7 +938,7 @@ function _pdf_add_linearized(& $pdf)
 			"/Linearized" => 1,
 
 			# Offset of end of first page
-			"/E" => $offsets[$page_id],
+			"/E" => $e,
 
 			# Primary hint stream offset and length
 			# int.: offset is equal to number in xref table
@@ -938,10 +949,10 @@ function _pdf_add_linearized(& $pdf)
 			"/L" => $l,
 
 			# Number of pages in document
-			"/N" => $count,
+			"/N" => $n,
 
 			# Object number of first page’s page object
-			"/O" => $page_id,
+			"/O" => $o,
 
 			# Offset of first entry in main cross-reference table
 			# startxret + 10
@@ -952,10 +963,15 @@ function _pdf_add_linearized(& $pdf)
 	return(sprintf("%d 0 R", $this_id));
 	}
 
-function _pdf_add_linearized_hints(& $pdf, $stream = "")
+function _pdf_add_linearized_hints(& $pdf)
 	{
-	if(strlen($stream) == 0)
-		$stream = "\x00\x00\x00\x00";
+	$stream = array();
+
+	foreach($pdf["objects"] as $index => $object)
+		if($index != 0)
+			$stream[] = "0000000000 00000 n";
+
+	$stream = implode("\n", $stream);
 
 	$this_id = _pdf_get_free_object_id($pdf);
 
