@@ -1,6 +1,6 @@
 # pdf-api
 
-**some bigger text known as title
+**some bigger text known as title**
 
 some regular text
 
