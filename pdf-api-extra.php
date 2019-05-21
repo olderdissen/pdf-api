@@ -498,7 +498,7 @@ function _pdf_add_field(& $pdf, $parent, $field)
 # _pdf_add_font ( array $pdf , string $fontname , string $encoding ) : string
 ################################################################################
 
-function _pdf_add_font(& $pdf, $fontname, $encoding = "")
+function _pdf_add_font(& $pdf, $fontname, $encoding = "/WinAnsiEncoding")
 	{
 	foreach($pdf["objects"] as $index => $object)
 		{
@@ -547,17 +547,9 @@ function _pdf_add_font(& $pdf, $fontname, $encoding = "")
 				"/Type" => "/Font",
 				"/Subtype" => "/Type1",
 				"/BaseFont" => "/" . $fontname,
-				"/Encoding" => "/WinAnsiEncoding"
+				"/Encoding" => $encoding
 				)
 			);
-
-		################################################################################
-
-		$id = _pdf_get_free_font_id($pdf);
-
-		$pdf["loaded-resources"]["/Font"][$id] = sprintf("%d 0 R", $this_id);
-
-		################################################################################
 
 		return(sprintf("%d 0 R", $this_id));
 		}
@@ -568,7 +560,7 @@ function _pdf_add_font(& $pdf, $fontname, $encoding = "")
 	$filename = "/usr/share/fonts/truetype/freefont/" . $fontname . ".ttf";
 
 	if(file_exists($filename) === false)
-		return(_pdf_add_font($pdf["objects"], "/Courier"));
+		return(_pdf_add_font($pdf["objects"], "/Courier", $encoding));
 
 	################################################################################
 
@@ -594,7 +586,7 @@ function _pdf_add_font(& $pdf, $fontname, $encoding = "")
 			"/Type" => "/Font",
 			"/Subtype" => "/TrueType",
 			"/BaseFont" => "/" . $fontname,
-			"/Encoding" => "/WinAnsiEncoding",
+			"/Encoding" => $encoding,
 			"/FirstChar" => 32,
 			"/LastChar" => 255,
 			"/Widths" => sprintf("[%s]", _pdf_glue_array($widths)),
@@ -630,7 +622,7 @@ function _pdf_add_font(& $pdf, $fontname, $encoding = "")
 # _pdf_add_font_encoding ( array $pdf , string $differences ) : string
 ################################################################################
 
-function _pdf_add_font_encoding(& $pdf, $differences)
+function _pdf_add_font_encoding(& $pdf, $encoding = "/WinAnsiEncoding", $differences = "[65 /A /B /C]")
 	{
 	$this_id = _pdf_get_free_object_id($pdf);
 
@@ -641,12 +633,10 @@ function _pdf_add_font_encoding(& $pdf, $differences)
 		"dictionary" => array
 			(
 			"/Type" => "/Encoding",
-			"/BaseEncoding" => "/WinAnsiEncoding",
-			"/Differences" => "[65 /A /B /C]"
+			"/BaseEncoding" => $encoding,
+			"/Differences" => $differences
 			)
 		);
-
-	################################################################################
 
 	return(sprintf("%d 0 R", $this_id));
 	}
@@ -707,8 +697,6 @@ function _pdf_add_font_file(& $pdf, $filename)
 			),
 		"stream" => file_get_contents($filename)
 		);
-
-	################################################################################
 
 	return(sprintf("%d 0 R", $this_id));
 	}
@@ -898,7 +886,7 @@ function _pdf_add_linearized(& $pdf)
 		die("_pdf_add_linearized: invalid root: " . $root);
 
 	if(isset($pdf["objects"][$root_id]["dictionary"]["/Pages"]) === false)
-		die("_pdf_add_linearized: invalid root.");
+		die("_pdf_add_linearized: pages not found.");
 
 	$pages = $pdf["objects"][$root_id]["dictionary"]["/Pages"];
 
@@ -906,12 +894,12 @@ function _pdf_add_linearized(& $pdf)
 		die("_pdf_add_linearized: invalid pages: " . $pages);
 
 	if(isset($pdf["objects"][$pages_id]["dictionary"]["/Count"]) === false)
-		die("_pdf_add_linearized: invalid pages.");
+		die("_pdf_add_linearized: invalid count.");
 
 	if(isset($pdf["objects"][$pages_id]["dictionary"]["/Count"]))
-		$n = abs($pdf["objects"][$pages_id]["dictionary"]["/Count"]);
+		$count = abs($pdf["objects"][$pages_id]["dictionary"]["/Count"]);
 	else
-		$n = 0;
+		$count = 0;
 
 	################################################################################
 
@@ -930,16 +918,25 @@ function _pdf_add_linearized(& $pdf)
 
 	################################################################################
 
-	if(sscanf($kids[0], "%d %d R", $kids_id, $kids_version) != 2)
-		die("_pdf_glue_document: invalid kids.");
+	$page = $kids[0];
 
-	$o = $kids_id;
+	if(sscanf($page, "%d %d R", $page_id, $page_version) != 2)
+		die("_pdf_add_linearized: invalid kids.");
+
+	################################################################################
+
+	$hint = _pdf_add_linearized_hints($pdf, "");
+
+	if(sscanf($hint, "%d %d R", $hint_id, $hint_version) != 2)
+		die("_pdf_add_linearized: invalid hint stream offset.");
 
 	################################################################################
 
 	$this_id = _pdf_get_free_object_id($pdf);
-#/*
+
 	$retval = array("%PDF-1.0");
+
+	$offsets = array();
 
 	foreach($pdf["objects"] as $index => $object)
 		{
@@ -949,14 +946,20 @@ function _pdf_add_linearized(& $pdf)
 		if(isset($object["dictionary"]["/Linearized"]))
 			$this_id = $index;
 
+		if($index == $page_id)
+			$e = strlen(implode("\n", $retval)) + 1;
+
+		if($index == $hint_id)
+			$hint_offset = strlen(implode("\n", $retval)) + 1;
+
+		$offsets[$index] = strlen(implode("\n", $retval)) + 1;
+
 		$retval[] = _pdf_glue_object($object);
 		}
 
-	$t = strlen(implode("\n", $retval)) + 1;
+	$startxref = strlen(implode("\n", $retval)) + 1;
 
-	$t = $t - strlen($n) - strlen($t) - strlen($o) + 154;
-
-	list($l, $e, $ho, $hl) = array(0, 0, $this_id + 1, 0);
+	$l = 0;
 
 	$pdf["objects"][$this_id] = array
 		(
@@ -965,16 +968,28 @@ function _pdf_add_linearized(& $pdf)
 		"dictionary" => array
 			(
 			"/Linearized" => 1,
-			"/E" => $e, # Offset of end of first page
-			"/H" => sprintf("[%d %d]", $ho, $hl), # Primary hint stream offset and length (offset is equal to number in xref table)
-			"/L" => $l, # File length
-			"/N" => $n, # Number of pages in document
-			"/O" => $o, # Object number of first page’s page object
-			"/T" => $t # Offset of first entry in main cross-reference table
+
+			# Offset of end of first page
+			"/E" => $e,
+
+			# Primary hint stream offset and length
+			# int.: offset is equal to number in xref table
+			"/H" => sprintf("[%d %d]", $hint_id, $hint_offset),
+
+			# File length
+			"/L" => $l,
+
+			# Number of pages in document
+			"/N" => $count,
+
+			# Object number of first page’s page object
+			"/O" => $page_id,
+
+			# Offset of first entry in main cross-reference table
+			# startxret + 10
+			"/T" => $startxref + strlen($count) + strlen($startxref) + strlen($page_id) + 83
 			)
 		);
-
-	$a = _pdf_add_linearized_hints($pdf, "");
 
 	################################################################################
 
@@ -1001,8 +1016,6 @@ function _pdf_add_linearized_hints(& $pdf, $stream = "")
 			),
 		"stream" => $stream # Page offset hint table, Shared object hint table, Possibly other hint tables
 		);
-
-	################################################################################
 
 	return(sprintf("%d 0 R", $this_id));
 	}
@@ -1137,10 +1150,6 @@ function _pdf_add_outlines(& $pdf, $parent)
 
 function _pdf_add_page(& $pdf, $parent, $resources, $mediabox, $contents)
 	{
-	$a = _pdf_add_page_content($pdf, $contents);
-
-	################################################################################
-
 	$this_id = _pdf_get_free_object_id($pdf);
 
 	$pdf["objects"][$this_id] = array
@@ -1153,7 +1162,7 @@ function _pdf_add_page(& $pdf, $parent, $resources, $mediabox, $contents)
 			"/Parent" => $parent,
 			"/Resources" => $resources,
 			"/MediaBox" => $mediabox,
-			"/Contents" => $a,
+			"/Contents" => $contents,
 #			"/Group" => "<< /Type /Group /S /Transparency /CS /DeviceRGB >>"
 			)
 		);
@@ -1193,30 +1202,6 @@ function _pdf_add_page(& $pdf, $parent, $resources, $mediabox, $contents)
 	}
 
 ################################################################################
-# _pdf_add_page_content ( array $pdf , string $stream ) : string
-################################################################################
-
-function _pdf_add_page_content(& $pdf, $stream)
-	{
-	$this_id = _pdf_get_free_object_id($pdf);
-
-	$pdf["objects"][$this_id] = array
-		(
-		"id" => $this_id,
-		"version" => 0,
-		"dictionary" => array
-			(
-			"/Length" => strlen($stream)
-			),
-		"stream" => $stream
-		);
-
-	################################################################################
-
-	return(sprintf("%d 0 R", $this_id));
-	}
-
-################################################################################
 # _pdf_add_pages ( array $pdf , string $parent ) : string
 ################################################################################
 
@@ -1245,6 +1230,28 @@ function _pdf_add_pages(& $pdf, $parent)
 	$pdf["objects"][$parent_id]["dictionary"]["/Pages"] = sprintf("%d 0 R", $this_id);
 
 	################################################################################
+
+	return(sprintf("%d 0 R", $this_id));
+	}
+
+################################################################################
+# _pdf_add_stream ( array $pdf , string $stream ) : string
+################################################################################
+
+function _pdf_add_stream(& $pdf, $stream)
+	{
+	$this_id = _pdf_get_free_object_id($pdf);
+
+	$pdf["objects"][$this_id] = array
+		(
+		"id" => $this_id,
+		"version" => 0,
+		"dictionary" => array
+			(
+			"/Length" => strlen($stream)
+			),
+		"stream" => $stream
+		);
 
 	return(sprintf("%d 0 R", $this_id));
 	}

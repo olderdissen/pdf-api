@@ -7,8 +7,8 @@
 
 include("pdf-api.php");
 
-_pdf_main();
-#_pdf_test();
+#_pdf_main();
+_pdf_test();
 
 function _pdf_main()
 	{
@@ -36,43 +36,25 @@ function _pdf_test()
 	{
 	$pdf = _pdf_new();
 
-	$catalog = _pdf_add_catalog($pdf);
+	_pdf_begin_document($pdf);
 
-	$outlines = _pdf_add_outlines($pdf, $catalog);
-
-	$pages = _pdf_add_pages($pdf, $catalog);
-
-	$pdf["loaded-resources"]["/ProcSet"] = array("/PDF", "/Text");
-	$pdf["loaded-resources"]["/Font"] = array("/F1" => _pdf_add_font($pdf, "Courier"));
-
-	# procset is array. array need to be glued. dictionary will be glued later in any case.
-
-	if(isset($pdf["loaded-resources"]["/ProcSet"]))
-		$pdf["loaded-resources"]["/ProcSet"] = sprintf("[%s]", _pdf_glue_array($pdf["loaded-resources"]["/ProcSet"]));
-
-	$resources = $pdf["loaded-resources"];
+	$font = _pdf_load_font($pdf, "Courier");
 
 	foreach(range(1, 1) as $i)
 		{
 		_pdf_begin_page($pdf, 595, 842);
 		$pdf["stream"][] = "BT";
-		_pdf_set_font($pdf, "/F1", 12); # use return value of _add_font as fontname
+		_pdf_set_font($pdf, $font, 12); # use return value of _add_font as fontname
 		_pdf_set_leading($pdf, 12);
 		_pdf_set_xy($pdf, 3, 3);
 		_pdf_set_text($pdf, "ABC " . $i);
 		$pdf["stream"][] = "ET";
-		_pdf_end_page($pdf); # store loaded resources
+		$page = _pdf_end_page($pdf); # store loaded resources
 
-		$contents = _pdf_get_buffer($pdf);
-
-		$mediabox = sprintf("[0 0 %d %d]", 595, 842);
-
-		$page = _pdf_add_page($pdf, $pages, $resources, $mediabox, $contents);
-
-		$outline = _pdf_add_outline($pdf, $outlines, $page, "Seite " . $i);
+		$outline = _pdf_add_outline($pdf, $pdf["outlines"], $page, "Seite " . $i);
 		}
 
-	$pdf["objects"][0]["dictionary"]["/Size"] = count($pdf["objects"]);
+	_pdf_end_document($pdf);
 
 	$data = _pdf_glue_document($pdf["objects"]);
 

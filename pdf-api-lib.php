@@ -6,16 +6,30 @@
 ################################################################################
 
 ################################################################################
-# _pdf_begin_page ( array $pdf , int $width , int $height ) : void
+# _pdf_begin_document ( array $pdf ) : void
+################################################################################
+
+function _pdf_begin_document(& $pdf)
+	{
+	$catalog = _pdf_add_catalog($pdf);
+
+	$outlines = _pdf_add_outlines($pdf, $catalog);
+
+	$pages = _pdf_add_pages($pdf, $catalog);
+
+	$pdf["outlines"] = $outlines;
+	$pdf["pages"] = $pages;
+	}
+
+################################################################################
+# _pdf_begin_page ( array $pdf , int $width , int $height, string $parent ) : void
 ################################################################################
 
 function _pdf_begin_page(& $pdf, $width, $height)
 	{
 	$pdf["width"] = $width;
 	$pdf["height"] = $height;
-	$pdf["stream"] = array
-		(
-		);
+	$pdf["stream"] = array();
 	}
 
 ################################################################################
@@ -43,39 +57,18 @@ function _pdf_concat(& $pdf, $a, $b, $c, $d, $e, $f)
 
 function _pdf_new()
 	{
-	$pdf = array
-		(
-		"/ProcSet" => array
-			(
-			),
-
-		"/Font" => array
-			(
-			),
-
-		"/XObject" => array
-			(
-			),
-
-		"objects" => array
-			(
-			array
-				(
-				"dictionary" => array
-					(
-					"/Size" => 0
-					)
-				)
-			),
-
-		"width" => 0,
-		"height" => 0,
-		"stream" => array
-			(
-			)
-		);
+	$pdf = array("objects" => array(array("dictionary" => array("/Size" => 0))));
 
 	return($pdf);
+	}
+
+################################################################################
+# _pdf_end_document ( array $pdf ) : void
+################################################################################
+
+function _pdf_end_document(& $pdf)
+	{
+	$pdf["objects"][0]["dictionary"]["/Size"] = count($pdf["objects"]);
 	}
 
 ################################################################################
@@ -84,7 +77,39 @@ function _pdf_new()
 
 function _pdf_end_page(& $pdf)
 	{
-	$pdf["stream"] = implode(" ", $pdf["stream"]);
+	if(isset($pdf["loaded-resources"]["/ProcSet"]))
+		foreach($pdf["loaded-resources"]["/ProcSet"] as $object)
+			$resources["/ProcSet"][] = $object;
+
+	if(isset($pdf["loaded-resources"]["/Font"]))
+		foreach($pdf["loaded-resources"]["/Font"] as $id => $object)
+			$resources["/Font"]["/F" . $id] = $object;
+
+	if(isset($pdf["loaded-resources"]["/XObject"]))
+		foreach($pdf["loaded-resources"]["/XObject"] as $id => $object)
+			$resources["/XObject"]["/X" . $id] = $object;
+
+	if(isset($resources["/ProcSet"]))
+		$resources["/ProcSet"] = sprintf("[%s]", _pdf_glue_array($$resources["/ProcSet"]));
+
+	if(isset($resources["/Font"]))
+		$resources["/Font"] = sprintf("<< %s >>", _pdf_glue_dictionary($resources["/Font"]));
+
+	if(isset($resources["/XObject"]))
+		$resources["/XObject"] = sprintf("<< %s >>", _pdf_glue_dictionary($resources["/XObject"]));
+
+	$parent = $pdf["pages"];
+
+	$mediabox = sprintf("[%d %d %d %d]", 0, 0 , $pdf["width"], $pdf["height"]);
+	$resources = sprintf("<< %s >>", _pdf_glue_dictionary($resources));
+
+	$contents = implode(" ", $pdf["stream"]);
+
+	$contents = _pdf_add_stream($pdf, $contents);
+
+	$retval = _pdf_add_page($pdf, $parent, $resources, $mediabox, $contents);
+
+	return($retval);
 	}
 
 ################################################################################
@@ -94,6 +119,21 @@ function _pdf_end_page(& $pdf)
 function _pdf_get_buffer(& $pdf)
 	{
 	return($pdf["stream"]);
+	}
+
+################################################################################
+# _pdf_load_font ( array $pdf , string $fontname ) : string
+################################################################################
+
+function _pdf_load_font(& $pdf, $fontname)
+	{
+	$a = _pdf_add_font($pdf, $fontname);
+
+	$b = _pdf_get_free_font_id($pdf);
+
+	$pdf["loaded-resources"]["/Font"][$b] = sprintf("%d 0 R", $a);
+
+	return("/F" . $b);
 	}
 
 ################################################################################
