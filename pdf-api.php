@@ -153,7 +153,7 @@ function pdf_add_weblink(& $pdfdoc, $lowerleftx, $lowerlefty, $upperrightx, $upp
 
 function pdf_arc(& $p, $x, $y, $r, $alpha, $beta)
 	{
-	return(pdf_arc_orient($p, $x, $y, $r, $alpha, $beta, 0 - 1));
+	pdf_arc_orient($p, $x, $y, $r, $alpha, $beta, 0 - 1);
 	}
 
 ################################################################################
@@ -164,7 +164,7 @@ function pdf_arc(& $p, $x, $y, $r, $alpha, $beta)
 
 function pdf_arcn(& $p, $x, $y, $r, $alpha, $beta)
 	{
-	return(pdf_arc_orient($p, $x, $y, $r, $alpha, $beta, 0 + 1));
+	pdf_arc_orient($p, $x, $y, $r, $alpha, $beta, 0 + 1);
 	}
 
 ################################################################################
@@ -383,7 +383,7 @@ function pdf_begin_page_ext(& $pdfdoc, $width, $height, $optlist)
 	$pdfdoc["/Width"] = intval($width);
 	$pdfdoc["/Height"] = intval($height);
 
-	return($pdfdoc["stream"] = array());
+	$pdfdoc["stream"] = array();
 	}
 
 ################################################################################
@@ -404,7 +404,7 @@ function pdf_begin_pattern(& $pdfdoc, $width, $height, $xstep, $ystep, $painttyp
 
 function pdf_begin_template_ext(& $pdfdoc, $width, $height, $optlist)
 	{
-	return($pdfdoc["stream"] = array());
+	$pdfdoc["stream"] = array();
 	}
 
 ################################################################################
@@ -445,7 +445,7 @@ function pdf_circle(& $pdfdoc, $x, $y, $r)
 
 function pdf_clip(& $p)
 	{
-	return($p["stream"][] = "W");
+	$p["stream"][] = "W";
 	}
 
 ################################################################################
@@ -457,7 +457,7 @@ function pdf_clip(& $p)
 
 function pdf_close(& $p)
 	{
-	return(pdf_end_document($p, array()));
+	pdf_end_document($p, array());
 	}
 
 ################################################################################
@@ -468,7 +468,7 @@ function pdf_close(& $p)
 
 function pdf_close_image(& $p, $image)
 	{
-	return($p["stream"][] = "EI");
+	$p["stream"][] = "EI";
 	}
 
 ################################################################################
@@ -500,7 +500,7 @@ function pdf_close_pdi_document(& $p, $doc)
 
 function pdf_close_pdi(& $p, $doc)
 	{
-	return(pdf_close_pdi_document($p));
+	pdf_close_pdi_document($p);
 	}
 
 ################################################################################
@@ -511,7 +511,7 @@ function pdf_close_pdi(& $p, $doc)
 
 function pdf_closepath(& $p)
 	{
-	return($p["stream"][] = "h");
+	$p["stream"][] = "h";
 	}
 
 ################################################################################
@@ -522,7 +522,7 @@ function pdf_closepath(& $p)
 
 function pdf_closepath_fill_stroke(& $p)
 	{
-	return($p["stream"][] = "b");
+	$p["stream"][] = "b";
 	}
 
 ################################################################################
@@ -533,7 +533,7 @@ function pdf_closepath_fill_stroke(& $p)
 
 function pdf_closepath_stroke(& $p)
 	{
-	return($p["stream"][] = "s");
+	$p["stream"][] = "s";
 	}
 
 ################################################################################
@@ -544,7 +544,7 @@ function pdf_closepath_stroke(& $p)
 
 function pdf_concat(& $p, $a, $b, $c, $d, $e, $f)
 	{
-	return($p["stream"][] = sprintf("%f %f %f %f %f %f cm", $a, $b, $c, $d, $e, $f));
+	$p["stream"][] = sprintf("%f %f %f %f %f %f cm", $a, $b, $c, $d, $e, $f);
 	}
 
 ################################################################################
@@ -678,7 +678,7 @@ function pdf_create_textflow(& $pdfdoc, $text, $optlist)
 
 function pdf_curveto(& $p, $x1, $y1, $x2, $y2, $x3, $y3)
 	{
-	return($p["stream"][] = sprintf("%f %f %f %f %f %f c", $x1, $y1, $x2, $y2, $x3, $y3));
+	$p["stream"][] = sprintf("%f %f %f %f %f %f c", $x1, $y1, $x2, $y2, $x3, $y3);
 	}
 
 ################################################################################
@@ -730,7 +730,7 @@ function pdf_delete_textflow(& $pdfdoc, $textflow)
 
 function pdf_delete(& $pdfdoc)
 	{
-	return($pdfdoc = null);
+	$pdfdoc = null;
 	}
 
 ################################################################################
@@ -1351,7 +1351,7 @@ function pdf_end_template(& $pdfdoc)
 
 function pdf_endpath(& $p)
 	{
-	return($p["stream"][] = "n");
+	$p["stream"][] = "n";
 	}
 	
 ################################################################################
@@ -1363,7 +1363,7 @@ function pdf_endpath(& $p)
 
 function pdf_fill(& $p)
 	{
-	return($p["stream"][] = "f");
+	$p["stream"][] = "f";
 	}
 
 ################################################################################
@@ -1396,7 +1396,7 @@ function pdf_fill_pdfblock(& $pdfdoc, $page, $blockname, $contents, $optlist)
 
 function pdf_fill_stroke(& $p)
 	{
-	return($p["stream"][] = "B");
+	$p["stream"][] = "B";
 	}
 
 ################################################################################
@@ -1753,7 +1753,7 @@ function pdf_initgraphics(& $p)
 
 function pdf_lineto(& $p, $x, $y)
 	{
-	return($p["stream"][] = sprintf("%f %f l", $x, $y));
+	$p["stream"][] = sprintf("%f %f l", $x, $y);
 	}
 
 ################################################################################
@@ -1922,7 +1922,7 @@ function pdf_makespotcolor(& $p, $spotname)
 
 function pdf_moveto(& $p, $x, $y)
 	{
-	return($p["stream"][] = sprintf("%f %f m", $x, $y));
+	$p["stream"][] = sprintf("%f %f m", $x, $y);
 	}
 
 ################################################################################
@@ -2574,7 +2574,7 @@ function pdf_pcos_get_string(& $pdfdoc, $doc, $path)
 
 function pdf_place_image(& $pdfdoc, $image, $x, $y, $scale)
 	{
-	return(pdf_fit_image($pdfdoc, $image, $x, $y, array("scale" => $scale)));
+	pdf_fit_image($pdfdoc, $image, $x, $y, array("scale" => $scale));
 	}
 
 ################################################################################
@@ -2586,7 +2586,7 @@ function pdf_place_image(& $pdfdoc, $image, $x, $y, $scale)
 
 function pdf_place_pdi_page(& $pdfdoc, $page, $x, $y, $sx, $sy)
 	{
-	return(pdf_fit_pdi_page($pdfdoc, $page, $x, $y, array("sx" => $sx, "sy" => $sy)));
+	pdf_fit_pdi_page($pdfdoc, $page, $x, $y, array("sx" => $sx, "sy" => $sy));
 	}
 
 ################################################################################
@@ -2607,7 +2607,7 @@ function pdf_process_pdi(& $pdfdoc, $doc, $page, $optlist)
 
 function pdf_rect(& $p, $x, $y, $width, $height)
 	{
-	return($p["stream"][] = sprintf("%f %f %f %f re", $x, $y, $width, $height));
+	$p["stream"][] = sprintf("%f %f %f %f re", $x, $y, $width, $height);
 	}
 
 ################################################################################
@@ -2618,7 +2618,7 @@ function pdf_rect(& $p, $x, $y, $width, $height)
 
 function pdf_restore(& $p)
 	{
-	return($p["stream"][] = "Q");
+	$p["stream"][] = "Q";
 	}
 
 ################################################################################
@@ -2642,7 +2642,7 @@ function pdf_rotate(& $p, $phi)
 	$sin = sin($phi * M_PI / 180);
 	$cos = cos($phi * M_PI / 180);
 
-	return(pdf_concat($p, 0 + $cos, 0 + $sin, 0 - $sin, 0 + $cos, 0, 0));
+	pdf_concat($p, 0 + $cos, 0 + $sin, 0 - $sin, 0 + $cos, 0, 0);
 	}
 
 ################################################################################
@@ -2653,7 +2653,7 @@ function pdf_rotate(& $p, $phi)
 
 function pdf_save(& $p)
 	{
-	return($p["stream"][] = "q");
+	$p["stream"][] = "q";
 	}
 
 ################################################################################
@@ -2664,7 +2664,7 @@ function pdf_save(& $p)
 
 function pdf_scale(& $p, $sx, $sy)
 	{
-	return(pdf_concat($p, $sx, 0, 0, $sy, 0, 0));
+	pdf_concat($p, $sx, 0, 0, $sy, 0, 0);
 	}
 
 ################################################################################
@@ -2707,7 +2707,7 @@ function pdf_set_border_style(& $p, $style, $width)
 
 function pdf_set_char_spacing(& $pdfdoc, $space)
 	{
-	return(pdf_set_value($pdfdoc, "charspacing", $space));
+	pdf_set_value($pdfdoc, "charspacing", $space);
 	}
 
 ################################################################################
@@ -2717,7 +2717,7 @@ function pdf_set_char_spacing(& $pdfdoc, $space)
 
 function pdf_set_duration(& $pdfdoc, $duration)
 	{
-	return($pdfdoc["/Dur"] = $duration);
+	$pdfdoc["/Dur"] = $duration;
 	}
 
 ################################################################################
@@ -2737,7 +2737,7 @@ function pdf_set_gstate(& $pdfdoc, $gstate)
 
 function pdf_set_horizontal_scaling(& $p, $value)
 	{
-	return(pdf_set_value($p, "horizscaling", $value));
+	pdf_set_value($p, "horizscaling", $value);
 	}
 
 ################################################################################
@@ -2747,7 +2747,7 @@ function pdf_set_horizontal_scaling(& $p, $value)
 
 function pdf_set_info_author(& $p, $value)
 	{
-	return(pdf_set_info($p, "Author", $value));
+	pdf_set_info($p, "Author", $value);
 	}
 
 ################################################################################
@@ -2757,7 +2757,7 @@ function pdf_set_info_author(& $p, $value)
 
 function pdf_set_info_creator(& $p, $value)
 	{
-	return(pdf_set_info($p, "Creator", $value));
+	pdf_set_info($p, "Creator", $value);
 	}
 
 ################################################################################
@@ -2767,7 +2767,7 @@ function pdf_set_info_creator(& $p, $value)
 
 function pdf_set_info_keywords(& $p, $value)
 	{
-	return(pdf_set_info($p, "Keywords", $value));
+	pdf_set_info($p, "Keywords", $value);
 	}
 
 ################################################################################
@@ -2777,7 +2777,7 @@ function pdf_set_info_keywords(& $p, $value)
 
 function pdf_set_info_subject(& $p, $value)
 	{
-	return(pdf_set_info($p, "Subject", $value));
+	pdf_set_info($p, "Subject", $value);
 	}
 
 ################################################################################
@@ -2787,7 +2787,7 @@ function pdf_set_info_subject(& $p, $value)
 
 function pdf_set_info_title(& $p, $value)
 	{
-	return(pdf_set_info($p, "Title", $value));
+	pdf_set_info($p, "Title", $value);
 	}
 
 ################################################################################
@@ -2798,7 +2798,7 @@ function pdf_set_info_title(& $p, $value)
 
 function pdf_set_info(& $p, $key, $value)
 	{
-	return($p["info-dictionary"][0]["dictionary"]["/" . $key] = utf8_decode($value));
+	$p["info-dictionary"][0]["dictionary"]["/" . $key] = utf8_decode($value);
 	}
 
 ################################################################################
@@ -2819,7 +2819,7 @@ function pdf_set_layer_dependency(& $pdfdoc, $type, $optlist)
 
 function pdf_set_leading(& $pdfdoc, $distance)
 	{
-	return(pdf_set_value($pdfdoc, "leading", $distance));
+	pdf_set_value($pdfdoc, "leading", $distance);
 	}
 
 ################################################################################
@@ -2830,7 +2830,7 @@ function pdf_set_leading(& $pdfdoc, $distance)
 
 function pdf_set_parameter(& $p, $key, $value)
 	{
-	return($p[$key] = $value);
+	$p[$key] = $value;
 	}
 
 ################################################################################
@@ -2841,7 +2841,7 @@ function pdf_set_parameter(& $p, $key, $value)
 
 function pdf_set_text_pos(& $p, $x, $y)
 	{
-	return($p["stream"][] = sprintf("%f %f Td", $x, $y));
+	$p["stream"][] = sprintf("%f %f Td", $x, $y);
 	}
 
 ################################################################################
@@ -2851,7 +2851,7 @@ function pdf_set_text_pos(& $p, $x, $y)
 
 function pdf_set_text_rendering(& $pdfdoc, $textrendering)
 	{
-	return(pdf_set_value($pdfdoc, "textrendering", $textrendering));
+	pdf_set_value($pdfdoc, "textrendering", $textrendering);
 	}
 
 ################################################################################
@@ -2861,7 +2861,7 @@ function pdf_set_text_rendering(& $pdfdoc, $textrendering)
 
 function pdf_set_text_rise(& $pdfdoc, $textrise)
 	{
-	return(pdf_set_value($pdfdoc, "textrise", $textrise));
+	pdf_set_value($pdfdoc, "textrise", $textrise);
 	}
 
 ################################################################################
@@ -2904,7 +2904,7 @@ function pdf_set_value(& $p, $key, $value)
 
 function pdf_set_word_spacing(& $pdfdoc, $wordspacing)
 	{
-	return(pdf_set_value($pdfdoc, "wordspacing", $wordspacing));
+	pdf_set_value($pdfdoc, "wordspacing", $wordspacing);
 	}
 
 ################################################################################
@@ -2942,7 +2942,7 @@ function pdf_setcolor(& $p, $fstype, $colorspace, $c1, $c2 = 0, $c3 = 0, $c4 = 0
 
 function pdf_setdash(& $pdfdoc, $b, $w)
 	{
-	return($pdfdoc["stream"][] = sprintf("%f %f d", $b, $w));
+	$pdfdoc["stream"][] = sprintf("%f %f d", $b, $w);
 	}
 
 ################################################################################
@@ -2963,7 +2963,7 @@ function pdf_setdashpattern(& $pdfdoc, $optlist)
 
 function pdf_setflat(& $pdfdoc, $flatness)
 	{
-	return($pdfdoc["stream"][] = sprintf("%f i", $flatness));
+	$pdfdoc["stream"][] = sprintf("%f i", $flatness);
 	}
 
 ################################################################################
@@ -3003,7 +3003,7 @@ function pdf_setgray(& $p, $g)
 
 function pdf_setgray_fill(& $p, $g)
 	{
-	return(pdf_setcolor($p, "fill", "gray", $g));
+	pdf_setcolor($p, "fill", "gray", $g);
 	}
 
 ################################################################################
@@ -3015,7 +3015,7 @@ function pdf_setgray_fill(& $p, $g)
 
 function pdf_setgray_stroke(& $p, $g)
 	{
-	return(pdf_setcolor($p, "stroke", "gray", $g));
+	pdf_setcolor($p, "stroke", "gray", $g);
 	}
 
 ################################################################################
@@ -3026,7 +3026,7 @@ function pdf_setgray_stroke(& $p, $g)
 
 function pdf_setlinecap(& $p, $linecap)
 	{
-	return(pdf_set_value($p, "linecap", $linecap));
+	pdf_set_value($p, "linecap", $linecap);
 	}
 
 ################################################################################
@@ -3037,7 +3037,7 @@ function pdf_setlinecap(& $p, $linecap)
 
 function pdf_setlinejoin(& $p, $value)
 	{
-	return(pdf_set_value($p, "linejoin", $value));
+	pdf_set_value($p, "linejoin", $value);
 	}
 
 ################################################################################
@@ -3048,7 +3048,7 @@ function pdf_setlinejoin(& $p, $value)
 
 function pdf_setlinewidth(& $p, $width)
 	{
-	return(pdf_set_value($p, "linewidth", $width));
+	pdf_set_value($p, "linewidth", $width);
 	}
 
 ################################################################################
@@ -3059,7 +3059,7 @@ function pdf_setlinewidth(& $p, $width)
 
 function pdf_setmatrix(& $p, $a, $b, $c, $d, $e, $f)
 	{
-	return($p["stream"][] = sprintf("%f %f %f %f %f %f Tm", $a, $b, $c, $d, $e, $f));
+	$p["stream"][] = sprintf("%f %f %f %f %f %f Tm", $a, $b, $c, $d, $e, $f);
 	}
 
 ################################################################################
@@ -3070,7 +3070,7 @@ function pdf_setmatrix(& $p, $a, $b, $c, $d, $e, $f)
 
 function pdf_setmiterlimit(& $pdfdoc, $miter)
 	{
-	return(pdf_set_value($pdfdoc, "miterlimit", $miter));
+	pdf_set_value($pdfdoc, "miterlimit", $miter);
 	}
 
 ################################################################################
@@ -3080,7 +3080,7 @@ function pdf_setmiterlimit(& $pdfdoc, $miter)
 
 function pdf_setpolydash(& $p, $dash)
 	{
-	return(pdf_setdashpattern($p, $dash));
+	pdf_setdashpattern($p, $dash);
 	}
 
 ################################################################################
@@ -3105,7 +3105,7 @@ function pdf_setrgbcolor(& $p, $red, $green, $blue)
 
 function pdf_setrgbcolor_fill(& $p, $red, $green, $blue)
 	{
-	return(pdf_setcolor($p, "fill", "rgb", $red, $green, $blue));
+	pdf_setcolor($p, "fill", "rgb", $red, $green, $blue);
 	}
 
 ################################################################################
@@ -3117,7 +3117,7 @@ function pdf_setrgbcolor_fill(& $p, $red, $green, $blue)
 
 function pdf_setrgbcolor_stroke(& $p, $red, $green, $blue)
 	{
-	return(pdf_setcolor($p, "stroke", "rgb", $red, $green, $blue));
+	pdf_setcolor($p, "stroke", "rgb", $red, $green, $blue);
 	}
 
 ################################################################################
@@ -3127,7 +3127,7 @@ function pdf_setrgbcolor_stroke(& $p, $red, $green, $blue)
 
 function pdf_settext_matrix(& $p, $a, $b, $c, $d, $e, $f)
 	{
-	return($p["stream"][] = sprintf("%f %f %f %f %f %f Tm", $a, $b, $c, $d, $e, $f));
+	$p["stream"][] = sprintf("%f %f %f %f %f %f Tm", $a, $b, $c, $d, $e, $f);
 	}
 
 ################################################################################
@@ -3161,7 +3161,7 @@ function pdf_shading_pattern(& $pdfdoc, $shading, $optlist)
 
 function pdf_shfill(& $pdfdoc, $shading)
 	{
-	return($pdfdoc["stream"][] = sprintf("/Sh%d sh", $shading));
+	$pdfdoc["stream"][] = sprintf("/Sh%d sh", $shading);
 	}
 
 ################################################################################
@@ -3339,10 +3339,10 @@ function pdf_show_xy(& $p, $text, $x, $y)
 
 function pdf_skew(& $p, $alpha, $beta)
 	{
-#	$alpha = tan($alpha * M_PI / 180); # deg 2 rad
-#	$beta = tan($beta * M_PI / 180); # deg 2 rad
+	$alpha = tan($alpha * M_PI / 180); # deg 2 rad
+	$beta = tan($beta * M_PI / 180); # deg 2 rad
 
-	return(pdf_concat($p, 1, $alpha, $beta, 1, 0, 0));
+	pdf_concat($p, 1, $alpha, $beta, 1, 0, 0);
 	}
 
 ################################################################################
@@ -3375,7 +3375,7 @@ function pdf_stringwidth(& $p, $text, $font, $fonsize)
 
 function pdf_stroke(& $p)
 	{
-	return($p["stream"][] = "S");
+	$p["stream"][] = "S";
 	}
 
 ################################################################################
@@ -3396,7 +3396,7 @@ function pdf_suspend_page(& $pdfdoc, $optlist)
 
 function pdf_translate(& $p, $tx, $ty)
 	{
-	return(pdf_concat($p, 1, 0, 0, 1, $tx, $ty));
+	pdf_concat($p, 1, 0, 0, 1, $tx, $ty);
 	}
 
 ################################################################################
