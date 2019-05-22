@@ -5,6 +5,8 @@
 # public use need written permission.
 ################################################################################
 
+# this content will replace some content of pdf-api.php once ...
+
 define("FONTDESCRIPTOR_FLAG_FIXEDPITCH", 1 << 1);
 define("FONTDESCRIPTOR_FLAG_SERIF", 1 << 2);
 define("FONTDESCRIPTOR_FLAG_SYMBOLIC", 1 << 3);
@@ -479,6 +481,10 @@ function _pdf_add_image(& $pdf, $imagetype, $filename)
 	{
 	if($imagetype == "jpg")
 		$retval = _pdf_add_image_jpg($pdf, $filename);
+	elseif($imagetype == "gif")
+		$retval = _pdf_add_image_gif($pdf, $filename);
+	elseif($imagetype == "png")
+		$retval = _pdf_add_image_png($pdf, $filename);
 	else
 		{
 		system("convert " . $filename . " -quality 15 lolo.jpg");
@@ -492,19 +498,51 @@ function _pdf_add_image(& $pdf, $imagetype, $filename)
 	}
 
 ################################################################################
+# _pdf_add_image_gif ( array $pdf , string $filename ) : string
+################################################################################
+
+function _pdf_add_image_gif(& $pdf, $filename)
+	{
+	if(function_exists("imagecreatefromgif") === false)
+		die("_pdf_add_image_jpg: no gif support.");
+
+	if(($image_create_from_gif = imagecreatefromgif($filename)) === false)
+		die("_pdf_add_image_jpg: invalid file: " . $filename);
+
+	imageinterlace($image_create_from_gif, 0);
+
+	if(function_exists("imagepng") === false)
+		die("_pdf_add_image_jpg: no png support.");
+
+	if(($temp_filename = tempnam(".", "gif")) === false)
+		die("_pdf_add_image_jpg: unable to create a temporary file.");
+
+	if(imagepng($image_create_from_gif, $temp_filename) === false)
+		die("_pdf_add_image_jpg: error while saving to temporary file.");
+
+	imagedestroy($image_create_from_gif);
+
+	$retval = _pdf_add_image_png($pdf, $temp_filename);
+
+	unlink($temp_filename);
+
+	return($retval);
+	}
+
+################################################################################
 # _pdf_add_image_jpeg ( array $pdf , string $filename ) : string
 ################################################################################
 
 function _pdf_add_image_jpg(& $pdf, $filename)
 	{
 	if(($get_image_size = getimagesize($filename)) === false)
-		die("_pdf_add_image_jpg: missing or incorrect image file: " . $filename);
+		die("_pdf_add_image_jpg: invalid file: " . $filename);
 
 	$width = $get_image_size[0];
 	$height = $get_image_size[1];
 
 	if($get_image_size[2] != 2)
-		die("_pdf_add_image_jpg: not a jpeg file: " . $filename);
+		die("_pdf_add_image_jpg: invalid file: " . $filename);
 
 	if(isset($get_image_size["channels"]) === false)
 		$color_space = "/DeviceRGB";
@@ -559,6 +597,197 @@ function _pdf_add_image_jpg(& $pdf, $filename)
 			$pdf["loaded-resources"]["/ProcSet"][] = "/ImageI";
 		elseif(in_array("/ImageI", $pdf["loaded-resources"]["/ProcSet"]) === false)
 			$pdf["loaded-resources"]["/ProcSet"][] = "/ImageI";
+
+	return(sprintf("%d 0 R", $this_id));
+	}
+
+################################################################################
+# _pdf_add_image_png ( array $pdf , string $filename ) : string
+################################################################################
+
+function _pdf_add_image_png(& $pdf, $filename)
+	{
+	if(($f = fopen($filename, "rb")) === false)
+		die("_pdf_add_image_png: invalid file: " . $filename);
+
+	if(_readstream($f, 8) != "\x89PNG\x0D\x0A\x1A\x0A")
+		die("_pdf_add_image_png: invalid file: " . $filename);
+
+	_readstream($f, 4);
+
+	if(_readstream($f, 4) != "IHDR")
+		die("_pdf_add_image_png: invalid file: " . $filename);
+
+	$width = _readint($f);
+
+	$height = _readint($f);
+
+	$bits_per_component = ord(_readstream($f, 1));
+
+	if($bits_per_component > 8)
+		die("_pdf_add_image_png: 16-bit depth not supported: " . $filename);
+
+	$color_type = ord(_readstream($f, 1));
+
+	if($color_type == 0)
+		$color_space = "/DeviceGray";
+	elseif($color_type == 2)
+		$color_space = "/DeviceRGB";
+	elseif($color_type == 3)
+		$color_space = "/Indexed";
+	elseif($color_type == 4)
+		$color_space = "/DeviceGray";
+	elseif($color_type == 6)
+		$color_space = "/DeviceRGB";
+	else
+		die("_pdf_add_image_png: unknown color type: " . $filename);
+
+	$compression_method = ord(_readstream($f, 1));
+
+	if($compression_method != 0)
+		die("_pdf_add_image_png: unknown compression method: " . $filename);
+
+	$filter_method = ord(_readstream($f, 1));
+
+	if($filter_method != 0)
+		die("_pdf_add_image_png: unknown filter method: " . $filename);
+
+	$interlacing = ord(_readstream($f, 1));
+
+	if($interlacing != 0)
+		die("_pdf_add_image_png: interlacing not supported: " . $filename);
+
+	_readstream($f, 4);
+
+	################################################################################
+
+	$trns_stream = array();
+	$plte_stream = "";
+	$data_stream = "";
+
+	do
+		{
+		$chunk_length = _readint($f);
+		$chunk_type = _readstream($f, 4);
+		$chunk_data = "";
+
+		if($chunk_type == "PLTE")
+			$plte_stream = _readstream($f, $chunk_length);
+		elseif($chunk_type == "tRNS")
+			{
+			$chunk_data = _readstream($f, $chunk_length);
+
+			if($color_type == 0)
+				$trns_stream[] = array(ord($chunk_data[1]));
+			elseif($color_type == 2)
+				$trns_stream[] = array(ord($chunk_data[1]), ord($chunk_data[3]), ord($chunk_data[5]));
+			elseif($pos = strpos($chunk_data, chr(0)))
+				$trns_stream[] = array($pos);
+			}
+		elseif($chunk_type == "IDAT")
+			$data_stream .= _readstream($f, $chunk_length);
+		elseif($chunk_type == "IEND")
+			break;
+		else
+			_readstream($f, $chunk_length);
+
+		_readstream($f, 4);
+		}
+	while($chunk_length);
+
+	################################################################################
+
+	if($color_space == "/DeviceRGB")
+		$colors = 3;
+	else
+		$colors = 1;
+
+	if($color_space == "/Indexed")
+		if(empty($plte_stream))
+			die("Missing palette in " . $filename);
+
+	################################################################################
+
+	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
+
+	$pdf["objects"][$this_id] = array
+		(
+		"id" => $this_id,
+		"version" => 0,
+		"dictionary" => array
+			(
+			"/Type" => "/XObject",
+			"/Subtype" => "/Image",
+			"/Width" => $width,
+			"/Height" => $height,
+			"/ColorSpace" => $color_space,
+			"/BitsPerComponent" => $bits_per_component,
+			"/Filter" => "/FlateDecode",
+			"/DecodeParms" => array
+				(
+				"/Predictor" => 15,
+				"/Colors" => $colors,
+				"/BitsPerComponent" => $bits_per_component,
+				"/Columns" => $width
+				)
+			),
+		);
+
+	# $plte_stream as pointer to /ColorSpace as 4th element of array
+	# $trns_stream to /Mask as array
+
+	$temp_stream = _pdf_filter_flate_decode($data_stream); # pdf-api-filter.php
+
+	if($color_type < 4)
+		{
+		$temp_stream = _pdf_filter_flate_encode($temp_stream); # pdf-api-filter.php
+
+		$pdf["objects"][$this_id]["stream"] = $temp_stream;
+		}
+	else
+		{
+		$color_stream = "";
+		$alpha_stream = "";
+
+		if($color_type == 4)
+			{
+			$width_index = 2 * $width;
+
+			for($height_index = 0; $height_index < $height; $height_index = $height_index + 1)
+				{
+				$temp_index = (1 + $width_index) * $height_index;
+
+				$alpha_stream .= $temp_stream[$temp_index];
+				$alpha_stream .= preg_replace("/.(.)/s", "$1", substr($temp_stream, $temp_index + 1, $width_index));
+
+				$color_stream .= $temp_stream[$temp_index];
+				$color_stream .= preg_replace("/(.)./s", "$1", substr($temp_stream, $temp_index + 1, $width_index));
+				}
+			}
+		else
+			{
+			$width_index = 4 * $width;
+
+			for($height_index = 0; $height_index < $height; $height_index = $height_index + 1)
+				{
+				$temp_index = (1 + $width_index) * $height_index;
+
+				$alpha_stream .= $temp_stream[$temp_index];
+				$alpha_stream .= preg_replace("/.{3}(.)/s", "$1", substr($temp_stream, $temp_index + 1, $width_index));
+
+				$color_stream .= $temp_stream[$temp_index];
+				$color_stream .= preg_replace("/(.{3})./s", "$1", substr($temp_stream, $temp_index + 1, $width_index));
+				}
+			}
+
+		$alpha_stream = _pdf_filter_flate_encode($alpha_stream); # pdf-api-filter.php
+
+		# $alpha_stream as pointer to /SMask
+
+		$color_stream = _pdf_filter_flate_encode($color_stream); # pdf-api-filter.php
+
+		$pdf["objects"][$this_id]["stream"] = $color_stream;
+		}
 
 	return(sprintf("%d 0 R", $this_id));
 	}

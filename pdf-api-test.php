@@ -5,7 +5,8 @@
 # public use need written permission.
 ################################################################################
 
-include("pdf-api.php");
+include_once("pdf-api.php");
+include_once("pdf-lib-lite-clone.php");
 
 #_pdf_main();
 _pdf_test();
@@ -54,7 +55,7 @@ function _pdf_test()
 					# use return value of _pdf_add_font as fontname
 					_pdf_set_font($pdf, $font, 12);
 
-					_pdf_set_leading($pdf, 12);
+					pdf_set_leading($pdf, 12);
 					_pdf_set_xy($pdf, 3, 3);
 					_pdf_set_text($pdf, "ABC " . $i);
 
