@@ -58,7 +58,7 @@ function _pdf_glue_document($objects, $optional = true)
 	# fix count
 	################################################################################
 
-	$objects[0]["dictionary"]["/Size"] = count($objects);
+	$objects[0]["dictionary"]["/Size"] = count($objects); # inclusive null-object
 
 	################################################################################
 	# header
@@ -77,20 +77,17 @@ function _pdf_glue_document($objects, $optional = true)
 		if($index == 0) # trailer
 			continue;
 
-		$offsets[$index] = strlen(implode("\n", $retval)) + 1;
+		$offsets[$index] = strlen(implode("\n", $retval)) + 1; # +EOL
 
 		$retval[] = _pdf_glue_object($object);
 		}
 
 	################################################################################
-	# xref
+	# cross-reference table
 	################################################################################
 
-	$startxref = strlen(implode("\n", $retval)) + 1;
-
-	################################################################################
-	# <entry> :: <start> <count> | <offset> <generation> <used>
-	################################################################################
+	$startxref = strlen(implode("\n", $retval)) + 1; # +EOL
+	$trailer = $objects[0]["dictionary"];
 
 	if($optional)
 		ksort($objects);
@@ -125,21 +122,11 @@ function _pdf_glue_document($objects, $optional = true)
 	# trailer
 	################################################################################
 
-	$trailer = $objects[0]["dictionary"];
-
 	$retval[] = "trailer";
 	$retval[] = sprintf("<< %s >>", _pdf_glue_dictionary($trailer));
 
-	################################################################################
-	# startxref
-	################################################################################
-
 	$retval[] = "startxref";
 	$retval[] = $startxref;
-
-	################################################################################
-	# eof
-	################################################################################
 
 	$retval[] = "%%EOF";
 

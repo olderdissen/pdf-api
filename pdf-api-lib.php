@@ -357,16 +357,16 @@ function _pdf_end_page(& $pdf)
 
 	################################################################################
 
-	if(isset($pdf["page-resources"]["/ProcSet"]))
-		foreach($pdf["page-resources"]["/ProcSet"] as $object)
+	if(isset($pdf["resources"]["/ProcSet"]))
+		foreach($pdf["resources"]["/ProcSet"] as $object)
 			$resources["/ProcSet"][] = $object;
 
-	if(isset($pdf["page-resources"]["/Font"]))
-		foreach($pdf["page-resources"]["/Font"] as $id => $object)
+	if(isset($pdf["resources"]["/Font"]))
+		foreach($pdf["resources"]["/Font"] as $id => $object)
 			$resources["/Font"]["/F" . $id] = $object;
 
-	if(isset($pdf["page-resources"]["/XObject"]))
-		foreach($pdf["page-resources"]["/XObject"] as $id => $object)
+	if(isset($pdf["resources"]["/XObject"]))
+		foreach($pdf["resources"]["/XObject"] as $id => $object)
 			$resources["/XObject"]["/X" . $id] = $object;
 
 	################################################################################
@@ -451,14 +451,14 @@ function _pdf_find_font(& $pdf, $fontname, $encoding = "/WinAnsiEncoding")
 	if($a == 0)
 		die("_pdf_find_font: fontname not loaded.");
 
-	foreach($pdf["page-resources"]["/Font"] as $name => $resource)
+	foreach($pdf["resources"]["/Font"] as $name => $resource)
 		if($a == $resource)
 			$b = $name;
 
 	if($b == 0)
 		$b = _pdf_get_free_font_id($pdf);
 
-	$pdf["page-resources"]["/Font"][$b] = sprintf("%d 0 R", $a);
+	$pdf["resources"]["/Font"][$b] = sprintf("%d 0 R", $a);
 
 	return("/F" . $b);
 	}
@@ -482,8 +482,8 @@ function _pdf_get_free_object_id(& $pdf, $id = 1)
 
 function _pdf_get_free_font_id(& $pdf, $id = 1)
 	{
-	if(isset($pdf["page-resources"]["/Font"]))
-		while(isset($pdf["page-resources"]["/Font"][$id]))
+	if(isset($pdf["resources"]["/Font"]))
+		while(isset($pdf["resources"]["/Font"][$id]))
 			$id ++;
 
 	return($id);
@@ -495,15 +495,15 @@ function _pdf_get_free_font_id(& $pdf, $id = 1)
 
 function _pdf_get_free_xobject_id(& $pdf, $id = 1)
 	{
-	if(isset($pdf["page-resources"]["/XObject"]))
-		while(isset($pdf["page-resources"]["/XObject"][$id]))
+	if(isset($pdf["resources"]["/XObject"]))
+		while(isset($pdf["resources"]["/XObject"][$id]))
 			$id ++;
 
 	return($id);
 	}
 
 ################################################################################
-# _pdf_get_random_font_id ( array $pdf ) : int
+# _pdf_get_random_font_id ( array $pdf ) : string
 ################################################################################
 
 function _pdf_get_random_font_id(& $pdf, $fontname)
@@ -523,13 +523,13 @@ function _pdf_get_random_font_id(& $pdf, $fontname)
 # _pdf_load_font ( array $pdf , string $fontname ) : string
 ################################################################################
 
-function _pdf_load_font(& $pdf, $fontname, $encoding = "/WinAnsiEndcoding")
+function _pdf_load_font(& $pdf, $fontname, $encoding = "builtin")
 	{
 	$a = _pdf_add_font($pdf, $fontname, $encoding); # pdf-api-extra.php
 
 	$b = _pdf_get_free_font_id($pdf);
 
-	$pdf["page-resources"]["/Font"][$b] = sprintf("%d 0 R", $a);
+	$pdf["resources"]["/Font"][$b] = sprintf("%d 0 R", $a);
 
 	return("/F" . $b);
 	}
@@ -544,13 +544,13 @@ function _pdf_load_image(& $pdf, $filename)
 
 	$b = _pdf_get_free_xobject_id($pdf);
 
-	$pdf["page-resources"]["/XObject"][$b] = sprintf("%d 0 R", $a);
+	$pdf["resources"]["/XObject"][$b] = sprintf("%d 0 R", $a);
 
 	return("/X" . $b);
 	}
 
 ################################################################################
-# _pdf_open ( string $filename ) : void
+# _pdf_open ( array $pdf , string $filename ) : void
 ################################################################################
 
 function _pdf_open_file(& $pdf, $filename)
