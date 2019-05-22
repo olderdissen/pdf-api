@@ -239,7 +239,7 @@ function _pdf_add_font(& $pdf, $fontname, $encoding = "builtin")
 
 	################################################################################
 
-	$retval = _pdf_add_font_truetype($pdf, $fontname, $encoding);
+	$retval = _pdf_add_font_truetype($pdf, $filename, $encoding);
 
 	return($retval);
 	}
@@ -394,11 +394,13 @@ function _pdf_add_font_file(& $pdf, $filename)
 	}
 
 ################################################################################
-# _pdf_add_font_truetype ( array $pdf , string $fontname , string $encoding ) : string
+# _pdf_add_font_truetype ( array $pdf , string $filename , string $encoding ) : string
 ################################################################################
 
-function _pdf_add_font_truetype($pdf, $fontname, $encoding = "builtin")
+function _pdf_add_font_truetype(& $pdf, $filename, $encoding = "builtin")
 	{
+	$fontname = basename($filename, ".ttf");
+
 	$a = _pdf_add_font_file($pdf, $filename);
 
 	$b = _pdf_add_font_descriptor($pdf, $fontname, $a);

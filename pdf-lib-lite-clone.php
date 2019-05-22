@@ -2837,7 +2837,7 @@ function pdf_set_parameter(& $p, $key, $value)
 
 function pdf_set_text_pos(& $p, $x, $y)
 	{
-	$p["stream"][] = sprintf("%f %f Td", $x, $y);
+	$p["stream"][] = sprintf("%d %d Td", $x, $y);
 	}
 
 ################################################################################

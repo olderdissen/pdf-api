@@ -22,6 +22,7 @@ function _pdf_begin_document(& $pdf)
 
 	$pages = _pdf_add_pages($pdf, $catalog); # pdf-api-extra.php
 
+	$pdf["catalog"] = $catalog;
 	$pdf["outlines"] = $outlines;
 	$pdf["pages"] = $pages;
 	}
@@ -408,10 +409,10 @@ function _pdf_get_buffer(& $pdf)
 	}
 
 ################################################################################
-# _pdf_find_font ( array $pdf , string $fontname ) : string
+# _pdf_findfont ( array $pdf , string $fontname ) : string
 ################################################################################
 
-function _pdf_find_font(& $pdf, $fontname, $encoding = "/WinAnsiEncoding")
+function _pdf_findfont(& $pdf, $fontname, $encoding = "/WinAnsiEncoding")
 	{
 	$a = 0; # resource
 	$b = 0; # name
@@ -545,29 +546,20 @@ function _pdf_load_image(& $pdf, $filename)
 	}
 
 ################################################################################
-# _pdf_set_font ( array $pdf , string $font , int $size ) void
+# _pdf_setfont ( array $pdf , string $font , int $size ) void
 ################################################################################
 
-function _pdf_set_font(& $pdf, $font, $size)
+function _pdf_setfont(& $pdf, $font, $size)
 	{
 	$pdf["stream"][] = sprintf("%s %d Tf", $font, $size);
 	}
 
 ################################################################################
-# _pdf_set_text ( array $pdf , string $text ) void
+# _pdf_show ( array $pdf , string $text ) void
 ################################################################################
 
-function _pdf_set_text(& $pdf, $text)
+function _pdf_show(& $pdf, $text)
 	{
 	$pdf["stream"][] = sprintf("(%s) Tj", $text);
-	}
-
-################################################################################
-# _pdf_set_xy ( array $pdf , int $x , int $y ) void
-################################################################################
-
-function _pdf_set_xy(& $pdf, $x, $y)
-	{
-	$pdf["stream"][] = sprintf("%s %d Td", $x, $y);
 	}
 ?>

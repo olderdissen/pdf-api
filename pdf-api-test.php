@@ -44,7 +44,7 @@ function _pdf_test()
 		$font = _pdf_load_font($pdf, "Courier", "winansi");
 
 		# returns /Fx where x is integer but returns error on unloaded font.
-		$font = _pdf_find_font($pdf, "Courier");
+		$font = _pdf_findfont($pdf, "Courier");
 
 		foreach(range(1, 1) as $i)
 			{
@@ -53,11 +53,11 @@ function _pdf_test()
 				_pdf_begin_text($pdf);
 
 					# use return value of _pdf_add_font as fontname
-					_pdf_set_font($pdf, $font, 12);
+					_pdf_setfont($pdf, $font, 12);
 
 					pdf_set_leading($pdf, 12);
-					_pdf_set_xy($pdf, 3, 3);
-					_pdf_set_text($pdf, "ABC " . $i);
+					pdf_set_text_pos($pdf, 3, 3);
+					_pdf_show($pdf, "ABC " . $i);
 
 				_pdf_end_text($pdf);
 
