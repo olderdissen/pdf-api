@@ -345,16 +345,16 @@ function _pdf_end_page(& $pdf)
 
 	################################################################################
 
-	if(isset($pdf["loaded-resources"]["/ProcSet"]))
-		foreach($pdf["loaded-resources"]["/ProcSet"] as $object)
+	if(isset($pdf["page-resources"]["/ProcSet"]))
+		foreach($pdf["page-resources"]["/ProcSet"] as $object)
 			$resources["/ProcSet"][] = $object;
 
-	if(isset($pdf["loaded-resources"]["/Font"]))
-		foreach($pdf["loaded-resources"]["/Font"] as $id => $object)
+	if(isset($pdf["page-resources"]["/Font"]))
+		foreach($pdf["page-resources"]["/Font"] as $id => $object)
 			$resources["/Font"]["/F" . $id] = $object;
 
-	if(isset($pdf["loaded-resources"]["/XObject"]))
-		foreach($pdf["loaded-resources"]["/XObject"] as $id => $object)
+	if(isset($pdf["page-resources"]["/XObject"]))
+		foreach($pdf["page-resources"]["/XObject"] as $id => $object)
 			$resources["/XObject"]["/X" . $id] = $object;
 
 	################################################################################
@@ -427,8 +427,8 @@ function _pdf_get_free_object_id(& $pdf, $id = 1)
 
 function _pdf_get_free_font_id(& $pdf, $id = 1)
 	{
-	if(isset($pdf["loaded-resources"]["/Font"]))
-		while(isset($pdf["loaded-resources"]["/Font"][$id]))
+	if(isset($pdf["page-resources"]["/Font"]))
+		while(isset($pdf["page-resources"]["/Font"][$id]))
 			$id ++;
 
 	return($id);
@@ -440,8 +440,8 @@ function _pdf_get_free_font_id(& $pdf, $id = 1)
 
 function _pdf_get_free_xobject_id(& $pdf, $id = 1)
 	{
-	if(isset($pdf["loaded-resources"]["/XObject"]))
-		while(isset($pdf["loaded-resources"]["/Font"][$id]))
+	if(isset($pdf["page-resources"]["/XObject"]))
+		while(isset($pdf["page-resources"]["/XObject"][$id]))
 			$id ++;
 
 	return($id);
@@ -474,7 +474,7 @@ function _pdf_load_font(& $pdf, $fontname, $encoding = "/WinAnsiEndcoding")
 
 	$b = _pdf_get_free_font_id($pdf);
 
-	$pdf["loaded-resources"]["/Font"][$b] = sprintf("%d 0 R", $a);
+	$pdf["page-resources"]["/Font"][$b] = sprintf("%d 0 R", $a);
 
 	return("/F" . $b);
 	}
@@ -489,7 +489,7 @@ function _pdf_load_image(& $pdf, $filename)
 
 	$b = _pdf_get_free_xobject_id($pdf);
 
-	$pdf["loaded-resources"]["/XObject"][$b] = sprintf("%d 0 R", $a);
+	$pdf["page-resources"]["/XObject"][$b] = sprintf("%d 0 R", $a);
 
 	return("/X" . $b);
 	}

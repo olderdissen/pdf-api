@@ -575,6 +575,7 @@ function pdf_continue_text(& $p, $text)
 		$p["/LastChar"] = max($p["/LastChar"], ord($char));
 		}
 
+	$p["stream"][] = "T*";
 	$p["stream"][] = sprintf("%s Tj", _textstring($p, $text));
 	$p["stream"][] = "ET";
 	}
