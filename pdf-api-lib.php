@@ -383,6 +383,14 @@ function _pdf_get_buffer(& $pdf)
 	}
 
 ################################################################################
+# _pdf_find_font ( array $pdf , string $fontname ) : string
+################################################################################
+
+function _pdf_find_font(& $pdf, $fontname, $encoding = "/WinAnsiEncoding")
+	{
+	}
+
+################################################################################
 # _pdf_get_free_object_id ( array $pdf ) : int
 ################################################################################
 
@@ -422,12 +430,29 @@ function _pdf_get_free_xobject_id(& $pdf, $id = 1)
 	}
 
 ################################################################################
+# _pdf_get_random_font_id ( array $pdf ) : int
+################################################################################
+
+function _pdf_get_random_font_id(& $pdf, $fontname)
+	{
+	if(sscanf($fontname, "/%s", $fontname) != 1)
+		die("_pdf_get_random_font_id: invalid fontname.");
+
+	$fontname = sprintf("/000000-%s", $fontname);
+
+	foreach(range(1, 6) as $i)
+		$fontname[$i] = chr(rand(65, 90));
+	
+	return($fontname);
+	}
+
+################################################################################
 # _pdf_load_font ( array $pdf , string $fontname ) : string
 ################################################################################
 
-function _pdf_load_font(& $pdf, $fontname)
+function _pdf_load_font(& $pdf, $fontname, $encoding = "/WinAnsiEndcoding")
 	{
-	$a = _pdf_add_font($pdf, $fontname); # pdf-api-extra.php
+	$a = _pdf_add_font($pdf, $fontname, $encoding); # pdf-api-extra.php
 
 	$b = _pdf_get_free_font_id($pdf);
 
@@ -442,7 +467,7 @@ function _pdf_load_font(& $pdf, $fontname)
 
 function _pdf_load_image(& $pdf, $filename)
 	{
-	$a = _pdf_add_imge($pdf, $filename); # pdf-api-extra.php
+	$a = _pdf_add_image($pdf, $filename); # pdf-api-extra.php
 
 	$b = _pdf_get_free_xobject_id($pdf);
 
