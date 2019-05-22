@@ -71,7 +71,7 @@ function _pdf_add_action(& $pdf, $optlist)
 function _pdf_add_annotation(& $pdf, $parent, $rect, $type, $optlist)
 	{
 	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
-		die("_pdf_add_annots: invalid parent: " . $parent);
+		die("_pdf_add_annotation: invalid parent: " . $parent);
 
 	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
 
@@ -228,35 +228,6 @@ function _pdf_add_field(& $pdf, $parent, $field)
 
 function _pdf_add_font(& $pdf, $fontname, $encoding = "/WinAnsiEncoding")
 	{
-	foreach($pdf["objects"] as $index => $object)
-		{
-		if($index == 0)
-			continue;
-
-		if(isset($object["dictionary"]["/Type"]) === false)
-			continue;
-
-		if(isset($object["dictionary"]["/Subtype"]) === false)
-			continue;
-
-		if(isset($object["dictionary"]["/BaseFont"]) === false)
-			continue;
-
-		if($object["dictionary"]["/Type"] != "/Font")
-			continue;
-
-		if($object["dictionary"]["/BaseFont"] != "/" . $fontname)
-			continue;
-
-		if($object["dictionary"]["/Subtype"] == "/Type1")
-			return(sprintf("%d 0 R", $index));
-
-		if($object["dictionary"]["/Subtype"] == "/TrueType")
-			return(sprintf("%d 0 R", $index));
-		}
-
-	################################################################################
-
 	$core_fonts = _pdf_core_fonts();
 
 	foreach($core_fonts as $k => $v)
@@ -288,7 +259,7 @@ function _pdf_add_font(& $pdf, $fontname, $encoding = "/WinAnsiEncoding")
 	$filename = "/usr/share/fonts/truetype/freefont/" . $fontname . ".ttf";
 
 	if(file_exists($filename) === false)
-		return(_pdf_add_font($pdf["objects"], "/Courier", $encoding));
+		return(_pdf_add_font($pdf["objects"], "Courier", $encoding));
 
 	################################################################################
 
@@ -495,13 +466,13 @@ function _pdf_add_image(& $pdf, $imagetype, $filename)
 function _pdf_add_image_jpg(& $pdf, $filename)
 	{
 	if(($get_image_size = getimagesize($filename)) === false)
-		die("missing or incorrect image file: " . $filename);
+		die("_pdf_add_image_jpg: missing or incorrect image file: " . $filename);
 
 	$width = $get_image_size[0];
 	$height = $get_image_size[1];
 
 	if($get_image_size[2] != 2)
-		die("not a jpeg file: " . $filename);
+		die("_pdf_add_image_jpg: not a jpeg file: " . $filename);
 
 	if(isset($get_image_size["channels"]) === false)
 		$color_space = "/DeviceRGB";

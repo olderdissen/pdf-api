@@ -39,7 +39,11 @@ function _pdf_test()
 
 	_pdf_begin_document($pdf);
 
+		# returns /Fx where x is integer
 		$font = _pdf_load_font($pdf, "Courier");
+
+		# returns /Fx where x is integer but returns error on unloaded font.
+		$font = _pdf_find_font($pdf, "Courier");
 
 		foreach(range(1, 1) as $i)
 			{
@@ -47,16 +51,19 @@ function _pdf_test()
 
 				_pdf_begin_text($pdf);
 
-					_pdf_set_font($pdf, $font, 12); # use return value of _add_font as fontname ... pending
+					# use return value of _pdf_add_font as fontname
+					_pdf_set_font($pdf, $font, 12);
+
 					_pdf_set_leading($pdf, 12);
 					_pdf_set_xy($pdf, 3, 3);
 					_pdf_set_text($pdf, "ABC " . $i);
 
 				_pdf_end_text($pdf);
 
-			$page = _pdf_end_page($pdf); # store loaded resources
+			# store loaded resources
+			$page = _pdf_end_page($pdf);
 
-#			$outline = _pdf_add_outline($pdf, $pdf["outlines"], $page, "Seite " . $i);
+#			$outline = _pdf_add_outline($pdf, $pdf["outlines"], $page, "page " . $i);
 			}
 
 	_pdf_end_document($pdf);

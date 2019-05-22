@@ -1,7 +1,7 @@
 <?
 ################################################################################
 # copyright 2019 by Markus Olderdissen
-# free for private use or inspiration.
+# free for private use or inspiration. 
 # public use need written permission.
 ################################################################################
 
@@ -321,7 +321,19 @@ function _pdf_core_fonts()
 
 function _pdf_new()
 	{
-	$pdf = array("objects" => array(array("dictionary" => array("/Size" => 0))));
+	$pdf = array
+		(
+		"objects" => array
+			(
+			0 => array
+				(
+				"dictionary" => array
+					(
+					"/Size" => 0
+					)
+				)
+			)
+		);
 
 	return($pdf);
 	}
@@ -406,6 +418,49 @@ function _pdf_get_buffer(& $pdf)
 
 function _pdf_find_font(& $pdf, $fontname, $encoding = "/WinAnsiEncoding")
 	{
+	$a = 0; # resource
+	$b = 0; # name
+
+	foreach($pdf["objects"] as $index => $object)
+		{
+		if($index == 0)
+			continue;
+
+		if(isset($object["dictionary"]["/Type"]) === false)
+			continue;
+
+		if(isset($object["dictionary"]["/Subtype"]) === false)
+			continue;
+
+		if(isset($object["dictionary"]["/BaseFont"]) === false)
+			continue;
+
+		if($object["dictionary"]["/Type"] != "/Font")
+			continue;
+
+		if($object["dictionary"]["/BaseFont"] != "/" . $fontname)
+			continue;
+
+		if($object["dictionary"]["/Subtype"] == "/Type1")
+			$a = $index;
+
+		if($object["dictionary"]["/Subtype"] == "/TrueType")
+			$a = $index;
+		}
+
+	if($a == 0)
+		die("_pdf_find_font: fontname not loaded.");
+
+	foreach($pdf["page-resources"]["/Font"] as $name => $resource)
+		if($a == $resource)
+			$b = $name;
+
+	if($b == 0)
+		$b = _pdf_get_free_font_id($pdf);
+
+	$pdf["page-resources"]["/Font"][$b] = sprintf("%d 0 R", $a);
+
+	return("/F" . $b);
 	}
 
 ################################################################################
@@ -456,7 +511,7 @@ function _pdf_get_random_font_id(& $pdf, $fontname)
 	if(sscanf($fontname, "/%s", $fontname) != 1)
 		die("_pdf_get_random_font_id: invalid fontname.");
 
-	$fontname = sprintf("/000000-%s", $fontname);
+	$fontname = sprintf("/AAAAAA-%s", $fontname);
 
 	foreach(range(1, 6) as $i)
 		$fontname[$i] = chr(rand(65, 90));
