@@ -323,7 +323,7 @@ function _pdf_new()
 
 function _pdf_end_document(& $pdf)
 	{
-	$pdf["objects"][0]["dictionary"]["/Size"] = count($pdf["objects"]);
+	$pdf["stream"] = _pdf_glue_document($pdf["objects"]); # pdf-api-glue.php
 	}
 
 ################################################################################

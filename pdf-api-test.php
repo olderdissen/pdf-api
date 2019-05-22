@@ -7,7 +7,7 @@
 
 include("pdf-api.php");
 
-_pdf_main();
+#_pdf_main();
 _pdf_test();
 
 function _pdf_main()
@@ -20,7 +20,6 @@ function _pdf_main()
 #	_pdf_filter_change($pdf);
 #	_pdf_filter_change($pdf, "/FlateDecode");
 	_pdf_filter_change($pdf, "/ASCIIHexDecode /FlateDecode");
-	_pdf_add_linearized($pdf);
 #	print_r($pdf); exit;
 
 	$data = _pdf_glue_document($pdf["objects"]);
@@ -56,7 +55,7 @@ function _pdf_test()
 
 	_pdf_end_document($pdf);
 
-	$data = _pdf_glue_document($pdf["objects"]);
+	$data = _pdf_get_buffer($pdf);
 
 	header("Content-Type: application/pdf");
 	header("Content-Disposition: inline; filename=parse-test.pdf");
