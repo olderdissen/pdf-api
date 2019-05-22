@@ -40,7 +40,7 @@ function _pdf_test()
 	_pdf_begin_document($pdf);
 
 		# returns /Fx where x is integer
-		$font = _pdf_load_font($pdf, "Courier");
+		$font = _pdf_load_font($pdf, "Courier", "winansi");
 
 		# returns /Fx where x is integer but returns error on unloaded font.
 		$font = _pdf_find_font($pdf, "Courier");

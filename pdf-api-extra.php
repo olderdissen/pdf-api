@@ -229,7 +229,7 @@ function _pdf_add_field(& $pdf, $parent, $field)
 # _pdf_add_font ( array $pdf , string $fontname , string $encoding ) : string
 ################################################################################
 
-function _pdf_add_font(& $pdf, $fontname, $encoding = "/WinAnsiEncoding")
+function _pdf_add_font(& $pdf, $fontname, $encoding = "builtin")
 	{
 	$core_fonts = _pdf_core_fonts();
 
@@ -248,10 +248,17 @@ function _pdf_add_font(& $pdf, $fontname, $encoding = "/WinAnsiEncoding")
 				(
 				"/Type" => "/Font",
 				"/Subtype" => "/Type1",
-				"/BaseFont" => "/" . $fontname,
-				"/Encoding" => $encoding
+				"/BaseFont" => "/" . $fontname
 				)
 			);
+
+		$encodings = array("winansi" => "/WinAnsiEncoding", "macroman" => "/MacRomanEncoding", "macexpert" => "/MacExpertEncoding");
+
+		if($encoding != "builtin")
+			if(isset($encodings[$encoding]))
+				$pdf["objects"][$this_id]["dictionary"]["/Encoding"] = $encodings[$encoding];
+			else
+				$pdf["objects"][$this_id]["dictionary"]["/Encoding"] = $encoding;
 
 		return(sprintf("%d 0 R", $this_id));
 		}
@@ -288,13 +295,20 @@ function _pdf_add_font(& $pdf, $fontname, $encoding = "/WinAnsiEncoding")
 			"/Type" => "/Font",
 			"/Subtype" => "/TrueType",
 			"/BaseFont" => "/" . $fontname,
-			"/Encoding" => $encoding,
 			"/FirstChar" => 32,
 			"/LastChar" => 255,
 			"/Widths" => sprintf("[%s]", _pdf_glue_array($widths)), # pdf-api-glue.php
 			"/FontDescriptor" => $b
 			)
 		);
+
+	$encodings = array("winansi" => "/WinAnsiEncoding", "macroman" => "/MacRomanEncoding", "macexpert" => "/MacExpertEncoding");
+
+	if($encoding != "builtin")
+		if(isset($encodings[$encoding]))
+			$pdf["objects"][$this_id]["dictionary"]["/Encoding"] = $encodings[$encoding];
+		else
+			$pdf["objects"][$this_id]["dictionary"]["/Encoding"] = $encoding;
 
 	return(sprintf("%d 0 R", $this_id));
 	}
@@ -334,7 +348,7 @@ function _pdf_add_font_descriptor(& $pdf, $fontname, $fontfile)
 # _pdf_add_font_encoding ( array $pdf , string $differences ) : string
 ################################################################################
 
-function _pdf_add_font_encoding(& $pdf, $encoding = "/WinAnsiEncoding", $differences = "[65 /A /B /C]")
+function _pdf_add_font_encoding(& $pdf, $encoding = "builtin", $differences = "[65 /A /B /C]")
 	{
 	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
 
@@ -345,10 +359,17 @@ function _pdf_add_font_encoding(& $pdf, $encoding = "/WinAnsiEncoding", $differe
 		"dictionary" => array
 			(
 			"/Type" => "/Encoding",
-			"/BaseEncoding" => $encoding,
 			"/Differences" => $differences
 			)
 		);
+
+	$encodings = array("winansi" => "/WinAnsiEncoding", "macroman" => "/MacRomanEncoding", "macexpert" => "/MacExpertEncoding");
+
+	if($encoding != "builtin")
+		if(isset($encodings[$encoding]))
+			$pdf["objects"][$this_id]["dictionary"]["/BaseEncoding"] = $encodings[$encoding];
+		else
+			$pdf["objects"][$this_id]["dictionary"]["/BaseEncoding"] = $encoding;
 
 	return(sprintf("%d 0 R", $this_id));
 	}
