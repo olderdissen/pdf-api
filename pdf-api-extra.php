@@ -19,7 +19,7 @@ define("FONTDESCRIPTOR_FLAG_FORCEBOLD", 1 << 19);
 # _pdf_add_acroform ( array $pdf , string $parent ) : string
 ################################################################################
 
-function _pdf_add_acroform(& $pdf, $parent, $resources)
+function _pdf_add_acroform(& $pdf, $parent)
 	{
 	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
 		die("_pdf_add_acroform: invalid parent: " . $parent);
@@ -197,6 +197,9 @@ function _pdf_add_field(& $pdf, $parent, $field)
 	{
 	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
 		die("_pdf_add_field: invalid parent: " . $parent);
+
+	if(sscanf($field, "%d %d R", $field_id, $field_version) != 2)
+		die("_pdf_add_field: invalid field: " . $field);
 
 	################################################################################
 
@@ -560,81 +563,6 @@ function _pdf_add_info(& $pdf, $optlist)
 	}
 
 ################################################################################
-# _pdf_add_linearized_hint ( array $pdf ) : string
-################################################################################
-
-function _pdf_add_linearized_hints(& $pdf)
-	{
-	$stream = array();
-
-	# the least number of objects in first page
-	$stream[] = sprintf("%08x", 0);
-
-	# the location of the first pages page object
-	$stream[] = sprintf("%08x", 0);
-
-	# the number of bits needed to represent the difference between the greatest and least number of objects in a page.
-	$stream[] = sprintf("%04x", 0);
-
-	# The least length of a page in bytes. 
-	# This shall be the least length from the beginning of a page object to the last byte of the last object used by that page.
-	$stream[] = sprintf("%08x", 0);
-
-	# The number of bits needed to represent the difference between the greatest and least length of a page, in bytes.
-	$stream[] = sprintf("%04x", 0);
-
-	# The least offset of the start of any content stream, relative to the beginning of its page.
-	$stream[] = sprintf("%08x", 0);
-	
-	# The number of bits needed to represent the difference between the greatest and least offset to the start of the content stream.
-	$stream[] = sprintf("%04x", 0);
-
-	# The least content stream length.
-	$stream[] = sprintf("%08x", 0);
-
-	# The number of bits needed to represent the difference between the greatest and least content stream length.
-	$stream[] = sprintf("%04x", 0);
-
-	# The number of bits needed to represent the greatest number of shared object references.
-	$stream[] = sprintf("%04x", 0);
-
-	# The number of bits needed to represent the numerically greatest shared object identifier used by the pages (discussed further in Table F.4, item 4).	
-	$stream[] = sprintf("%04x", 0);
-
-	# The number of bits needed to represent the numerator of the fractional position for each shared object reference.
-	# For each shared object referenced from a page, there shall be an indication of where in the page’s content stream the object is first referenced.
-	# That position shall be given as the numerator of a fraction, whose denominator is specified once for the entire document (in the next item in this table).
-	# The fraction is explained in more detail in Table F.4, item 5.
-	$stream[] = sprintf("%04x", 0);
-
-	# The denominator of the fractional position for each shared object reference.
-	$stream[] = sprintf("%04x", 0);
-
-	$stream = implode("", $stream);
-
-	$stream = hex2bin($stream);
-	$stream = gzcompress($stream);
-	$stream = bin2hex($stream);
-
-	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
-
-	$pdf["objects"][$this_id] = array
-		(
-		"id" => $this_id,
-		"version" => 0,
-		"dictionary" => array
-			(
-			"/S" => 0, # Position of shared object hint table
-			"/Filter" => "[/ASCIIHexDecode /FlateDecode]",
-			"/Length" => strlen($stream)
-			),
-		"stream" => $stream # Page offset hint table, Shared object hint table, Possibly other hint tables
-		);
-
-	return(sprintf("%d 0 R", $this_id));
-	}
-
-################################################################################
 # _pdf_add_metadata ( array $pdf , string $parent , string $stream ) : string
 ################################################################################
 
@@ -671,6 +599,9 @@ function _pdf_add_outline(& $pdf, $parent, $open, $title)
 	{
 	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
 		die("_pdf_add_outline: invalid parent: " . $parent);
+
+	if(sscanf($open, "%d %d R", $open_id, $open_version) != 2)
+		die("_pdf_add_outline: invalid open: " . $open);
 
 	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
 
