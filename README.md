@@ -14,10 +14,10 @@ supported filters
 * /LZWDecode
 
 supported image formats
-* GIF
+* GIF to PNG
 * JPG
 * PNG
-* others depend on **convert**
+* others to JPG (depends on **convert**)
 
 supported fonts
 * /Type1 (14 core fonts)
