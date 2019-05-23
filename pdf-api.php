@@ -11,10 +11,10 @@ include_once("pdf-api-glue.php");
 include_once("pdf-api-parse.php");
 
 ################################################################################
-# _pdf_begin_document ( array $pdf ) : void
+# _pdf_begin_document ( array $pdf , string $filename) : void
 ################################################################################
 
-function _pdf_begin_document(& $pdf)
+function _pdf_begin_document(& $pdf, $filename)
 	{
 	$catalog = _pdf_add_catalog($pdf); # pdf-api-extra.php
 
@@ -25,6 +25,7 @@ function _pdf_begin_document(& $pdf)
 	$pdf["catalog"] = $catalog;
 	$pdf["outlines"] = $outlines;
 	$pdf["pages"] = $pages;
+	$pdf["filename"] = $filename;
 	}
 
 ################################################################################
@@ -317,21 +318,26 @@ function _pdf_core_fonts()
 
 function _pdf_new()
 	{
-	$pdf = array
+	return
 		(
-		"objects" => array
+		array
 			(
-			0 => array
+			"objects" => array
 				(
-				"dictionary" => array
+				0 => array
 					(
-					"/Size" => 0
+					"dictionary" => array
+						(
+						"/Size" => 0
+						)
 					)
-				)
+				),
+
+			"apiname" => sprintf("PDFlib Lite Clone %d.%d.%d (PHP/%s)", 1, 0, 0, PHP_OS),
+			"major" => 1,
+			"minor" => 4
 			)
 		);
-
-	return($pdf);
 	}
 
 ################################################################################
@@ -341,6 +347,9 @@ function _pdf_new()
 function _pdf_end_document(& $pdf)
 	{
 	$pdf["stream"] = _pdf_glue_document($pdf["objects"]); # pdf-api-glue.php
+
+	if($pdf["filename"])
+		file_put_contents($pdf["filename"], $pdf["stream"]);
 	}
 
 ################################################################################
@@ -412,7 +421,7 @@ function _pdf_get_buffer(& $pdf)
 # _pdf_find_font ( array $pdf , string $fontname ) : string
 ################################################################################
 
-function _pdf_find_font(& $pdf, $fontname, $encoding = "/WinAnsiEncoding")
+function _pdf_find_font(& $pdf, $fontname)
 	{
 	$a = 0; # resource
 	$b = 0; # name

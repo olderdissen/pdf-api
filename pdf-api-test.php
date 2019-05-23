@@ -38,7 +38,7 @@ function _pdf_test()
 	{
 	$pdf = _pdf_new();
 
-	_pdf_begin_document($pdf);
+	_pdf_begin_document($pdf, "");
 
 		# returns /Fx where x is integer
 		$font = _pdf_load_font($pdf, "Courier", "winansi");
@@ -48,7 +48,7 @@ function _pdf_test()
 #		$font = _pdf_find_font($pdf, "Courier");
 
 		# returns /Xx where x is integer
-		$image = _pdf_load_image($pdf, "pdf-api-test.png");
+#		$image = _pdf_load_image($pdf, "pdf-api-test.png");
 
 		foreach(range(1, 1) as $i)
 			{
@@ -62,7 +62,8 @@ function _pdf_test()
 					pdf_set_leading($pdf, 12);
 					pdf_set_text_pos($pdf, 3, 3);
 					_pdf_show($pdf, "ABC " . $i);
-					_pdf_fit_image($pdf, $image, 20, 20, array("scale" => 1, "width" => 100, "height" => 97));
+
+#					_pdf_fit_image($pdf, $image, 20, 20, array("scale" => 1, "width" => 100, "height" => 97));
 
 				_pdf_end_text($pdf);
 

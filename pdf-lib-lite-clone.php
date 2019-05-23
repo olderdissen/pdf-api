@@ -751,7 +751,7 @@ function pdf_end_document(& $pdfdoc, $optlist)
 
 	################################################################################
 
-	$pdfdoc["stream"][] = sprintf("%%PDF-%d.%d", $pdfdoc["version-dictionary"][0]["dictionary"]["/Major"], $pdfdoc["version-dictionary"][0]["dictionary"]["/Minor"]);
+	$pdfdoc["stream"][] = sprintf("%%PDF-%d.%d", $pdfdoc["major"], $pdfdoc["minor"]);
 
 	################################################################################
 
@@ -844,7 +844,7 @@ function pdf_end_document(& $pdfdoc, $optlist)
 			"/Contents" => sprintf("%d 0 R", $pdfdoc["reference-id"] + 2)
 			);
 
-		if($pdfdoc["version-dictionary"][0]["dictionary"]["/Minor"] > 3)
+		if($pdfdoc["minor"] > 3)
 			$object["/Group"] = "<</Type/Group/S/Transparency/CS/DeviceRGB>>";
 
 		_new_object($pdfdoc);
@@ -1126,7 +1126,7 @@ function pdf_end_document(& $pdfdoc, $optlist)
 
 	$object = array
 		(
-		"/Producer" => _textstring($pdfdoc, $pdfdoc["version-dictionary"][0]["dictionary"]["apiname"], true),
+		"/Producer" => _textstring($pdfdoc, $pdfdoc["apiname"], true),
 		"/CreationDate" => _textstring($pdfdoc, "D:" . date("YmdHis") . "Z", true),
 		"/ModDate" => _textstring($pdfdoc, "D:" . date("YmdHis") . "Z", true),
 #		"/Trapped" => "Unknown",
@@ -1497,7 +1497,7 @@ function pdf_fit_textline(& $pdfdoc, $text, $x, $y, $optlist)
 
 function pdf_get_apiname(& $pdfdoc)
 	{
-	return($pdfdoc["version-dictionary"][0]["dictionary"]["apiname"]);
+	return($pdfdoc["apiname"]);
 	}
 
 ################################################################################
@@ -1668,9 +1668,9 @@ function pdf_get_value(& $p, $key, $modifier)
 		case("imagewidth"):
 			return($p["image-dictionary"][$modifier]["dictionary"]["/Width"]);
 		case("major"):
-			return($p["version-dictionary"][$modifier]["dictionary"]["/Major"]);
+			return($p["major"]);
 		case("minor"):
-			return($p["version-dictionary"][$modifier]["dictionary"]["/Minor"]);
+			return($p["minor"]);
 		}
 	}
 
@@ -1733,12 +1733,6 @@ function pdf_info_textline(& $pdfdoc, $text, $keyword, $optlist)
 
 function pdf_initgraphics(& $p)
 	{
-	if(isset($p["/ProcSet"]) === false)
-		$p["/ProcSet"][] = "/ImageC";
-	elseif(in_array("/ImageC", $p["/ProcSet"]) === false)
-		$p["/ProcSet"][] = "/ImageC";
-		
-	return($p["stream"][] = "BI");
 	}
 
 ################################################################################
@@ -2303,22 +2297,6 @@ function pdf_new()
 
 		################################################################################
 
-		"version-dictionary" => array
-			(
-			array
-				(
-				"dictionary" => array
-					(
-					"/Major" => 1,
-					"/Minor" => 3,
-					"apiname" => sprintf("PDFlib Lite Clone %d.%d.%d (PHP/%s)", 1, 0, 0, PHP_OS),
-					"apiversion" => 3
-					)
-				)
-			),
-
-		################################################################################
-
 #		"filter-dictionary" => array
 #			(
 #			array
@@ -2330,6 +2308,13 @@ function pdf_new()
 #					),
 #				),
 #			),
+
+		################################################################################
+
+		"major" => 1,
+		"minor" => 3,
+		"apiname" => sprintf("PDFlib Lite Clone %d.%d.%d (PHP/%s)", 1, 0, 0, PHP_OS),
+		"apiversion" => 3,
 
 		################################################################################
 

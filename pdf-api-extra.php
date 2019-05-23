@@ -211,6 +211,9 @@ function _pdf_add_annotation(& $pdf, $parent, $rect, $type, $optlist)
 
 function _pdf_add_catalog(& $pdf)
 	{
+	if(isset($pdf["objects"][0]["dictionary"]["/Root"]))
+		die("_pdf_add_catalog: catalog already exist.");
+
 	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
 
 	$pdf["objects"][] = array
@@ -358,7 +361,7 @@ function _pdf_add_font_definition(& $pdf)
 	}
 
 ################################################################################
-# _pdf_add_font_encoding ( array $pdf , string $differences ) : string
+# _pdf_add_font_descriptor ( array $pdf , string $fontname , string $fontfile ) : string
 ################################################################################
 
 function _pdf_add_font_descriptor(& $pdf, $fontname, $fontfile)
@@ -379,10 +382,12 @@ function _pdf_add_font_descriptor(& $pdf, $fontname, $fontfile)
 			"/Ascent" => 720,
 			"/Descent" => 0 - 250,
 			"/CapHeight" => 720,
-			"/StemV" => 90,
-			"/FontFile2" => $fontfile
+			"/StemV" => 90
 			)
 		);
+
+	if($fontfile)
+		$pdf["objects"][$this_id]["dictionary"]["/FontFile2"] = $fontfile;
 
 	return(sprintf("%d 0 R", $this_id));
 	}
@@ -391,7 +396,7 @@ function _pdf_add_font_descriptor(& $pdf, $fontname, $fontfile)
 # _pdf_add_font_encoding ( array $pdf , string $differences ) : string
 ################################################################################
 
-function _pdf_add_font_encoding(& $pdf, $encoding = "builtin", $differences = "[65 /A /B /C]")
+function _pdf_add_font_encoding(& $pdf, $encoding = "builtin", $differences = "")
 	{
 	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
 
@@ -401,13 +406,18 @@ function _pdf_add_font_encoding(& $pdf, $encoding = "builtin", $differences = "[
 		"version" => 0,
 		"dictionary" => array
 			(
-			"/Type" => "/Encoding",
-			"/Differences" => $differences
+			"/Type" => "/Encoding"
 			)
 		);
 
+	# apply differences
+	if($differences)
+		$pdf["objects"][$this_id]["dictionary"]["/Differences"] = $differences;
+
+	# valid encodings
 	$encodings = array("winansi" => "/WinAnsiEncoding", "macroman" => "/MacRomanEncoding", "macexpert" => "/MacExpertEncoding");
 
+	# apply encodings
 	if($encoding != "builtin")
 		if(isset($encodings[$encoding]))
 			$pdf["objects"][$this_id]["dictionary"]["/BaseEncoding"] = $encodings[$encoding];
@@ -921,6 +931,9 @@ function _pdf_add_image_png(& $pdf, $filename)
 
 function _pdf_add_info(& $pdf, $optlist)
 	{
+	if(isset($pdf["objects"][0]["dictionary"]["/Info"]))
+		die("_pdf_add_info: info already exist.");
+
 	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
 
 	$pdf["objects"][$this_id] = array
@@ -1074,24 +1087,33 @@ function _pdf_add_page(& $pdf, $parent, $resources, $mediabox, $contents)
 			"/Parent" => $parent,
 			"/Resources" => $resources,
 			"/MediaBox" => $mediabox,
-			"/Contents" => $contents,
-#			"/Group" => "<< /Type /Group /S /Transparency /CS /DeviceRGB >>" # version > 1.3
+			"/Contents" => $contents
 			)
 		);
 
-	if(isset($pdf["objects"][$parent_id]["dictionary"]["/Kids"]))
-		$data = $pdf["objects"][$parent_id]["dictionary"]["/Kids"];
-	else
-		$data = "[]";
+	if($pdf["minor"] > 3)
+		$pdf["objects"][$this_id]["dictionary"]["/Group"] = "<< /Type /Group /S /Transparency /CS /DeviceRGB >>";
 
-	$data = substr($data, 1);
-	list($kids, $data) = _pdf_parse_array($data); # pdf-api-parse.php
-	$data = substr($data, 1);
+	if($pdf["objects"][$parent_id]["dictionary"]["/Type"] == "/Pages")
+		{
+		if(isset($pdf["objects"][$parent_id]["dictionary"]["/Kids"]))
+			$data = $pdf["objects"][$parent_id]["dictionary"]["/Kids"];
+		else
+			$data = "[]";
 
-	$kids[] = sprintf("%d 0 R", $this_id);
+		$data = substr($data, 1);
+		list($kids, $data) = _pdf_parse_array($data); # pdf-api-parse.php
+		$data = substr($data, 1);
+
+		$kids[] = sprintf("%d 0 R", $this_id);
 	
-	$pdf["objects"][$parent_id]["dictionary"]["/Kids"] = sprintf("[%s]", _pdf_glue_array($kids)); # pdf-api-glue.php
-	$pdf["objects"][$parent_id]["dictionary"]["/Count"] = count($kids);
+		$pdf["objects"][$parent_id]["dictionary"]["/Kids"] = sprintf("[%s]", _pdf_glue_array($kids)); # pdf-api-glue.php
+
+		$data = $pdf["objects"][$parent_id]["dictionary"]["/Count"];
+		$pdf["objects"][$parent_id]["dictionary"]["/Count"] = ($data < 0 ? $data - 1 : $data + 1);
+		}
+	else
+		die("_pdf_add_pages: invalid type of parent.");
 
 	return(sprintf("%d 0 R", $this_id));
 	}
@@ -1119,11 +1141,32 @@ function _pdf_add_pages(& $pdf, $parent)
 			)
 		);
 
-
-	if($pdf["objects"][$parent_id]["dictionary"]["/Type"] == "/Page")
+	# apply info about this object to parent
+	if($pdf["objects"][$parent_id]["dictionary"]["/Type"] == "/Pages")
+		{
 		$pdf["objects"][$this_id]["dictionary"]["/Parent"] = $parent;
 
-	$pdf["objects"][$parent_id]["dictionary"]["/Pages"] = sprintf("%d 0 R", $this_id);
+		if(isset($pdf["objects"][$parent_id]["dictionary"]["/Kids"]))
+			$data = $pdf["objects"][$parent_id]["dictionary"]["/Kids"];
+		else
+			$data = "[]";
+
+		$data = substr($data, 1);
+		list($kids, $data) = _pdf_parse_array($data); # pdf-api-parse.php
+		$data = substr($data, 1);
+
+		$kids[] = sprintf("%d 0 R", $this_id);
+
+		$pdf["objects"][$parent_id]["dictionary"]["/Kids"] = sprintf("[%s]", _pdf_glue_array($kids));
+
+		# increase or decrease counter, depending on plus or minus sign
+		$data = $pdf["objects"][$parent_id]["dictionary"]["/Count"];
+		$pdf["objects"][$parent_id]["dictionary"]["/Count"] = ($data < 0 ? $data - 1 : $data + 1);
+		}
+	elseif($pdf["objects"][$parent_id]["dictionary"]["/Type"] == "/Catalog")
+		$pdf["objects"][$parent_id]["dictionary"]["/Pages"] = sprintf("%d 0 R", $this_id);
+	else
+		die("_pdf_add_pages: invalid type of parent.");
 
 	return(sprintf("%d 0 R", $this_id));
 	}
@@ -1147,6 +1190,7 @@ function _pdf_add_stream(& $pdf, $stream, $optlist = array())
 		"stream" => $stream
 		);
 
+	# apply additional settings to created object
 	foreach($optlist as $key => $value)
 		$pdf["objects"][$this_id]["dictionary"][$key] = $value;
 
