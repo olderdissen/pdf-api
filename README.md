@@ -7,11 +7,21 @@ this project follows a different strategy of collecting and storing data.
 resources are stored inside an array.
 each element is accessible and changeable at any time.
 
-supports ...
+supported filters
+* /ASCIIHexDecode
+* /ASCII85Decode
+* /FlateDecode
+* /LZWDecode
 
-* ... /ASCIIHexDecode, /ASCII85Decode, /FlateDecode and /LZWDecode as /Filter
-* ... GIF, JPG and PNG as /Image
-* ... /Type1 (14 core fonts), /Type2 (TTF) and /Type3 (experimental) as /Font
+supported image format
+* GIF
+* JPG
+* PNG
+
+supported fonts
+* /Type1 (14 core fonts)
+* /Type2 (TTF)
+* /Type3 (experimental)
 
 # pdf-lib-lite-clone
 
