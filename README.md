@@ -25,5 +25,7 @@ supported fonts
 
 # pdf-lib-lite-clone
 
-older project to create pdf-files like pdf-lib but without restrictions.
-some functions of this project will be replaced by newe ones in future.
+older project to create pdf-files like pdf-lib-lite but without restrictions.
+only basic functionality is developed in this project.
+
+some functions of this project will be replaced by newer ones in the future.
