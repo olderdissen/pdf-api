@@ -67,7 +67,7 @@ function _pdf_test()
 #			$outline = _pdf_add_outline($pdf, $pdf["outlines"], $page, "page " . $i);
 			}
 
-		_pdf_filter_change($pdf, "/ASCIIHexDecode /FlateDecode");
+#		_pdf_filter_change($pdf, "/ASCIIHexDecode /FlateDecode");
 	_pdf_end_document($pdf);
 
 	$data = _pdf_get_buffer($pdf);
