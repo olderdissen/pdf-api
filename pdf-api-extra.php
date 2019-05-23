@@ -47,25 +47,70 @@ function _pdf_add_acroform(& $pdf, $parent)
 # _pdf_add_action ( array $pdf ) : string
 ################################################################################
 
-function _pdf_add_action(& $pdf, $optlist)
+function _pdf_add_action(& $pdf, $type, $optlist)
 	{
 	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
 
-	$pdf["objects"][$this_id] = array
-		(
-		"id" => $this_id,
-		"version" => 0,
-		"dictionary" => array
+	if($type == "goto")
+		{
+		$pdf["objects"][$this_id] = array
 			(
-			"/Type" => "/Action"
-			)
-		);
+			"id" => $this_id,
+			"version" => 0,
+			"dictionary" => array
+				(
+				"/Type" => "/Action",
+				"/S" => "/GoTo",
+				"/D" => sprintf("[%s /Fit]", $optlist["dest"])
+				)
+			);
+		}
 
-	if($optlist["type"] == "uri")
-		$pdf["objects"][$this_id]["dictionary"]["/S"] = "/URI";
+	if($type == "gotor")
+		{
+		$pdf["objects"][$this_id] = array
+			(
+			"id" => $this_id,
+			"version" => 0,
+			"dictionary" => array
+				(
+				"/Type" => "/Action",
+				"/S" => "/GoToR",
+				"/F" => sprintf("(%s)", $optlist["filename"]),
+				"/D" => sprintf("[%s /Fit]", $optlist["dest"])
+				)
+			);
+		}
 
-	if($optlist["type"] == "uri")
-		$pdf["objects"][$this_id]["dictionary"]["/URI"] = sprintf("(%s)", _pdf_glue_string($optlist["uri"])); # pdf-api-glue.php
+	if($type == "launch")
+		{
+		$pdf["objects"][$this_id] = array
+			(
+			"id" => $this_id,
+			"version" => 0,
+			"dictionary" => array
+				(
+				"/Type" => "/Action",
+				"/S" => "/Launch",
+				"/F" => sprintf("(%s)", $optlist["filename"])
+				)
+			);
+		}
+
+	if($type == "uri")
+		{
+		$pdf["objects"][$this_id] = array
+			(
+			"id" => $this_id,
+			"version" => 0,
+			"dictionary" => array
+				(
+				"/Type" => "/Action",
+				"/S" => "/URI",
+				"/URI" => sprintf("(%s)", $optlist["uri"])
+				)
+			);
+		}
 
 	return(sprintf("%d 0 R", $this_id));
 	}
@@ -81,7 +126,7 @@ function _pdf_add_annotation(& $pdf, $parent, $rect, $type, $optlist)
 
 	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
 
-	if($type == "link")
+	if($type == "FileAttachment")
 		{
 		$pdf["objects"][$this_id] = array
 			(
@@ -90,17 +135,12 @@ function _pdf_add_annotation(& $pdf, $parent, $rect, $type, $optlist)
 			"dictionary" => array
 				(
 				"/Type" => "/Annot",
-				"/Subtype" => "/Link",
-				"/Rect" => $rect,
-
-				"/Dest" => sprintf("[%s /Fit]", $optlist["dest"])
+				"/Rect" => $rect
 				)
 			);
 		}
 
-	################################################################################
-
-	if($type == "uri")
+	if($type == "Link")
 		{
 		$pdf["objects"][$this_id] = array
 			(
@@ -109,17 +149,26 @@ function _pdf_add_annotation(& $pdf, $parent, $rect, $type, $optlist)
 			"dictionary" => array
 				(
 				"/Type" => "/Annot",
-				"/Subtype" => "/Link",
-				"/Rect" => $rect,
-
-				"/A" => $optlist["action"]
+				"/Rect" => $rect
 				)
 			);
 		}
 
-	################################################################################
+	if($type == "Text")
+		{
+		$pdf["objects"][$this_id] = array
+			(
+			"id" => $this_id,
+			"version" => 0,
+			"dictionary" => array
+				(
+				"/Type" => "/Annot",
+				"/Rect" => $rect
+				)
+			);
+		}
 
-	if($type == "widget")
+	if($type == "Widget")
 		{
 		$pdf["objects"][$this_id] = array
 			(
@@ -130,14 +179,10 @@ function _pdf_add_annotation(& $pdf, $parent, $rect, $type, $optlist)
 				"/Type" => "/Annot",
 				"/Subtype" => "/Widget",
 				"/Rect" => $rect,
-
 				"/FT" => "/Tx",
 				"/V" => "(edit)",
 				"/T" => "(javascript_name_a)",
-				"/AP" => array
-					(
-					"/N" => $optlist["form"]
-					)
+				"/AP" => sprintf("<< /N %s >>", $optlist["form"])
 				)
 			);
 		}
@@ -954,7 +999,7 @@ function _pdf_add_page(& $pdf, $parent, $resources, $mediabox, $contents)
 			"/Resources" => $resources,
 			"/MediaBox" => $mediabox,
 			"/Contents" => $contents,
-#			"/Group" => "<< /Type /Group /S /Transparency /CS /DeviceRGB >>"
+#			"/Group" => "<< /Type /Group /S /Transparency /CS /DeviceRGB >>" # version > 1.3
 			)
 		);
 

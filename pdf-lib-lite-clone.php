@@ -2302,30 +2302,6 @@ function pdf_new()
 			),
 
 		################################################################################
-		# pdf_set_value(& $p, $key, $value)
-		################################################################################
-
-		"settings-dictionary" => array
-			(
-			array
-				(
-				"dictionary" => array
-					(
-					"charspacing" => 0,
-					"horizscaling" => 0,
-					"leading" => 0,
-					"linecap" => 0,
-					"linejoin" => 0,
-					"linewidth" => 0,
-					"miterlimit" => 0,
-					"textrendering" => 0,
-					"textrise" => 0,
-					"wordspacing" => 0
-					)
-				)
-			),
-
-		################################################################################
 
 		"version-dictionary" => array
 			(
@@ -2871,25 +2847,25 @@ function pdf_set_value(& $p, $key, $value)
 	switch($key)
 		{
 		case("charspacing"):
-			return($p["stream"][] = sprintf("%f Tc", ($p["settings-dictionary"][0]["dictionary"][$key] = $value)));
+			$p["stream"][] = sprintf("%f Tc", $value);
 		case("horizscaling"):
-			return($p["stream"][] = sprintf("%f Tz", ($p["settings-dictionary"][0]["dictionary"][$key] = $value)));
+			$p["stream"][] = sprintf("%f Tz", $value);
 		case("leading"):
-			return($p["stream"][] = sprintf("%f TL", ($p["settings-dictionary"][0]["dictionary"][$key] = $value)));
+			$p["stream"][] = sprintf("%f TL", $value);
 		case("linecap"):
-			return($p["stream"][] = sprintf("%f J", ($p["settings-dictionary"][0]["dictionary"][$key] = $value)));
+			$p["stream"][] = sprintf("%f J", $value);
 		case("linejoin"):
-			return($p["stream"][] = sprintf("%f j", ($p["settings-dictionary"][0]["dictionary"][$key] = $value)));
+			$p["stream"][] = sprintf("%f j", $value);
 		case("linewidth"):
-			return($p["stream"][] = sprintf("%f w", ($p["settings-dictionary"][0]["dictionary"][$key] = $value)));
+			$p["stream"][] = sprintf("%f w", $value);
 		case("miterlimit"):
-			return($p["stream"][] = sprintf("%f M", ($p["settings-dictionary"][0]["dictionary"][$key] = $value)));
+			$p["stream"][] = sprintf("%f M", $value);
 		case("textrendering"):
-			return($p["stream"][] = sprintf("%f Tr", ($p["settings-dictionary"][0]["dictionary"][$key] = $value)));
+			$p["stream"][] = sprintf("%f Tr", $value);
 		case("textrise"):
-			return($p["stream"][] = sprintf("%f Ts", ($p["settings-dictionary"][0]["dictionary"][$key] = $value)));
+			$p["stream"][] = sprintf("%f Ts", $value);
 		case("wordspacing"):
-			return($p["stream"][] = sprintf("%f Tw", ($p["settings-dictionary"][0]["dictionary"][$key] = $value)));
+			$p["stream"][] = sprintf("%f Tw", $value);
 		}
 	}
 
@@ -3267,9 +3243,7 @@ function pdf_show_boxed(& $p, $text, $left, $top, $width, $height, $mode, $featu
 	if(($mode == "justify") || ($mode == "fulljustify"))
 		{
 #		if(($mode == "justify") && ($spacing > ($width / 2)))
-#			{
 #			$spacing = $width / 2;
-#			}
 
 		pdf_set_word_spacing($p, $spacing / (count(explode(" ", $words)) - 1));
 

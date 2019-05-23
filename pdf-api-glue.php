@@ -169,7 +169,7 @@ function _pdf_glue_object($object)
 
 function _pdf_glue_string($value)
 	{
-	$value = iconv("UTF-8", "ISO-8859-1", $value);
+	$value = utf8_decode($value);
 
 	$value = str_replace(array("\\", "(", ")"), array("\\\\", "\(", "\)"), $value);
 

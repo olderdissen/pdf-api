@@ -295,17 +295,7 @@ function _pdf_parse_document($data)
 	{
 	$retval = array();
 
-	$pattern = array
-		(
-		"%PDF-(\d+)\.(\d+)[\s|\n]+",
-		"(.*)[\s|\n]+",
-		"startxref[\s|\n]+",
-		"(\d+)[\s|\n]+",
-		"%%EOF[\s|\n]+",
-		"(.*)"
-		);
-
-	if(preg_match("/^" . implode("", $pattern) . "/is", $data, $matches) == 0)
+	if(preg_match("/^%PDF-(\d+)\.(\d+)[\s|\n]+(.*)[\s|\n]+startxref[\s|\n]+(\d+)[\s|\n]+%%EOF(.*)/is", $data, $matches) == 0)
 		die("_pdf_parse_document: something is seriously wrong (invalid structure).");
 
 	list($null, $major, $minor, $body, $startxref, $null) = $matches;
@@ -313,6 +303,7 @@ function _pdf_parse_document($data)
 	################################################################################
 	# pdf_parse_xref ( string $data ) : array
 	# returns offsets from $data as string.
+	# pdf got differentformats of xref
 	################################################################################
 
 	$offsets = array();
@@ -445,9 +436,9 @@ function _pdf_parse_document($data)
 
 				$table = substr($data, $startxref);
 				}
-			else
-				break;
 			}
+		elseif(substr($table, 0, 5) == "%%EOF")
+			break;
 		else
 			{
 			$pattern = array
@@ -459,7 +450,7 @@ function _pdf_parse_document($data)
 				);
 
 			if(preg_match_all("/(" . implode("|", $pattern) . ")/is", $data, $matches) == 0)
-				die("111");
+				die("_pdf_parse_document: ...");
 
 			foreach($matches[0] as $object)
 				{
@@ -516,9 +507,13 @@ function _pdf_parse_document($data)
 
 		foreach($offsets as $offset_test)
 			{
-			if($offset_test < $offset_stop)
-				if($offset_test > $offset_start)
-					$offset_stop = $offset_test;
+			if($offset_test >= $offset_stop)
+				continue;
+
+			if($offset_test <= $offset_start)
+				continue;
+
+			$offset_stop = $offset_test;
 			}
 
 		$help = substr($data, $offset_start, $offset_stop - $offset_start - 1);
