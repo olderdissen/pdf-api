@@ -1,10 +1,10 @@
 # pdf-api
 
-newer project to create pdf-file like pdf-lib but without restrictions.
+newer project to create pdf-file like pdf-lib-lite but without restrictions.
 see **pdf-api-test.php** for a working example.
 
-this project follows a different strategy of collecting and storing data.
-resources are stored inside an array.
+this newer project follows a different strategy of collecting and storing data than the older project described below.
+resources are stored inside a single array for easier access.
 each element is accessible and changeable at any time.
 
 supported filters
@@ -13,10 +13,11 @@ supported filters
 * /FlateDecode
 * /LZWDecode
 
-supported image format
+supported image formats
 * GIF
 * JPG
 * PNG
+* others depend on **convert**
 
 supported fonts
 * /Type1 (14 core fonts)
