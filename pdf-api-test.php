@@ -42,9 +42,13 @@ function _pdf_test()
 
 		# returns /Fx where x is integer
 		$font = _pdf_load_font($pdf, "Courier", "winansi");
+#		$font = _pdf_load_font($pdf, "Verdana", "winansi");
 
 		# returns /Fx where x is integer but returns error on unloaded font.
-		$font = _pdf_findfont($pdf, "Courier");
+#		$font = _pdf_find_font($pdf, "Courier");
+
+		# returns /Xx where x is integer
+		$image = _pdf_load_image($pdf, "pdf-api-test.png");
 
 		foreach(range(1, 1) as $i)
 			{
@@ -53,11 +57,12 @@ function _pdf_test()
 				_pdf_begin_text($pdf);
 
 					# use return value of _pdf_add_font as fontname
-					_pdf_setfont($pdf, $font, 12);
+					_pdf_set_font($pdf, $font, 72);
 
 					pdf_set_leading($pdf, 12);
 					pdf_set_text_pos($pdf, 3, 3);
 					_pdf_show($pdf, "ABC " . $i);
+					_pdf_fit_image($pdf, $image, 20, 20, array("scale" => 1, "width" => 100, "height" => 97));
 
 				_pdf_end_text($pdf);
 
@@ -67,7 +72,7 @@ function _pdf_test()
 #			$outline = _pdf_add_outline($pdf, $pdf["outlines"], $page, "page " . $i);
 			}
 
-		_pdf_filter_change($pdf, "/ASCIIHexDecode /FlateDecode");
+		_pdf_filter_change($pdf, "/FlateDecode");
 	_pdf_end_document($pdf);
 
 	$data = _pdf_get_buffer($pdf);

@@ -321,6 +321,43 @@ function _pdf_add_font_core(& $pdf, $fontname, $encoding = "builtin")
 	}
 
 ################################################################################
+# _pdf_add_font_definiton ( array $pdf , ... ) : string
+# pending
+################################################################################
+
+function _pdf_add_font_definition(& $pdf)
+	{
+	$e = _pdf_add_font_encoding($pdf);
+
+	$s = _pdf_add_page_stream($pdf, "");
+
+	$d = _pdf_add_font_descriptor($pdf, "test", "");
+
+	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
+
+	$pdf["objects"][$this_id] = array
+		(
+		"id" => $this_id,
+		"version" => 0,
+		"dictionary" => array
+			(
+			"/Type" => "/Font",
+			"/Subtype" => "/Type3",
+			"/FontBBox" => "[0 0 1000 1000]",
+			"/FontMatrix" => "[1 0 0 -1 0 0]",
+			"/CharProcs" => sprintf("<< /C %s /B %s /A %s >>", $s, $s, $s),
+			"/Encoding" => $e,
+			"/FirstChar" => 65,
+			"/LastChar" => 67,
+			"/Widths" => "[8 8 8]",
+			"/FontDescriptor" => $d
+			)
+		);
+
+	return(sprintf("%d 0 R", $this_id));
+	}
+
+################################################################################
 # _pdf_add_font_encoding ( array $pdf , string $differences ) : string
 ################################################################################
 
@@ -335,15 +372,14 @@ function _pdf_add_font_descriptor(& $pdf, $fontname, $fontfile)
 		"dictionary" => array
 			(
 			"/Type" => "/FontDescriptor",
-#			"/Flags" => FONTDESCRIPTOR_FLAG_SERIF | FONTDESCRIPTOR_FLAG_SCRIPT,
-#			"/StemV" => 90,
-#			"/CapHeight" => 720,
-#			"/XHeight" => 480,
-#			"/Ascent" => 720,
-#			"/Descent" => 0 - 250,
-#			"/ItalicAngle" => 0,
-#			"/FontBBox" => "[0 -240 1440 1000]",
 			"/FontName" => "/" . $fontname,
+			"/Flags" => FONTDESCRIPTOR_FLAG_SERIF | FONTDESCRIPTOR_FLAG_SCRIPT,
+			"/FontBBox" => "[0 -240 1440 1000]",
+			"/ItalicAngle" => 0,
+			"/Ascent" => 720,
+			"/Descent" => 0 - 250,
+			"/CapHeight" => 720,
+			"/StemV" => 90,
 			"/FontFile2" => $fontfile
 			)
 		);
@@ -382,40 +418,6 @@ function _pdf_add_font_encoding(& $pdf, $encoding = "builtin", $differences = "[
 	}
 
 ################################################################################
-# _pdf_add_font_definiton ( array $pdf , ... ) : string
-# pending
-################################################################################
-
-function _pdf_add_font_definition(& $pdf)
-	{
-	$a = _pdf_add_font_encoding($pdf);
-
-	$b = _pdf_add_page_content($pdf, "");
-
-	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
-
-	$pdf["objects"][$this_id] = array
-		(
-		"id" => $this_id,
-		"version" => 0,
-		"dictionary" => array
-			(
-			"/Type" => "/Font",
-			"/Subtype" => "/Type3",
-			"/Encoding" => $a,
-			"/CharProcs" => sprintf("<< /C %s /B %s /A %s >>", $b, $b, $b),
-			"/FontMatrix" => "[1 0 0 -1 0 0]",
-			"/FontBBox" => "[0 0 1000 1000]",
-			"/FirstChar" => 65,
-			"/LastChar" => 67,
-			"/Widths" => "[8 8 8]"
-			)
-		);
-
-	return(sprintf("%d 0 R", $this_id));
-	}
-
-################################################################################
 # _pdf_add_font_file ( array $pdf , string $filename ) : string
 ################################################################################
 
@@ -446,9 +448,9 @@ function _pdf_add_font_truetype(& $pdf, $filename, $encoding = "builtin")
 	{
 	$fontname = basename($filename, ".ttf");
 
-	$a = _pdf_add_font_file($pdf, $filename);
+	$f = _pdf_add_font_file($pdf, $filename);
 
-	$b = _pdf_add_font_descriptor($pdf, $fontname, $a);
+	$d = _pdf_add_font_descriptor($pdf, $fontname, $f);
 
 	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
 
@@ -463,7 +465,8 @@ function _pdf_add_font_truetype(& $pdf, $filename, $encoding = "builtin")
 			"/BaseFont" => "/" . $fontname,
 			"/FirstChar" => 32,
 			"/LastChar" => 255,
-			"/FontDescriptor" => $b
+			"/Widths" => "[]",
+			"/FontDescriptor" => $d
 			)
 		);
 
@@ -515,17 +518,19 @@ function _pdf_add_form(& $pdf, $resources, $bbox, $stream)
 
 	$id = _pdf_get_free_xobject_id($pdf); # pdf-api-lib.php
 
-	$pdf["loaded-resources"]["/XObject"][$id] = sprintf("%d 0 R", $this_id);
+	$pdf["resources"]["/XObject"][$id] = sprintf("%d 0 R", $this_id);
 
 	return(sprintf("%d 0 R", $this_id));
 	}
 
 ################################################################################
-# _pdf_add_image ( array $pdf , string $imagetype , string $filename ) : string
+# _pdf_add_image ( array $pdf , string $filename ) : string
 ################################################################################
 
-function _pdf_add_image(& $pdf, $imagetype, $filename)
+function _pdf_add_image(& $pdf, $filename)
 	{
+	$imagetype = pathinfo($filename, PATHINFO_EXTENSION);
+
 	if($imagetype == "jpg")
 		$retval = _pdf_add_image_jpg($pdf, $filename);
 	elseif($imagetype == "gif")
@@ -536,7 +541,7 @@ function _pdf_add_image(& $pdf, $imagetype, $filename)
 		{
 		system("convert " . $filename . " -quality 15 lolo.jpg");
 
-		$retval = _pdf_add_image($pdf, "jpg", "lolo.jpg");
+		$retval = _pdf_add_image($pdf, "lolo.jpg");
 
 		unlink("lolo.jpg"); # don't change it. keep this name. don't make fun here. :)
 		}
@@ -628,22 +633,22 @@ function _pdf_add_image_jpg(& $pdf, $filename)
 		);
 
 	if($bits_per_component == 1)
-		if(in_array("/ImageB", $pdf["loaded-resources"]["/ProcSet"]) === false)
-			$pdf["loaded-resources"]["/ProcSet"][] = "/ImageB";
-		elseif(in_array("/ImageB", $pdf["loaded-resources"]["/ProcSet"]) === false)
-			$pdf["loaded-resources"]["/ProcSet"][] = "/ImageB";
+		if(in_array("/ImageB", $pdf["resources"]["/ProcSet"]) === false)
+			$pdf["resources"]["/ProcSet"][] = "/ImageB";
+		elseif(in_array("/ImageB", $pdf["resources"]["/ProcSet"]) === false)
+			$pdf["resources"]["/ProcSet"][] = "/ImageB";
 
 	if($bits_per_component != 1)
-		if(isset($pdf["loaded-resources"]["/ProcSet"]) === false)
-			$pdf["loaded-resources"]["/ProcSet"][] = "/ImageC";
-		elseif(in_array("/ImageC", $pdf["loaded-resources"]["/ProcSet"]) === false)
-			$pdf["loaded-resources"]["/ProcSet"][] = "/ImageC";
+		if(isset($pdf["resources"]["/ProcSet"]) === false)
+			$pdf["resources"]["/ProcSet"][] = "/ImageC";
+		elseif(in_array("/ImageC", $pdf["resources"]["/ProcSet"]) === false)
+			$pdf["resources"]["/ProcSet"][] = "/ImageC";
 
 	if($color_space == "/Indexed")
-		if(isset($pdf["loaded-resources"]["/ProcSet"]) === false)
-			$pdf["loaded-resources"]["/ProcSet"][] = "/ImageI";
-		elseif(in_array("/ImageI", $pdf["loaded-resources"]["/ProcSet"]) === false)
-			$pdf["loaded-resources"]["/ProcSet"][] = "/ImageI";
+		if(isset($pdf["resources"]["/ProcSet"]) === false)
+			$pdf["resources"]["/ProcSet"][] = "/ImageI";
+		elseif(in_array("/ImageI", $pdf["resources"]["/ProcSet"]) === false)
+			$pdf["resources"]["/ProcSet"][] = "/ImageI";
 
 	return(sprintf("%d 0 R", $this_id));
 	}
@@ -743,16 +748,106 @@ function _pdf_add_image_png(& $pdf, $filename)
 	while($chunk_length);
 
 	################################################################################
+	# palette
+	################################################################################
 
-	if($color_space == "/DeviceRGB")
-		$colors = 3;
-	else
-		$colors = 1;
+	if($color_type == 3)
+		{
+		$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
 
-	if($color_space == "/Indexed")
-		if(empty($plte_stream))
-			die("Missing palette in " . $filename);
+		$pdf["objects"][$this_id] = array
+			(
+			"id" => $this_id,
+			"version" => 0,
+			"dictionary" => array
+				(
+				"/Filter" => "/FlateDecode",
+				"/Length" => strlen($plte_stream)
+				),
+			"stream" => $plte_stream
+			);
 
+		$p = sprintf("%d 0 R", $this_id);
+		}
+
+	################################################################################
+	# smask
+	################################################################################
+
+	if($color_type >= 4)
+		{
+		$data_stream = gzuncompress($data_stream);
+
+		$color_stream = "";
+		$alpha_stream = "";
+
+		if($color_type == 4)
+			{
+			$width_index = 2 * $width;
+
+			for($height_index = 0; $height_index < $height; $height_index = $height_index + 1)
+				{
+				$temp_index = (1 + $width_index) * $height_index;
+
+				$alpha_stream .= $data_stream[$temp_index];
+				$alpha_stream .= preg_replace("/.{1}(.)/s", "$1", substr($data_stream, $temp_index + 1, $width_index));
+
+				$color_stream .= $data_stream[$temp_index];
+				$color_stream .= preg_replace("/(.{1})./s", "$1", substr($data_stream, $temp_index + 1, $width_index));
+				}
+			}
+		else
+			{
+			$width_index = 4 * $width;
+
+			for($height_index = 0; $height_index < $height; $height_index = $height_index + 1)
+				{
+				$temp_index = (1 + $width_index) * $height_index;
+
+				$alpha_stream .= $data_stream[$temp_index];
+				$alpha_stream .= preg_replace("/.{3}(.)/s", "$1", substr($data_stream, $temp_index + 1, $width_index));
+
+				$color_stream .= $data_stream[$temp_index];
+				$color_stream .= preg_replace("/(.{3})./s", "$1", substr($data_stream, $temp_index + 1, $width_index));
+				}
+			}
+
+		$alpha_stream = gzcompress($alpha_stream);
+		$data_stream = gzcompress($color_stream);
+		$plte_stream = gzcompress($plte_stream);
+
+		################################################################################
+
+		$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
+
+		$pdf["objects"][$this_id] = array
+			(
+			"id" => $this_id,
+			"version" => 0,
+			"dictionary" => array
+				(
+				"/Width" => $width,
+				"/Height" => $height,
+				"/ColorSpace" => "/DeviceGray",
+				"/BitsPerComponent" => 8,
+				"/DecodeParms" => array
+					(
+					"/Predictor" => 15,
+					"/Colors" => 1,
+					"/BitsPerComponent" => 8,
+					"/Columns" => $width
+					),
+				"/Filter" => "/FlateDecode",
+				"/Length" => strlen($alpha_stream)
+				),
+			"stream" => $alpha_stream
+			);
+
+		$s = sprintf("%d 0 R", $this_id);
+		}
+
+	################################################################################
+	# finally ...
 	################################################################################
 
 	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
@@ -769,72 +864,53 @@ function _pdf_add_image_png(& $pdf, $filename)
 			"/Height" => $height,
 			"/ColorSpace" => $color_space,
 			"/BitsPerComponent" => $bits_per_component,
-			"/Filter" => "/FlateDecode",
 			"/DecodeParms" => array
 				(
 				"/Predictor" => 15,
-				"/Colors" => $colors,
+				"/Colors" => ($color_space == "/DeviceRGB" ? 3 : 1),
 				"/BitsPerComponent" => $bits_per_component,
 				"/Columns" => $width
-				)
+				),
+			"/Filter" => "/FlateDecode",
+			"/Length" => strlen($data_stream)
 			),
+		"stream" => $data_stream
 		);
 
-	# $plte_stream as pointer to /ColorSpace as 4th element of array
-	# $trns_stream to /Mask as array
+	if($color_type == 3)
+		$pdf["objects"][$this_id]["dictionary"]["/ColorSpace"] = sprintf("[/Indexed /DeviceRGB %d %s]", strlen($plte_stream) / 3 - 1, $p);
 
-	$temp_stream = _pdf_filter_flate_decode($data_stream); # pdf-api-filter.php
+	if($color_type >= 4)
+		$pdf["objects"][$this_id]["dictionary"]["/SMask"] = $s;
 
-	if($color_type < 4)
+	if(count($trns_stream) > 0)
 		{
-		$temp_stream = _pdf_filter_flate_encode($temp_stream); # pdf-api-filter.php
+		$mask = array();
 
-		$pdf["objects"][$this_id]["stream"] = $temp_stream;
+		for($i = 0; $i < count($trns_stream); $i = $i + 1)
+			$mask[] = implode(" ", array($trns_stream[$i], $trns_stream[$i]));
+
+		$pdf["objects"][$this_id]["dictionary"]["/Mask"] = sprintf("[%s]", _pdf_glue_array($mask)); # pdf-api-glue.php
 		}
-	else
-		{
-		$color_stream = "";
-		$alpha_stream = "";
 
-		if($color_type == 4)
-			{
-			$width_index = 2 * $width;
 
-			for($height_index = 0; $height_index < $height; $height_index = $height_index + 1)
-				{
-				$temp_index = (1 + $width_index) * $height_index;
+	if($bits_per_component == 1)
+		if(in_array("/ImageB", $pdf["resources"]["/ProcSet"]) === false)
+			$pdf["resources"]["/ProcSet"][] = "/ImageB";
+		elseif(in_array("/ImageB", $pdf["resources"]["/ProcSet"]) === false)
+			$pdf["resources"]["/ProcSet"][] = "/ImageB";
 
-				$alpha_stream .= $temp_stream[$temp_index];
-				$alpha_stream .= preg_replace("/.(.)/s", "$1", substr($temp_stream, $temp_index + 1, $width_index));
+	if($bits_per_component != 1)
+		if(isset($pdf["resources"]["/ProcSet"]) === false)
+			$pdf["resources"]["/ProcSet"][] = "/ImageC";
+		elseif(in_array("/ImageC", $pdf["resources"]["/ProcSet"]) === false)
+			$pdf["resources"]["/ProcSet"][] = "/ImageC";
 
-				$color_stream .= $temp_stream[$temp_index];
-				$color_stream .= preg_replace("/(.)./s", "$1", substr($temp_stream, $temp_index + 1, $width_index));
-				}
-			}
-		else
-			{
-			$width_index = 4 * $width;
-
-			for($height_index = 0; $height_index < $height; $height_index = $height_index + 1)
-				{
-				$temp_index = (1 + $width_index) * $height_index;
-
-				$alpha_stream .= $temp_stream[$temp_index];
-				$alpha_stream .= preg_replace("/.{3}(.)/s", "$1", substr($temp_stream, $temp_index + 1, $width_index));
-
-				$color_stream .= $temp_stream[$temp_index];
-				$color_stream .= preg_replace("/(.{3})./s", "$1", substr($temp_stream, $temp_index + 1, $width_index));
-				}
-			}
-
-		$alpha_stream = _pdf_filter_flate_encode($alpha_stream); # pdf-api-filter.php
-
-		# $alpha_stream as pointer to /SMask
-
-		$color_stream = _pdf_filter_flate_encode($color_stream); # pdf-api-filter.php
-
-		$pdf["objects"][$this_id]["stream"] = $color_stream;
-		}
+	if($color_space == "/Indexed")
+		if(isset($pdf["resources"]["/ProcSet"]) === false)
+			$pdf["resources"]["/ProcSet"][] = "/ImageI";
+		elseif(in_array("/ImageI", $pdf["resources"]["/ProcSet"]) === false)
+			$pdf["resources"]["/ProcSet"][] = "/ImageI";
 
 	return(sprintf("%d 0 R", $this_id));
 	}
@@ -860,7 +936,7 @@ function _pdf_add_info(& $pdf, $optlist)
 		);
 
 	foreach($optlist as $key => $value)
-		$pdf["objects"][$this_id]["dictionary"][$key] = sprintf("(%s)", _pdf_glue_string($value)); # pdf-api-glue.php
+		$pdf["objects"][$this_id]["dictionary"][$key] = $value;
 
 	$pdf["objects"][0]["dictionary"]["/Info"] = sprintf("%d 0 R", $this_id);
 
@@ -1053,10 +1129,10 @@ function _pdf_add_pages(& $pdf, $parent)
 	}
 
 ################################################################################
-# _pdf_add_stream ( array $pdf , string $stream ) : string
+# _pdf_add_stream ( array $pdf , string $stream , array $optlist ) : string
 ################################################################################
 
-function _pdf_add_stream(& $pdf, $stream)
+function _pdf_add_stream(& $pdf, $stream, $optlist = array())
 	{
 	$this_id = _pdf_get_free_object_id($pdf); # pdf-api-lib.php
 
@@ -1070,6 +1146,9 @@ function _pdf_add_stream(& $pdf, $stream)
 			),
 		"stream" => $stream
 		);
+
+	foreach($optlist as $key => $value)
+		$pdf["objects"][$this_id]["dictionary"][$key] = $value;
 
 	return(sprintf("%d 0 R", $this_id));
 	}

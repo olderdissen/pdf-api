@@ -2847,25 +2847,25 @@ function pdf_set_value(& $p, $key, $value)
 	switch($key)
 		{
 		case("charspacing"):
-			$p["stream"][] = sprintf("%f Tc", $value);
+			$p["stream"][] = sprintf("%f Tc", $value); break;
 		case("horizscaling"):
-			$p["stream"][] = sprintf("%f Tz", $value);
+			$p["stream"][] = sprintf("%f Tz", $value); break;
 		case("leading"):
-			$p["stream"][] = sprintf("%f TL", $value);
+			$p["stream"][] = sprintf("%f TL", $value); break;
 		case("linecap"):
-			$p["stream"][] = sprintf("%f J", $value);
+			$p["stream"][] = sprintf("%f J", $value); break;
 		case("linejoin"):
-			$p["stream"][] = sprintf("%f j", $value);
+			$p["stream"][] = sprintf("%f j", $value); break;
 		case("linewidth"):
-			$p["stream"][] = sprintf("%f w", $value);
+			$p["stream"][] = sprintf("%f w", $value); break;
 		case("miterlimit"):
-			$p["stream"][] = sprintf("%f M", $value);
+			$p["stream"][] = sprintf("%f M", $value); break;
 		case("textrendering"):
-			$p["stream"][] = sprintf("%f Tr", $value);
+			$p["stream"][] = sprintf("%f Tr", $value); break;
 		case("textrise"):
-			$p["stream"][] = sprintf("%f Ts", $value);
+			$p["stream"][] = sprintf("%f Ts", $value); break;
 		case("wordspacing"):
-			$p["stream"][] = sprintf("%f Tw", $value);
+			$p["stream"][] = sprintf("%f Tw", $value); break;
 		}
 	}
 

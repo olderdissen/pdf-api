@@ -123,36 +123,20 @@ function _put_image(& $pdfdoc, & $image)
 		"stream" => $image["stream"]
 		);
 
-	if(isset($image["dictionary"]["/ColorSpace"]))
-		if($image["dictionary"]["/ColorSpace"] == "/Indexed")
-			$object["dictionary"]["/ColorSpace"] = sprintf("[/Indexed /DeviceRGB %d %d 0 R]", strlen($image["dictionary"]["x-palette"]) / 3 - 1, $pdfdoc["reference-id"] + 2);
-		else
-			$object["dictionary"]["/ColorSpace"] = $image["dictionary"]["/ColorSpace"];
+	if(isset($image["dictionary"]["/SMask"]))
+		$object["dictionary"]["/SMask"] = sprintf("%d 0 R", $pdfdoc["reference-id"] + 1);
 
 	if(isset($image["dictionary"]["/ColorSpace"]))
 		if($image["dictionary"]["/ColorSpace"] == "/DeviceCMYK")
 			$object["dictionary"]["/Decode"] = "[1 0 1 0 1 0 1 0]";
+		elseif($image["dictionary"]["/ColorSpace"] == "/Indexed")
+			$object["dictionary"]["/ColorSpace"] = sprintf("[/Indexed /DeviceRGB %d %d 0 R]", strlen($image["dictionary"]["x-palette"]) / 3 - 1, $pdfdoc["reference-id"] + 2);
+		else
+			$object["dictionary"]["/ColorSpace"] = $image["dictionary"]["/ColorSpace"];
 
-	$object["dictionary"]["/BitsPerComponent"] = $image["dictionary"]["/BitsPerComponent"];
-
-	if(isset($image["dictionary"]["/Filter"]))
-		$object["dictionary"]["/Filter"] = $image["dictionary"]["/Filter"];
-
-	if(isset($image["dictionary"]["/DecodeParms"]))
-		$object["dictionary"]["/DecodeParms"] = sprintf("<< %s >>", _pdf_glue_dictionary($image["dictionary"]["/DecodeParms"]));
-
-	if(isset($image["dictionary"]["/Mask"]))
-		{
-		$mask = array();
-
-		for($i = 0; $i < count($image["dictionary"]["/Mask"]); $i = $i + 1)
-			$mask[] = implode(" ", array($image["dictionary"]["/Mask"][$i], $image["dictionary"]["/Mask"][$i]));
-
-		$object["dictionary"]["/Mask"] = sprintf("[%s]", _pdf_glue_array($mask));
-		}
-
-	if(isset($image["dictionary"]["/SMask"]))
-		$object["dictionary"]["/SMask"] = sprintf("%d 0 R", $pdfdoc["reference-id"] + 1);
+	foreach(array("/BitsPerComponent", "/Filter", "/DecodeParms", "/Mask") as $k)
+		if(isset($image["dictionary"][$k]))
+			$object["dictionary"][$k] = $image["dictionary"][$k];
 
 	_put_object($pdfdoc, $object);
 
@@ -485,7 +469,14 @@ function _parse_image_png($pdfdoc, $filename)
 		);
 
 	if(count($trns_stream) > 0)
-		$object["dictionary"]["/Mask"] = $trns_stream;
+		{
+		$mask = array();
+
+		for($i = 0; $i < count($trns_stream); $i = $i + 1)
+			$mask[] = implode(" ", array($trns_stream[$i], $trns_stream[$i]));
+
+		$object["dictionary"]["/Mask"] = sprintf("[%s]", _pdf_glue_array($mask));
+		}
 
 	################################################################################
 

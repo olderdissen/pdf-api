@@ -349,7 +349,7 @@ function _pdf_end_document(& $pdf)
 
 function _pdf_end_page(& $pdf)
 	{
-	$resources = array();
+	$resources = array("/ProcSet" => array("/PDF", "/Text"));
 
 	################################################################################
 
@@ -368,7 +368,7 @@ function _pdf_end_page(& $pdf)
 	################################################################################
 
 	if(isset($resources["/ProcSet"]))
-		$resources["/ProcSet"] = sprintf("[%s]", _pdf_glue_array($$resources["/ProcSet"])); # pdf-api-glue.php
+		$resources["/ProcSet"] = sprintf("[%s]", _pdf_glue_array($resources["/ProcSet"])); # pdf-api-glue.php
 
 	if(isset($resources["/Font"]))
 		$resources["/Font"] = sprintf("<< %s >>", _pdf_glue_dictionary($resources["/Font"])); # pdf-api-glue.php
@@ -409,10 +409,10 @@ function _pdf_get_buffer(& $pdf)
 	}
 
 ################################################################################
-# _pdf_findfont ( array $pdf , string $fontname ) : string
+# _pdf_find_font ( array $pdf , string $fontname ) : string
 ################################################################################
 
-function _pdf_findfont(& $pdf, $fontname, $encoding = "/WinAnsiEncoding")
+function _pdf_find_font(& $pdf, $fontname, $encoding = "/WinAnsiEncoding")
 	{
 	$a = 0; # resource
 	$b = 0; # name
@@ -460,6 +460,18 @@ function _pdf_findfont(& $pdf, $fontname, $encoding = "/WinAnsiEncoding")
 	}
 
 ################################################################################
+# _pdf_fit_image ( array $pdf , string $image , int $x , $y , array $optlist) : int
+################################################################################
+
+function _pdf_fit_image(& $pdf, $image, $x, $y, $optlist)
+	{
+	pdf_save($pdf);
+	$pdf["stream"][] = sprintf("%d 0 0 %d %d %d cm", $optlist["width"] * $optlist["scale"], $optlist["height"] * $optlist["scale"], $x, $y);
+	$pdf["stream"][] = sprintf("%s Do", $image); # Invoke named XObject
+	pdf_restore($pdf);
+	}
+
+################################################################################
 # _pdf_get_free_object_id ( array $pdf ) : int
 ################################################################################
 
@@ -476,7 +488,7 @@ function _pdf_get_free_object_id(& $pdf, $id = 1)
 # _pdf_get_free_font_id ( array $pdf ) : int
 ################################################################################
 
-function _pdf_get_free_font_id(& $pdf, $id = 1)
+function _pdf_get_free_font_id(& $pdf, $id = 0)
 	{
 	if(isset($pdf["resources"]["/Font"]))
 		while(isset($pdf["resources"]["/Font"][$id]))
@@ -489,7 +501,7 @@ function _pdf_get_free_font_id(& $pdf, $id = 1)
 # _pdf_get_free_font_id ( array $pdf ) : int
 ################################################################################
 
-function _pdf_get_free_xobject_id(& $pdf, $id = 1)
+function _pdf_get_free_xobject_id(& $pdf, $id = 0)
 	{
 	if(isset($pdf["resources"]["/XObject"]))
 		while(isset($pdf["resources"]["/XObject"][$id]))
@@ -546,10 +558,10 @@ function _pdf_load_image(& $pdf, $filename)
 	}
 
 ################################################################################
-# _pdf_setfont ( array $pdf , string $font , int $size ) void
+# _pdf_set_font ( array $pdf , string $font , int $size ) void
 ################################################################################
 
-function _pdf_setfont(& $pdf, $font, $size)
+function _pdf_set_font(& $pdf, $font, $size)
 	{
 	$pdf["stream"][] = sprintf("%s %d Tf", $font, $size);
 	}
