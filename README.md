@@ -5,7 +5,7 @@ see **pdf-api-test.php** for a working example.
 
 this newer project follows a different strategy of collecting and storing data than the older project described below.
 resources are stored inside a single array for easier access.
-each element is accessible and changeable at any time.
+each element is accessible, changeable and removable at any time.
 
 supported filters
 * /ASCIIHexDecode
