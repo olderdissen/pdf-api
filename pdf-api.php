@@ -22,19 +22,13 @@ _pdf_load_includes("includes-glue");
 _pdf_load_includes("includes-parse");
 
 ################################################################################
-# _pdf_load_includes ( string $path , string $type , string $recursive ) : bool
+# _pdf_load_includes ( string $path ) : bool
 ################################################################################
 
-function _pdf_load_includes($path, $type = "php", $recursive = false)
+function _pdf_load_includes($path)
 	{
-	foreach(glob($path . "/*." . $type) as $file)
-		{
-		if($type == "js")
-			print(file_get_contents($file));
-
-		if($type == "php")
-			include_once($file);
-		}
+	foreach(glob($path . "/*.php") as $file)
+		include_once($file);
 
 	return(true);
 	}
