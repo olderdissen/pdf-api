@@ -5,10 +5,20 @@
 # public use need written permission.
 ################################################################################
 
-include_once("pdf-api-extra.php");
-include_once("pdf-api-filter.php");
-include_once("pdf-api-glue.php");
-include_once("pdf-api-parse.php");
+define("FONTDESCRIPTOR_FLAG_FIXEDPITCH", 1 << 1);
+define("FONTDESCRIPTOR_FLAG_SERIF", 1 << 2);
+define("FONTDESCRIPTOR_FLAG_SYMBOLIC", 1 << 3);
+define("FONTDESCRIPTOR_FLAG_SCRIPT", 1 << 4);
+define("FONTDESCRIPTOR_FLAG_NONSYMBOLIC", 1 << 6);
+define("FONTDESCRIPTOR_FLAG_ITALIC", 1 << 7);
+define("FONTDESCRIPTOR_FLAG_ALLCAP", 1 << 17);
+define("FONTDESCRIPTOR_FLAG_SMALLCAP", 1 << 18);
+define("FONTDESCRIPTOR_FLAG_FORCEBOLD", 1 << 19);
+
+_pdf_load_includes("includes-extra");
+_pdf_load_includes("includes-filter");
+_pdf_load_includes("includes-glue");
+_pdf_load_includes("includes-parse");
 
 ################################################################################
 # _pdf_begin_document ( array $pdf , string $filename) : void
@@ -418,6 +428,158 @@ function _pdf_get_buffer(& $pdf)
 	}
 
 ################################################################################
+# _pdf_filter_change ( array $pdf , string $filter ) : array
+################################################################################
+
+function _pdf_filter_change(& $pdf, $filter = "")
+	{
+	foreach($pdf["objects"] as $index => $object)
+		{
+		if($index == 0) # trailer
+			continue;
+
+		if(isset($object["stream"]) === false)
+			continue;
+
+		if(isset($object["dictionary"]["/Filter"]))
+			list($filter_old, $null) = _pdf_filter_parse($object["dictionary"]["/Filter"]);
+		else
+			$filter_old = array();
+
+		$data = $object["stream"];
+
+		while(1)
+			{
+			if(count($filter_old) == 0)
+				break;
+
+			if($filter_old[0] == "/ASCII85Decode")
+				$data = _pdf_filter_ascii85_decode($data);
+
+			if($filter_old[0] == "/ASCIIHexDecode")
+				$data = _pdf_filter_asciihex_decode($data);
+
+			if($filter_old[0] == "/DCTDecode")
+				break; # image
+
+			if($filter_old[0] == "/FlateDecode")
+				$data = _pdf_filter_flate_decode($data);
+
+			if($filter_old[0] == "/LZWDecode")
+				$data = _pdf_filter_lzw_decode($data);
+
+			$filter_old = array_slice($filter_old, 1);
+			}
+
+		$pdf["objects"][$index]["stream"] = $data;
+		$pdf["objects"][$index]["dictionary"]["/Length"] = strlen($data);
+
+		if(count($filter_old) == 0)
+			unset($pdf["objects"][$index]["dictionary"]["/Filter"]);
+		elseif(count($filter_old) == 1)
+			$pdf["objects"][$index]["dictionary"]["/Filter"] = sprintf("%s", _pdf_glue_array($filter_old));
+		else
+			$pdf["objects"][$index]["dictionary"]["/Filter"] = sprintf("[%s]", _pdf_glue_array($filter_old));
+		}
+	
+	################################################################################
+
+	foreach($pdf["objects"] as $index => $object)
+		{
+		if($index == 0) # trailer
+			continue;
+
+		if(isset($object["stream"]) === false)
+			continue;
+
+		if(isset($object["dictionary"]["/Filter"]))
+			list($filter_old, $null) = _pdf_filter_parse($object["dictionary"]["/Filter"]);
+		else
+			$filter_old = array();
+
+		list($filter_new, $null) = _pdf_filter_parse($filter);
+
+		$filter_new = array_reverse($filter_new);
+
+		$data = $object["stream"];
+
+		while(1)
+			{
+			if(count($filter_new) == 0)
+				break;
+
+			if($filter_new[0] == "/ASCII85Decode")
+				$data = _pdf_filter_ascii85_encode($pdf["objects"][$index]["stream"]);
+
+			if($filter_new[0] == "/ASCIIHexDecode")
+				$data = _pdf_filter_asciihex_encode($data);
+
+			if($filter_new[0] == "/FlateDecode")
+				$data = _pdf_filter_flate_encode($data);
+
+			if($filter_new[0] == "/LZWDecode")
+				$data = _pdf_filter_lzw_encode($data);
+
+			$filter_old = array_merge(array($filter_new[0]), $filter_old);
+
+			$filter_new = array_slice($filter_new, 1);
+			}
+
+		$pdf["objects"][$index]["stream"] = $data;
+		$pdf["objects"][$index]["dictionary"]["/Length"] = strlen($data);
+
+		if(count($filter_old) == 0)
+			unset($pdf["objects"][$index]["dictionary"]["/Filter"]);
+		elseif(count($filter_old) == 1)
+			$pdf["objects"][$index]["dictionary"]["/Filter"] = sprintf("%s", _pdf_glue_array($filter_old));
+		else
+			$pdf["objects"][$index]["dictionary"]["/Filter"] = sprintf("[%s]", _pdf_glue_array($filter_old));
+		}
+
+	return(true);
+	}
+
+################################################################################
+# _pdf_filter_parse ( string $data ) : array
+# this function is needed because user can setup /Filter for final writing
+################################################################################
+
+function _pdf_filter_parse($data = "")
+	{
+	$retval = array();
+
+	while(1)
+		{
+		if(strlen($data) == 0)
+			break;
+		elseif($data[0] == " ")
+			$data = substr($data, 1);
+		elseif($data[0] == "[")
+			{
+			$data = substr($data, 1);
+
+			list($retval, $data) = _pdf_parse_array($data);
+
+			$data = substr($data, 1);
+			}
+		elseif($data[0] == "]")
+			break;
+		elseif($data[0] == "/")
+			{
+			$data = substr($data, 1);
+
+			list($name, $data) = _pdf_parse_name($data);
+
+			$retval[] = sprintf("/%s", $name);
+			}
+		else
+			die("_pdf_filter_parse: you should never be here: data follows: " . $data);
+		}
+
+	return(array($retval, $data));
+	}
+
+################################################################################
 # _pdf_find_font ( array $pdf , string $fontname ) : string
 ################################################################################
 
@@ -564,6 +726,24 @@ function _pdf_load_image(& $pdf, $filename)
 	$pdf["resources"]["/XObject"][$b] = sprintf("%d 0 R", $a);
 
 	return("/X" . $b);
+	}
+
+################################################################################
+# _pdf_load_includes ( string $path , string $type , string $recursive ) : bool
+################################################################################
+
+function _pdf_load_includes($path, $type = "php", $recursive = false)
+	{
+	foreach(glob($path . "/*." . $type) as $file)
+		{
+		if($type == "js")
+			print(file_get_contents($file));
+
+		if($type == "php")
+			include_once($file);
+		}
+
+	return(true);
 	}
 
 ################################################################################
