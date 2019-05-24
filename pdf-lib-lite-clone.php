@@ -1,13 +1,5 @@
 <?
 ################################################################################
-# copyright 2019 by Markus Olderdissen
-# free for private use or inspiration.
-# public use need written permission.
-################################################################################
-
-include_once("pdf-lib-lite-clone-fpdf.php");
-
-################################################################################
 # pdf_activate_item - Activate structure element or other content item
 # pdf_activate_item ( array $pdf , int $id ) : bool
 # Activates a previously created structure element or other content item.
@@ -23,7 +15,7 @@ function pdf_activate_item(& $pdf, $id)
 # This function is deprecated, use PDF_create_annotation() with type=Text instead.
 ################################################################################
 
-function pdf_add_annotation(& $pdfdoc, $llx, $lly, $urx, $ury, $title, $content)
+function pdf_add_annotation(& $pdf, $llx, $lly, $urx, $ury, $title, $content)
 	{
 	}
 
@@ -32,7 +24,7 @@ function pdf_add_annotation(& $pdfdoc, $llx, $lly, $urx, $ury, $title, $content)
 # This function is deprecated since PDFlib version 6, use PDF_create_bookmark() instead.
 ################################################################################
 
-function pdf_add_bookmark(& $pdfdoc, $text, $parent, $open)
+function pdf_add_bookmark(& $pdf, $text, $parent, $open)
 	{
 	}
 
@@ -43,7 +35,7 @@ function pdf_add_bookmark(& $pdfdoc, $text, $parent, $open)
 # This function is deprecated since PDFlib version 6, use PDF_create_action() with type=Launch and PDF_create_annotation() with type=Link instead.
 ################################################################################
 
-function pdf_add_launchlink(& $pdfdoc, $llx, $lly, $urx, $ury, $filename)
+function pdf_add_launchlink(& $pdf, $llx, $lly, $urx, $ury, $filename)
 	{
 	}
 
@@ -55,7 +47,7 @@ function pdf_add_launchlink(& $pdfdoc, $llx, $lly, $urx, $ury, $filename)
 # This function is deprecated since PDFlib version 6, use PDF_create_action() with type=GoTo and PDF_create_annotation() with type=Link instead.
 ################################################################################
 
-function pdf_add_locallink(& $pdfdoc, $lowerleftx, $lowerlefty, $upperrightx, $upperrighty, $page, $dest)
+function pdf_add_locallink(& $pdf, $lowerleftx, $lowerlefty, $upperrightx, $upperrighty, $page, $dest)
 	{
 	}
 
@@ -66,7 +58,7 @@ function pdf_add_locallink(& $pdfdoc, $lowerleftx, $lowerlefty, $upperrightx, $u
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_add_nameddest(& $pdfdoc, $name, $optlist)
+function pdf_add_nameddest(& $pdf, $name, $optlist)
 	{
 	}
 
@@ -78,7 +70,7 @@ function pdf_add_nameddest(& $pdfdoc, $name, $optlist)
 # This function is deprecated since PDFlib version 6, use PDF_create_annotation() with type=Text instead.
 ################################################################################
 
-function pdf_add_note(& $pdfdoc, $llx, $lly, $urx, $ury, $contents, $title, $icon, $open)
+function pdf_add_note(& $pdf, $llx, $lly, $urx, $ury, $contents, $title, $icon, $open)
 	{
 	}
 
@@ -87,7 +79,7 @@ function pdf_add_note(& $pdfdoc, $llx, $lly, $urx, $ury, $contents, $title, $ico
 # This function is deprecated, use PDF_create_bookmark() instead.
 ################################################################################
 
-function pdf_add_outline(& $pdfdoc, $text, $parent, $open)
+function pdf_add_outline(& $pdf, $text, $parent, $open)
 	{
 	}
 
@@ -99,7 +91,7 @@ function pdf_add_outline(& $pdfdoc, $text, $parent, $open)
 # This function is deprecated since PDFlib version 6, use PDF_create_action() with type=GoToR and PDF_create_annotation() with type=Link instead.
 ################################################################################
 
-function pdf_add_pdflink(& $pdfdoc, $bottom_left_x, $bottom_left_y, $up_right_x, $up_right_y, $filename, $page, $dest)
+function pdf_add_pdflink(& $pdf, $bottom_left_x, $bottom_left_y, $up_right_x, $up_right_y, $filename, $page, $dest)
 	{
 	}
 
@@ -109,7 +101,7 @@ function pdf_add_pdflink(& $pdfdoc, $bottom_left_x, $bottom_left_y, $up_right_x,
 # Adds a cell to a new or existing table.
 ################################################################################
 
-function pdf_add_table_cell(& $pdfdoc, $table, $column, $row, $text, $optlist)
+function pdf_add_table_cell(& $pdf, $table, $column, $row, $text, $optlist)
 	{
 	}
 
@@ -119,7 +111,7 @@ function pdf_add_table_cell(& $pdfdoc, $table, $column, $row, $text, $optlist)
 # Creates a Textflow object, or adds text and explicit options to an existing Textflow.
 ################################################################################
 
-function pdf_add_textflow(& $pdfdoc, $textflow, $text, $optlist)
+function pdf_add_textflow(& $pdf, $textflow, $text, $optlist)
 	{
 	}
 
@@ -130,7 +122,7 @@ function pdf_add_textflow(& $pdfdoc, $textflow, $text, $optlist)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_add_thumbnail(& $pdfdoc, $image)
+function pdf_add_thumbnail(& $pdf, $image)
 	{
 	}
 
@@ -142,7 +134,7 @@ function pdf_add_thumbnail(& $pdfdoc, $image)
 # This function is deprecated since PDFlib version 6, use PDF_create_action() with type=URI and PDF_create_annotation() with type=Link instead.
 ################################################################################
 
-function pdf_add_weblink(& $pdfdoc, $lowerleftx, $lowerlefty, $upperrightx, $upperrighty, $url)
+function pdf_add_weblink(& $pdf, $lowerleftx, $lowerlefty, $upperrightx, $upperrighty, $url)
 	{
 	}
 
@@ -152,9 +144,9 @@ function pdf_add_weblink(& $pdfdoc, $lowerleftx, $lowerlefty, $upperrightx, $upp
 # Adds a counterclockwise circular arc.
 ################################################################################
 
-function pdf_arc(& $p, $x, $y, $r, $alpha, $beta)
+function pdf_arc(& $pdf, $x, $y, $r, $alpha, $beta)
 	{
-	pdf_arc_orient($p, $x, $y, $r, $alpha, $beta, 0 - 1);
+	pdf_arc_orient($pdf, $x, $y, $r, $alpha, $beta, 0 - 1);
 	}
 
 ################################################################################
@@ -163,14 +155,14 @@ function pdf_arc(& $p, $x, $y, $r, $alpha, $beta)
 # Except for the drawing direction, this function behaves exactly like PDF_arc().
 ################################################################################
 
-function pdf_arcn(& $p, $x, $y, $r, $alpha, $beta)
+function pdf_arcn(& $pdf, $x, $y, $r, $alpha, $beta)
 	{
-	pdf_arc_orient($p, $x, $y, $r, $alpha, $beta, 0 + 1);
+	pdf_arc_orient($pdf, $x, $y, $r, $alpha, $beta, 0 + 1);
 	}
 
 ################################################################################
 
-function pdf_arc_orient(& $p, $x, $y, $r, $alpha, $beta, $orient)
+function pdf_arc_orient(& $pdf, $x, $y, $r, $alpha, $beta, $orient)
 	{
 	$deg_to_rad	= 0.0174532925199433; # pi() / 180
 
@@ -179,7 +171,7 @@ function pdf_arc_orient(& $p, $x, $y, $r, $alpha, $beta, $orient)
 	$startx		= ($x + $r * cos($rad_a));
 	$starty		= ($y + $r * sin($rad_a));
 
-	pdf_moveto($p, $startx, $starty);
+	pdf_moveto($pdf, $startx, $starty);
 
 	if($orient > 0)
 		{
@@ -191,7 +183,7 @@ function pdf_arc_orient(& $p, $x, $y, $r, $alpha, $beta, $orient)
 
 		while($beta - $alpha > 90)
 			{
-			pdf_arc_short($p, $x, $y, $r, $alpha, $alpha - 90);
+			pdf_arc_short($pdf, $x, $y, $r, $alpha, $alpha - 90);
 
 			$alpha = $alpha + 90;
 			}
@@ -206,7 +198,7 @@ function pdf_arc_orient(& $p, $x, $y, $r, $alpha, $beta, $orient)
 
 		while($alpha - $beta > 90)
 			{
-			pdf_arc_short($p, $x, $y, $r, $alpha, $alpha + 90);
+			pdf_arc_short($pdf, $x, $y, $r, $alpha, $alpha + 90);
 
 			$alpha = $alpha - 90;
 			}
@@ -214,13 +206,13 @@ function pdf_arc_orient(& $p, $x, $y, $r, $alpha, $beta, $orient)
 
 	if($alpha != $beta)
 		{
-		pdf_arc_short($p, $x, $y, $r, $alpha, $beta);
+		pdf_arc_short($pdf, $x, $y, $r, $alpha, $beta);
 		}
 	}
 
 ################################################################################
 
-function pdf_arc_short(& $p, $x, $y, $r, $alpha, $beta)
+function pdf_arc_short(& $pdf, $x, $y, $r, $alpha, $beta)
 	{
 	$deg_to_rad	= 0.0174532925199433; # pi() / 180
 
@@ -253,7 +245,7 @@ function pdf_arc_short(& $p, $x, $y, $r, $alpha, $beta)
 # This function is deprecated since PDFlib version 6, use PDF_create_annotation() with type=FileAttachment instead.
 ################################################################################
 
-function pdf_attach_file(& $pdfdoc, $llx, $lly, $urx, $ury, $filename, $description, $author, $mimetype, $icon)
+function pdf_attach_file(& $pdf, $llx, $lly, $urx, $ury, $filename, $description, $author, $mimetype, $icon)
 	{
 	}
 
@@ -263,30 +255,20 @@ function pdf_attach_file(& $pdfdoc, $llx, $lly, $urx, $ury, $filename, $descript
 # Creates a new PDF file subject to various options.
 ################################################################################
 
-function pdf_begin_document(& $pdfdoc, $filename, $optlist)
+function pdf_begin_document(& $pdf, $filename, $optlist = array())
 	{
-	$pdfdoc["filename"] = $filename;
+	$catalog = _pdf_add_catalog($pdf);
 
-	$object = array
-		(
-		"id" => 1,
-		"version" => 0,
-		"dictionary" => array
-			(
-			"/Type" => "/Catalog",
-			"/Pages" => "2 0 R",
-			"/Metadata" => "5 0 R",
-			"/OpenAction" => "[6 0 R /Fit]",
-			"/PageLayout" => "/OneColumn",
-			"/PageMode" => "/UseOutlines",
-			"/Outlines" => "4 0 R"
-			)
-		);
+	$outlines = _pdf_add_outlines($pdf, $catalog);
 
-	foreach($optlist as $k => $v)
-		$object["dictionary"][$key] = $value;
+	$pages = _pdf_add_pages($pdf, $catalog);
 
-	return($pdfdoc["catalog-dictionary"][0] = $object);
+	$pdf["catalog"] = $catalog;
+	$pdf["outlines"] = $outlines;
+	$pdf["pages"] = $pages;
+	$pdf["filename"] = $filename;
+
+	$pdf["loaded-resources"] = array();
 	}
 
 ################################################################################
@@ -295,7 +277,7 @@ function pdf_begin_document(& $pdfdoc, $filename, $optlist)
 # Starts a Type 3 font definition.
 ################################################################################
 
-function pdf_begin_font(& $pdfdoc, $filename, $a, $b, $c, $d, $e, $f, $optlist)
+function pdf_begin_font(& $pdf, $filename, $a, $b, $c, $d, $e, $f, $optlist)
 	{
 	}
 
@@ -305,7 +287,7 @@ function pdf_begin_font(& $pdfdoc, $filename, $a, $b, $c, $d, $e, $f, $optlist)
 # Starts a glyph definition for a Type 3 font.
 ################################################################################
 
-function pdf_begin_glyph(& $pdfdoc, $glyphname, $wx, $llx, $lly, $urx, $ury)
+function pdf_begin_glyph(& $pdf, $glyphname, $wx, $llx, $lly, $urx, $ury)
 	{
 	}
 
@@ -315,7 +297,7 @@ function pdf_begin_glyph(& $pdfdoc, $glyphname, $wx, $llx, $lly, $urx, $ury)
 # Opens a structure element or other content item with attributes supplied as options.
 ################################################################################
 
-function pdf_begin_item(& $pdfdoc, $tag, $optlist)
+function pdf_begin_item(& $pdf, $tag, $optlist)
 	{
 	}
 
@@ -327,7 +309,7 @@ function pdf_begin_item(& $pdfdoc, $tag, $optlist)
 # This function requires PDF 1.5.
 ################################################################################
 
-function pdf_begin_layer(& $pdfdoc, $layer)
+function pdf_begin_layer(& $pdf, $layer)
 	{
 	}
 
@@ -339,9 +321,9 @@ function pdf_begin_layer(& $pdfdoc, $layer)
 # This function is deprecated since PDFlib version 6, use PDF_begin_page_ext() instead.
 ################################################################################
 
-function pdf_begin_page(& $pdfdoc, $width, $height)
+function pdf_begin_page(& $pdf, $width, $height)
 	{
-	pdf_begin_page_ext($pdfdoc, $width, $height, array());
+	pdf_begin_page_ext($pdf, $width, $height);
 	}
 
 ################################################################################
@@ -367,29 +349,13 @@ function pdf_begin_page(& $pdfdoc, $width, $height)
 # 	11" x 17"		792 x 1224
 ################################################################################
 
-function pdf_begin_page_ext(& $pdfdoc, $width, $height, $optlist)
+function pdf_begin_page_ext(& $pdf, $width, $height, $optlist = array())
 	{
-	$object = array
-		(
-		"id" => 6 + (2 * count($pdfdoc["page-dictionary"])),
-		"version" => 0,
-		"dictionary" => array
-			(
-			"/Type" => "/Page",
-			"/Parent" => "2 0 R",
-			"/MediaBox" => sprintf("[0 0 %d %d]", $width, $height),
-			"/Resources" => "3 0 R",
-			"/Contents" => sprintf("%d 0 R", 7 + (2 * count($pdfdoc["page-dictionary"])))
-			)
-		);
+	$pdf["width"] = $width;
+	$pdf["height"] = $height;
+	$pdf["stream"] = array();
 
-	foreach($optlist as $k => $v)
-		$object["dictionary"][$key] = $value;
-
-	$pdfdoc["/Width"] = intval($width);
-	$pdfdoc["/Height"] = intval($height);
-
-	$pdfdoc["stream"] = array();
+	$pdf["used-resources"] = array();
 	}
 
 ################################################################################
@@ -398,7 +364,7 @@ function pdf_begin_page_ext(& $pdfdoc, $width, $height, $optlist)
 # Starts a new pattern definition.
 ################################################################################
 
-function pdf_begin_pattern(& $pdfdoc, $width, $height, $xstep, $ystep, $painttype)
+function pdf_begin_pattern(& $pdf, $width, $height, $xstep, $ystep, $painttype)
 	{
 	}
 
@@ -408,9 +374,9 @@ function pdf_begin_pattern(& $pdfdoc, $width, $height, $xstep, $ystep, $painttyp
 # Starts a new template definition.
 ################################################################################
 
-function pdf_begin_template_ext(& $pdfdoc, $width, $height, $optlist)
+function pdf_begin_template_ext(& $pdf, $width, $height, $optlist = array())
 	{
-	$pdfdoc["stream"] = array();
+	$pdf["stream"] = array();
 	}
 
 ################################################################################
@@ -420,9 +386,9 @@ function pdf_begin_template_ext(& $pdfdoc, $width, $height, $optlist)
 # This function is deprecated since PDFlib version 7, use PDF_begin_template_ext() instead.
 ################################################################################
 
-function pdf_begin_template(& $pdfdoc, $width, $height)
+function pdf_begin_template(& $pdf, $width, $height)
 	{
-	pdf_begin_template_ext($pdfdoc, $width, $height, array());
+	pdf_begin_template_ext($pdf, $width, $height);
 	}
 
 ################################################################################
@@ -432,16 +398,16 @@ function pdf_begin_template(& $pdfdoc, $width, $height)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_circle(& $pdfdoc, $x, $y, $r)
+function pdf_circle(& $pdf, $x, $y, $r)
 	{
 	#$arc_magic = 4 / 3 * (M_SQRT2 - 1);
 	$arc_magic = 0.552284749;
 
-	pdf_moveto($pdfdoc, $x + $r, $y);
-	pdf_curveto($pdfdoc, $x + $r, $y + $r * $arc_magic, $x + $r * $arc_magic, $y + $r, $x, $y + $r);
-	pdf_curveto($pdfdoc, $x - $r * $arc_magic, $y + $r, $x - $r, $y + $r * $arc_magic, $x - $r, $y);
-	pdf_curveto($pdfdoc, $x - $r, $y - $r * $arc_magic, $x - $r * $arc_magic, $y - $r, $x, $y - $r);
-	pdf_curveto($pdfdoc, $x + $r * $arc_magic, $y - $r, $x + $r, $y - $r * $arc_magic, $x + $r, $y);
+	pdf_moveto($pdf, $x + $r, $y);
+	pdf_curveto($pdf, $x + $r, $y + $r * $arc_magic, $x + $r * $arc_magic, $y + $r, $x, $y + $r);
+	pdf_curveto($pdf, $x - $r * $arc_magic, $y + $r, $x - $r, $y + $r * $arc_magic, $x - $r, $y);
+	pdf_curveto($pdf, $x - $r, $y - $r * $arc_magic, $x - $r * $arc_magic, $y - $r, $x, $y - $r);
+	pdf_curveto($pdf, $x + $r * $arc_magic, $y - $r, $x + $r, $y - $r * $arc_magic, $x + $r, $y);
 	}
 
 ################################################################################
@@ -451,9 +417,9 @@ function pdf_circle(& $pdfdoc, $x, $y, $r)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_clip(& $p)
+function pdf_clip(& $pdf)
 	{
-	$p["stream"][] = "W";
+	$pdf["stream"][] = "W";
 	}
 
 ################################################################################
@@ -464,9 +430,9 @@ function pdf_clip(& $p)
 # This function is deprecated since PDFlib version 6, use PDF_end_document() instead.
 ################################################################################
 
-function pdf_close(& $p)
+function pdf_close(& $pdf)
 	{
-	pdf_end_document($p, array());
+	pdf_end_document($pdf);
 	}
 
 ################################################################################
@@ -475,9 +441,9 @@ function pdf_close(& $p)
 # Closes an image retrieved with the PDF_open_image() function.
 ################################################################################
 
-function pdf_close_image(& $p, $image)
+function pdf_close_image(& $pdf, $image)
 	{
-	$p["stream"][] = "EI";
+	$pdf["stream"][] = "EI";
 	}
 
 ################################################################################
@@ -487,7 +453,7 @@ function pdf_close_image(& $p, $image)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_close_pdi_page(& $p, $page)
+function pdf_close_pdi_page(& $pdf, $page)
 	{
 	}
 
@@ -498,7 +464,7 @@ function pdf_close_pdi_page(& $p, $page)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_close_pdi_document(& $p, $doc)
+function pdf_close_pdi_document(& $pdf, $doc)
 	{
 	}
 
@@ -510,9 +476,9 @@ function pdf_close_pdi_document(& $p, $doc)
 # This function is deprecated since PDFlib version 7, use PDF_close_pdi_document() instead.
 ################################################################################
 
-function pdf_close_pdi(& $p, $doc)
+function pdf_close_pdi(& $pdf, $doc)
 	{
-	pdf_close_pdi_document($p);
+	pdf_close_pdi_document($pdf);
 	}
 
 ################################################################################
@@ -522,9 +488,9 @@ function pdf_close_pdi(& $p, $doc)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_closepath(& $p)
+function pdf_closepath(& $pdf)
 	{
-	$p["stream"][] = "h";
+	$pdf["stream"][] = "h";
 	}
 
 ################################################################################
@@ -534,9 +500,9 @@ function pdf_closepath(& $p)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_closepath_fill_stroke(& $p)
+function pdf_closepath_fill_stroke(& $pdf)
 	{
-	$p["stream"][] = "b";
+	$pdf["stream"][] = "b";
 	}
 
 ################################################################################
@@ -546,9 +512,9 @@ function pdf_closepath_fill_stroke(& $p)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_closepath_stroke(& $p)
+function pdf_closepath_stroke(& $pdf)
 	{
-	$p["stream"][] = "s";
+	$pdf["stream"][] = "s";
 	}
 
 ################################################################################
@@ -558,9 +524,9 @@ function pdf_closepath_stroke(& $p)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_concat(& $p, $a, $b, $c, $d, $e, $f)
+function pdf_concat(& $pdf, $a, $b, $c, $d, $e, $f)
 	{
-	$p["stream"][] = sprintf("%f %f %f %f %f %f cm", $a, $b, $c, $d, $e, $f);
+	$pdf["stream"][] = sprintf("%.2f %.2f %.2f %.2f %.2f %.2f cm", $a, $b, $c, $d, $e, $f);
 	}
 
 ################################################################################
@@ -570,31 +536,17 @@ function pdf_concat(& $p, $a, $b, $c, $d, $e, $f)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_continue_text(& $p, $text)
+function pdf_continue_text(& $pdf, $text)
 	{
-	if(end($p["stream"]) == "ET")
-		{
-		array_pop($p["stream"]);
+	if(! $text)
+		return;
 
-		$p["stream"][] = "T*";
-		}
-	else # if(end($p["stream"]) != "BT")
-		$p["stream"][] = "BT";
+	$text = str_replace("\r", "", $text);
+	$text = utf8_decode($text);
+	$text = str_replace(array("\\", "(", ")"), array("\\\\", "\\(", "\\)"), $text);
 
-	if(isset($p["/ProcSet"]) === false)
-		$p["/ProcSet"][] = "/Text";
-	elseif(in_array("/Text", $p["/ProcSet"]) === false)
-		$p["/ProcSet"][] = "/Text";
-
-	foreach(str_split($text) as $char)
-		{
-		$p["/FirstChar"] = min($p["/FirstChar"], ord($char));
-		$p["/LastChar"] = max($p["/LastChar"], ord($char));
-		}
-
-	$p["stream"][] = "T*";
-	$p["stream"][] = sprintf("%s Tj", _textstring($p, $text));
-	$p["stream"][] = "ET";
+	$pdf["stream"][] = "T*";
+	$pdf["stream"][] = sprintf("(%s) Tj", $text);
 	}
 
 ################################################################################
@@ -604,7 +556,7 @@ function pdf_continue_text(& $p, $text)
 # This function requires PDF 1.6.
 ################################################################################
 
-function pdf_create_3dview(& $pdfdoc, $username, $optlist)
+function pdf_create_3dview(& $pdf, $username, $optlist)
 	{
 	}
 
@@ -614,7 +566,7 @@ function pdf_create_3dview(& $pdfdoc, $username, $optlist)
 # Creates an action which can be applied to various objects and events.
 ################################################################################
 
-function pdf_create_action(& $pdfdoc, $type, $optlist)
+function pdf_create_action(& $pdf, $type, $optlist)
 	{
 	}
 
@@ -624,7 +576,7 @@ function pdf_create_action(& $pdfdoc, $type, $optlist)
 # Creates a rectangular annotation on the current page.
 ################################################################################
 
-function pdf_create_annotation(& $pdfdoc, $llx, $lly, $urx, $ury, $type, $optlist)
+function pdf_create_annotation(& $pdf, $llx, $lly, $urx, $ury, $type, $optlist)
 	{
 	}
 
@@ -634,7 +586,7 @@ function pdf_create_annotation(& $pdfdoc, $llx, $lly, $urx, $ury, $type, $optlis
 # Creates a bookmark subject to various options.
 ################################################################################
 
-function pdf_create_bookmark(& $pdfdoc, $text, $optlist)
+function pdf_create_bookmark(& $pdf, $text, $optlist)
 	{
 	}
 
@@ -644,7 +596,7 @@ function pdf_create_bookmark(& $pdfdoc, $text, $optlist)
 # Creates a form field on the current page subject to various options.
 ################################################################################
 
-function pdf_create_field(& $pdfdoc, $llx, $lly, $urx, $ury, $name, $type, $optlist)
+function pdf_create_field(& $pdf, $llx, $lly, $urx, $ury, $name, $type, $optlist)
 	{
 	}
 
@@ -654,7 +606,7 @@ function pdf_create_field(& $pdfdoc, $llx, $lly, $urx, $ury, $name, $type, $optl
 # Creates a form field group subject to various options.
 ################################################################################
 
-function pdf_create_fieldgroup(& $pdfdoc, $name, $optlist)
+function pdf_create_fieldgroup(& $pdf, $name, $optlist)
 	{
 	}
 
@@ -664,7 +616,7 @@ function pdf_create_fieldgroup(& $pdfdoc, $name, $optlist)
 # Creates a graphics state object subject to various options.
 ################################################################################
 
-function pdf_create_gstate(& $pdfdoc, $optlist)
+function pdf_create_gstate(& $pdf, $optlist)
 	{
 	}
 
@@ -674,7 +626,7 @@ function pdf_create_gstate(& $pdfdoc, $optlist)
 # Creates a named virtual read-only file from data provided in memory.
 ################################################################################
 
-function pdf_create_pvf(& $pdfdoc, $filename, $data, $optlist)
+function pdf_create_pvf(& $pdf, $filename, $data, $optlist)
 	{
 	}
 
@@ -684,7 +636,7 @@ function pdf_create_pvf(& $pdfdoc, $filename, $data, $optlist)
 # Preprocesses text for later formatting and creates a textflow object.
 ################################################################################
 
-function pdf_create_textflow(& $pdfdoc, $text, $optlist)
+function pdf_create_textflow(& $pdf, $text, $optlist)
 	{
 	}
 
@@ -695,9 +647,9 @@ function pdf_create_textflow(& $pdfdoc, $text, $optlist)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_curveto(& $p, $x1, $y1, $x2, $y2, $x3, $y3)
+function pdf_curveto(& $pdf, $x1, $y1, $x2, $y2, $x3, $y3)
 	{
-	$p["stream"][] = sprintf("%f %f %f %f %f %f c", $x1, $y1, $x2, $y2, $x3, $y3);
+	$pdf["stream"][] = sprintf("%.2f %.2f %.2f %.2f %.2f %.2f c", $x1, $y1, $x2, $y2, $x3, $y3);
 	}
 
 ################################################################################
@@ -707,7 +659,7 @@ function pdf_curveto(& $p, $x1, $y1, $x2, $y2, $x3, $y3)
 # This function requires PDF 1.5.
 ################################################################################
 
-function pdf_define_layer(& $pdfdoc, $name, $optlist)
+function pdf_define_layer(& $pdf, $name, $optlist)
 	{
 	}
 
@@ -717,7 +669,7 @@ function pdf_define_layer(& $pdfdoc, $name, $optlist)
 # Deletes a named virtual file and frees its data structures (but not the contents).
 ################################################################################
 
-function pdf_delete_pvf(& $pdfdoc, $filename)
+function pdf_delete_pvf(& $pdf, $filename)
 	{
 	}
 
@@ -727,7 +679,7 @@ function pdf_delete_pvf(& $pdfdoc, $filename)
 # Deletes a table and all associated data structures.
 ################################################################################
 
-function pdf_delete_table(& $pdfdoc, $table, $optlist)
+function pdf_delete_table(& $pdf, $table, $optlist)
 	{
 	}
 
@@ -737,7 +689,7 @@ function pdf_delete_table(& $pdfdoc, $table, $optlist)
 # Deletes a textflow and the associated data structures.
 ################################################################################
 
-function pdf_delete_textflow(& $pdfdoc, $textflow)
+function pdf_delete_textflow(& $pdf, $textflow)
 	{
 	}
 
@@ -750,7 +702,7 @@ function pdf_delete_textflow(& $pdfdoc, $textflow)
 
 function pdf_delete(& $pdfdoc)
 	{
-	$pdfdoc = null;
+	$pdf = null;
 	}
 
 ################################################################################
@@ -759,7 +711,7 @@ function pdf_delete(& $pdfdoc)
 # Adds a glyph name and/or Unicode value to a custom encoding.
 ################################################################################
 
-function pdf_encoding_set_char(& $pdfdoc, $encoding, $slot, $glyphname, $uv)
+function pdf_encoding_set_char(& $pdf, $encoding, $slot, $glyphname, $uv)
 	{
 	}
 
@@ -769,490 +721,12 @@ function pdf_encoding_set_char(& $pdfdoc, $encoding, $slot, $glyphname, $uv)
 # Closes the generated PDF file and applies various options.
 ################################################################################
 
-function pdf_end_document(& $pdfdoc, $optlist)
+function pdf_end_document(& $pdf, $optlist = array())
 	{
-	$pdfdoc["stream"] = array();
+	$pdf["stream"] = _pdf_glue_document($pdf["objects"]);
 
-	################################################################################
-
-	$pdfdoc["stream"][] = sprintf("%%PDF-%d.%d", $pdfdoc["major"], $pdfdoc["minor"]);
-
-	################################################################################
-
-	$pdfdoc["stream"][] = sprintf("%%%s", hex2bin("FFFFFFFF"));
-
-	################################################################################
-
-	$pdfdoc["reference-id"] = 1;
-
-	$pdfdoc["offsets"][1] = strlen(implode("\n", $pdfdoc["stream"]));
-
-	$object = array
-		(
-		"/Type" => "/Catalog",
-		"/Pages" => "2 0 R",
-		"/Metadata" => "5 0 R"
-		);
-
-	if(isset($pdfdoc["catalog-dictionary"][0]["dictionary"]["/PageLayout"]))
-		if(in_array($pdfdoc["catalog-dictionary"][0]["dictionary"]["/PageLayout"], array("/SinglePage", "/OneColumn", "/TwoColumnLeft", "/TwoColumnRight", "/TwoPageLeft", "/TwoPageRight")))
-			$object["/PageLayout"] = $pdfdoc["catalog-dictionary"][0]["dictionary"]["/PageLayout"];
-
-	if(isset($pdfdoc["catalog-dictionary"][0]["dictionary"]["/PageMode"]))
-		{
-		if(in_array($pdfdoc["catalog-dictionary"][0]["dictionary"]["/PageMode"], array("/UseNone", "/UseOutlines", "/UseThumbs", "/UseOC", "/UseAttachments")))
-			{
-			$object["/PageMode"] = $pdfdoc["catalog-dictionary"][0]["dictionary"]["/PageMode"];
-
-			if($pdfdoc["catalog-dictionary"][0]["dictionary"]["/PageMode"] == "/UseOutlines")
-				$object["/Outlines"] = "4 0 R"; # overwrites init value
-			}
-		}
-
-	if(isset($pdfdoc["catalog-dictionary"][0]["dictionary"]["/OpenAction"]))
-		{
-		if($pdfdoc["catalog-dictionary"][0]["dictionary"]["/OpenAction"] == "/Fit")
-			$object["/OpenAction"] = "[6 0 R /Fit]";
-
-		if($pdfdoc["catalog-dictionary"][0]["dictionary"]["/OpenAction"] == "/FitH")
-			$object["/OpenAction"] = "[6 0 R /FitH]";
-
-		if($pdfdoc["catalog-dictionary"][0]["dictionary"]["/OpenAction"] == "/XYZ")
-			if($pdfdoc["catalog-dictionary"][0]["dictionary"]["/XYZ"] == 0)
-				$object["/OpenAction"] = "[6 0 R /XYZ]";
-			else
-				$object["/OpenAction"] = sprintf("[6 0 R /XYZ 0 0 %d]", $pdfdoc["catalog-dictionary"][0]["dictionary"]["/XYZ"] / 100);
-		}
-
-	$pdfdoc["stream"][] = "1 0 obj";
-		$pdfdoc["stream"][] = sprintf("<< %s >>", _pdf_glue_dictionary($object));
-	$pdfdoc["stream"][] = "endobj";
-
-	################################################################################
-
-	$pdfdoc["reference-id"] = 2;
-
-	$pdfdoc["offsets"][2] = strlen(implode("\n", $pdfdoc["stream"]));
-
-	$kids = array();
-
-	foreach($pdfdoc["page-dictionary"] as $k => $v)
-		$kids[] = sprintf("%d 0 R", 6 + 2 * $k);
-
-	$object = array
-		(
-		"/Type" => "/Pages",
-#		"/Parent" => "1 0 R",
-		"/Kids" => sprintf("[%s]", _pdf_glue_array($kids)),
-		"/Count" => count($pdfdoc["page-dictionary"]),
-		);
-
-	$pdfdoc["stream"][] = "2 0 obj";
-		$pdfdoc["stream"][] = sprintf("<< %s >>", _pdf_glue_dictionary($object));
-	$pdfdoc["stream"][] = "endobj";
-
-	################################################################################
-
-	$pdfdoc["reference-id"] = 5;
-
-	foreach($pdfdoc["page-dictionary"] as $k => $v)
-		{
-		sscanf($pdfdoc["page-dictionary"][$k]["dictionary"]["/MediaBox"], "[0 0 %d %d]", $width, $height);
-
-		$object = array
-			(
-			"/Type" => "/Page",
-			"/Parent" => "2 0 R",
-			"/MediaBox" => sprintf("[0 0 %d %d]", $width, $height),
-			"/Resources" => "3 0 R",
-			"/Contents" => sprintf("%d 0 R", $pdfdoc["reference-id"] + 2)
-			);
-
-		if($pdfdoc["minor"] > 3)
-			$object["/Group"] = "<</Type/Group/S/Transparency/CS/DeviceRGB>>";
-
-		_new_object($pdfdoc);
-			$pdfdoc["stream"][] = sprintf("<< %s >>", _pdf_glue_dictionary($object));
-		$pdfdoc["stream"][] = "endobj";
-
-		################################################################################
-
-		$data = implode("\n", $pdfdoc["page-dictionary"][$k]["stream"]);
-
-		$data = _filter($pdfdoc, $data);
-
-		$object = array();
-
-		if(isset($pdfdoc["/Filter"]))
-			$object["/Filter"] = $pdfdoc["/Filter"];
-
-		$object["/Length"] = strlen($data);
-
-		_new_object($pdfdoc);
-			$pdfdoc["stream"][] = sprintf("<< %s >>", _pdf_glue_dictionary($object));
-			$pdfdoc["stream"][] = "stream";
-				_put_stream($pdfdoc, $data);
-			$pdfdoc["stream"][] = "endstream";
-		$pdfdoc["stream"][] = "endobj";
-		}
-
-	################################################################################
-
-	foreach($pdfdoc["file-dictionary"] as $k => $v)
-		{
-		$pdfdoc["file-dictionary"][$k]["id"] = $pdfdoc["reference-id"] + 1;
-		$pdfdoc["file-dictionary"][$k]["version"] = 0;
-
-		if(($data = file_get_contents($k, true)) === false)
-			die("File not found: " . $k);
-
-		$compressed = (substr($k, 0 - 2) == ".z");
-
-		$object = array
-			(
-			"/Length" => strlen($data),
-			"/Length1" => $v["dictionary"]["/Length1"],
-			);
-
-		if(isset($v["dictionary"]["/Length2"]))
-			if($compressed === false)
-				$data = substr($data, 6, $v["dictionary"]["/Length1"]) . substr($data, 6 + $v["dictionary"]["/Length1"] + 6, $v["dictionary"]["/Length2"]);
-
-		if(isset($v["dictionary"]["/Length2"]))
-			{
-			$object["/Length2"] = $v["dictionary"]["/Length2"];
-			$object["/Length3"] = 0;
-			}
-
-		if($compressed)
-			$object["/Filter"] = $pdfdoc["/Filter"];
-
-		_new_object($pdfdoc);
-			$pdfdoc["stream"][] = sprintf("<< %s >>", _pdf_glue_dictionary($object));
-			$pdfdoc["stream"][] = "stream";
-				_put_stream($pdfdoc, $data);
-			$pdfdoc["stream"][] = "endstream";
-		$pdfdoc["stream"][] = "endobj";
-		}
-
-	foreach($pdfdoc["font-dictionary"] as $k => $v)
-		{
-		$pdfdoc["font-dictionary"][$k]["id"] = $pdfdoc["reference-id"] + 1;
-		$pdfdoc["font-dictionary"][$k]["version"] = 0;
-
-		if($v["dictionary"]["/Subtype"] == "/Core")
-			{
-			$object = array
-				(
-				"/Type" => "/Font",
-				"/Subtype" => "/Type1",
-				"/BaseFont" => sprintf("/%s", str_replace(" ", ",", $v["dictionary"]["/BaseFont"]))
-				);
-
-			if($v["dictionary"]["/BaseFont"] != "symbol")
-				if($v["dictionary"]["/BaseFont"] != "zapfdingbats")
-					$object["/Encoding"] = "/WinAnsiEncoding";
-
-			_new_object($pdfdoc);
-				$pdfdoc["stream"][] = sprintf("<< %s >>", _pdf_glue_dictionary($object));
-			$pdfdoc["stream"][] = "endobj";
-			}
-		elseif(($v["dictionary"]["/Subtype"] == "/Type1") || ($v["dictionary"]["/Subtype"] == "/TrueType"))
-			{
-			$widths = array();
-
-			foreach(range($pdfdoc["/FirstChar"], $pdfdoc["/LastChar"]) as $char)
-				$widths[] = $v["dictionary"]["/Widths"][chr($char)];
-
- 			$object = array
-				(
-				"/Type" => "/Font",
-				"/Subtype" => $v["dictionary"]["/Subtype"],
-				"/BaseFont" => sprintf("/%s", str_replace(" ", ",", $v["dictionary"]["/BaseFont"])),
-				"/Encoding" => "/WinAnsiEncoding",
-#				"/FirstChar" => $pdfdoc["/FirstChar"],
-#				"/LastChar" => $pdfdoc["/LastChar"],
-#				"/Widths" => sprintf("[%s]", _pdf_glue_array($widths)),
-				"/FontDescriptor" => sprintf("%d 0 R", $pdfdoc["reference-id"] + 3),
-				);
-
-			_new_object($pdfdoc);
-				$pdfdoc["stream"][] = sprintf("<< %s >>", _pdf_glue_dictionary($object));
-			$pdfdoc["stream"][] = "endobj";
-
-			################################################################################
-
-			$object = array
-				(
-				"/Type" => "/FontDescriptor",
-				"/FontName" => "/" . str_replace(" ", ",", $v["dictionary"]["/FontName"]),
-				);
-
-			foreach($v["dictionary"]["/FontDescriptor"] as $xk => $xv)
-				if(isset($v["dictionary"]["/FontDescriptor"][$xk]) === false)
-					$object[$xk] = $xv;
-
-			if(isset($v["dictionary"]["/FontFile"]))
-				$object["/FontFile" . ($v["dictionary"]["/Subtype"] == "/Type1" ? "" : "2")] = sprintf("%d 0 R", $pdfdoc["reference-id"] + 2);
-
-			_new_object($pdfdoc);
-				$pdfdoc["stream"][] = sprintf("<< %s >>", _pdf_glue_dictionary($object));
-			$pdfdoc["stream"][] = "endobj";
-
-			################################################################################
-
-			if(isset($v["dictionary"]["/FontFile"]))
-				{
-				$data = file_get_contents($v["dictionary"]["/FontFile"]);
-
-				$data = _filter($pdfdoc, $data);
-
-				$object = array();
-
-				if(isset($pdfdoc["/Filter"]))
-					$object["/Filter"] = $pdfdoc["/Filter"];
-
-				$object["/Length"] = strlen($data);
-
-				_new_object($pdfdoc);
-					$pdfdoc["stream"][] = sprintf("<< %s >>", _pdf_glue_dictionary($object));
-					$pdfdoc["stream"][] = "stream";
-						_put_stream($pdfdoc, $data);
-					$pdfdoc["stream"][] = "endstream";
-				$pdfdoc["stream"][] = "endobj";
-				}
-			}
-		}
-
-	################################################################################
-
-	foreach($pdfdoc["image-dictionary"] as $k => $v)
-		{
-		_put_image($pdfdoc, $pdfdoc["image-dictionary"][$k]);
-		}
-
-	################################################################################
-
-	$pdfdoc["offsets"][3] = strlen(implode("\n", $pdfdoc["stream"]));
-
-	$object = array
-		(
-		);
-
-	$object["/ProcSet"] = sprintf("[%s]", _pdf_glue_array($pdfdoc["/ProcSet"]));
-
-	$font_table = array();
-
-	if($pdfdoc["font-dictionary"])
-		foreach($pdfdoc["font-dictionary"] as $k => $v)
-			{
-			$a = $v["x-procset-font-id"];
-			$b = sprintf("%d 0 R", $v["id"]);
-
-			$font_table[$a] = $b;
-			}
-
-	if(count($font_table) > 0)
-		$object["/Font"] = sprintf("<< %s >>", _pdf_glue_dictionary($font_table));
-
-	$x_object_table = array();
-
-	if($pdfdoc["form-dictionary"])
-		foreach($pdfdoc["form-dictionary"] as $k => $v)
-			{
-			$a = $v["x-procset-x-object-form-id"];
-			$b = sprintf("%d 0 R", $v["id"]);
-
-			$x_object_table[$a] = $b;
-			}
-
-	if($pdfdoc["image-dictionary"])
-		foreach($pdfdoc["image-dictionary"] as $k => $v)
-			{
-			$a = $v["x-procset-x-object-image-id"];
-			$b = sprintf("%d 0 R", $v["id"]);
-
-			$x_object_table[$a] = $b;
-			}
-
-	if(count($x_object_table) > 0)
-		$object["/XObject"] = sprintf("<< %s >>", _pdf_glue_dictionary($x_object_table));
-
-	$pdfdoc["stream"][] = "3 0 obj";
-	$pdfdoc["stream"][] = sprintf("<< %s >>", _pdf_glue_dictionary($object));
-	$pdfdoc["stream"][] = "endobj";
-
-	################################################################################
-
-	$pdfdoc["offsets"][4] = strlen(implode("\n", $pdfdoc["stream"]));
-
-	$object = array
-		(
-		"/Type" => "/Outlines",
-		"/First" => sprintf("%d 0 R", $pdfdoc["reference-id"] + 1),
-		"/Last" => sprintf("%d 0 R", $pdfdoc["reference-id"] + count($pdfdoc["page-dictionary"])),
-		"/Count" => count($pdfdoc["page-dictionary"]),
-		);
-
-	$pdfdoc["stream"][] = "4 0 obj";
-	$pdfdoc["stream"][] = sprintf("<< %s >>", _pdf_glue_dictionary($object));
-	$pdfdoc["stream"][] = "endobj";
-
-	################################################################################
-
-	$pdfdoc["offsets"][5] = strlen(implode("\n", $pdfdoc["stream"]));
-
-	$data = '<?xpacket?><x:xmpmeta xmlns:x="adobe:ns:meta/"><r:RDF xmlns:r="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><r:Description xmlns:p="http://www.aiim.org/pdfa/ns/id/"><p:part>1</p:part><p:conformance>A</p:conformance></r:Description></r:RDF></x:xmpmeta><?xpacket?>';
-
-	$object = array
-		(
-		"/Type" => "/Metadata",
-		"/Subtype" => "/XML",
-		"/Length" => strlen($data),
-		);
-
-	$pdfdoc["stream"][] = "5 0 obj";
-		$pdfdoc["stream"][] = sprintf("<< %s >>", _pdf_glue_dictionary($object));
-		$pdfdoc["stream"][] = "stream";
-			_put_stream($pdfdoc, $data);
-		$pdfdoc["stream"][] = "endstream";
-	$pdfdoc["stream"][] = "endobj";
-
-	################################################################################
-
-	foreach($pdfdoc["page-dictionary"] as $k => $v)
-		{
-		_new_object($pdfdoc);
-
-			$object = array
-				(
-				"/Title" => _textstring($pdfdoc, "Seite " . ($k + 1), true),
-				"/Parent" => "4 0 R",
-				"/Dest" => sprintf("[%d 0 R /Fit]", 6 + $k * 2),
-				);
-
-			if($k + 1 != count($pdfdoc["page-dictionary"]))
-				$object["/Next"] = sprintf("%d 0 R", $pdfdoc["reference-id"] + 1);
-
-			if($k + 1 != 1)
-				$object["/Prev"] = sprintf("%d 0 R", $pdfdoc["reference-id"] - 1);
-
-		$pdfdoc["stream"][] = sprintf("<< %s >>", _pdf_glue_dictionary($object));
-		$pdfdoc["stream"][] = "endobj";
-		}
-
-	################################################################################
-
-	$pdfdoc["info-dictionary"][0]["id"] = $pdfdoc["reference-id"] + 1;
-	$pdfdoc["info-dictionary"][0]["version"] = 0;
-
-	_new_object($pdfdoc);
-
-	$object = array
-		(
-		"/Producer" => _textstring($pdfdoc, $pdfdoc["apiname"], true),
-		"/CreationDate" => _textstring($pdfdoc, "D:" . date("YmdHis") . "Z", true),
-		"/ModDate" => _textstring($pdfdoc, "D:" . date("YmdHis") . "Z", true),
-#		"/Trapped" => "Unknown",
-		);
-
-	foreach(array("/Title", "/Author", "/Subject", "/Keywords", "/Creator") as $item)
-		if(isset($pdfdoc["info-dictionary"][0]["dictionary"][$item]))
-			$object[$item] = _textstring($pdfdoc, $pdfdoc["info-dictionary"][0]["dictionary"][$item], true);
-
-	$pdfdoc["stream"][] = sprintf("<< %s >>", _pdf_glue_dictionary($object));
-	$pdfdoc["stream"][] = "endobj";
-
-	################################################################################
-
-#	$object = array
-#		(
-#		"/Linearized" => 1,
-#		"/L" => 0,	# filesize inclusive size of size
-#		"/H" => "[0 0],	# offset of catalog offset and length
-#		"/O" => 0,	# offset of first page
-#		"/E" => 0,	# offset of end of first page
-#		"/N" => 0,	# number of pages in document (kids count)
-#		"/T" => 0,	# offset of first xref entry after main xref first count
-#		}
-
-#	_new_object($pdfdoc);
-#		$pdfdoc["stream"][] = sprintf("<< %s >>", _pdf_glue_dictionary($object));
-#	$pdfdoc["stream"][] = "endobj";
-
-	################################################################################
-
-	if($pdfdoc["encrypt"])
-		{
-		$pdfdoc["encrypt-dictionary"][0]["id"] = $pdfdoc["reference-id"] + 1;
-		$pdfdoc["encrypt-dictionary"][0]["version"] = 0;
-
-		$object = array
-			(
-			"/Filter" => "/Standard",
-			"/V" => 1,
-			"/R" => 2,
-			"/O" => "(" . _escape($pdfdoc["encrypt-dictionary"][0]["dictionary"]["/O"]) . ")",
-			"/U" => "(" . _escape($pdfdoc["encrypt-dictionary"][0]["dictionary"]["/U"]) . ")",
-			"/P" => $pdfdoc["encrypt-dictionary"][0]["dictionary"]["/P"],
-			);
-
-		_new_object($pdfdoc);
-		$pdfdoc["stream"][] = sprintf("<< %s >>", _pdf_glue_dictionary($object));
-		$pdfdoc["stream"][] = "endobj";
-		}
-
-	################################################################################
-
-	$pdfdoc["offsets"][0] = strlen(implode("\n", $pdfdoc["stream"]));
-
-	# 99 0 obj << /Type /XRef /Index [0 32] /W [1 2 2] /Filter /ASCIIHexDecode /Size 32 ... >> stream 00 0000 FFFF ... 02 000F 0000 02 000F 0001 02 000F 0002 ... 01 BA5E 0000 ... endstream endobj
-
-	$pdfdoc["stream"][] = sprintf("xref %d %d", 0, $pdfdoc["reference-id"] + 1); # this
-		$pdfdoc["stream"][] = sprintf("%010d %05d %s", 0, 65536, "f");
-	
-		foreach(range(1, $pdfdoc["reference-id"]) as $i)
-			$pdfdoc["stream"][] = sprintf("%010d %05d %s", $pdfdoc["offsets"][$i] + 1, 0, "n");
-
-	$object = array
-		(
-		"/Size" => $pdfdoc["reference-id"] + 1,
-#		"/Prev" => "",
-		"/Root" => "1 0 R",
-		);
-
-	if($pdfdoc["encrypt"])
-		$object["/Encrypt"] = sprintf("%d 0 R", $pdfdoc["encrypt-dictionary"][0]["id"]);
-
-	$object["/Info"] = sprintf("%d 0 R", $pdfdoc["info-dictionary"][0]["id"]);
-
-	$id_a = "00000000000000000000000000000000";
-	$id_b = "00000000000000000000000000000000";
-
-	if($pdfdoc["encrypt"])
-		{
-#		$id_a = RC4(_objectkey($pdfdoc), $id_a);
-#		$id_b = RC4(_objectkey($pdfdoc), $id_b);
-		}
-
-#	$object["/ID"] = sprintf("[<%s%> <%s>]", $id_a, $id_b);
-
-	################################################################################
-
-	$pdfdoc["stream"][] = "trailer";
-	$pdfdoc["stream"][] = sprintf("<< %s >>", _pdf_glue_dictionary($object));
-
-	################################################################################
-
-	$pdfdoc["stream"][] = "startxref";
-	$pdfdoc["stream"][] = $pdfdoc["offsets"][0] + 1;
-
-	################################################################################
-
-	$pdfdoc["stream"][] = "%%EOF";
-
-#	print_r($pdfdoc);
-#	print(json_encode($pdfdoc, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+	if($pdf["filename"])
+		file_put_contents($pdf["filename"], $pdf["stream"]);
 	}
 
 ################################################################################
@@ -1261,7 +735,7 @@ function pdf_end_document(& $pdfdoc, $optlist)
 # Terminates a Type 3 font definition.
 ################################################################################
 
-function pdf_end_font(& $pdfdoc)
+function pdf_end_font(& $pdf)
 	{
 	}
 
@@ -1271,7 +745,7 @@ function pdf_end_font(& $pdfdoc)
 # Terminates a glyph definition for a Type 3 font.
 ################################################################################
 
-function pdf_end_glyph(& $pdfdoc)
+function pdf_end_glyph(& $pdf)
 	{
 	}
 
@@ -1281,7 +755,7 @@ function pdf_end_glyph(& $pdfdoc)
 # Closes a structure element or other content item.
 ################################################################################
 
-function pdf_end_item(& $pdfdoc, $id)
+function pdf_end_item(& $pdf, $id)
 	{
 	}
 
@@ -1293,7 +767,7 @@ function pdf_end_item(& $pdfdoc, $id)
 # This function requires PDF 1.5.
 ################################################################################
 
-function pdf_end_layer(& $pdfdoc)
+function pdf_end_layer(& $pdf)
 	{
 	}
 
@@ -1304,9 +778,9 @@ function pdf_end_layer(& $pdfdoc)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_end_page(& $p)
+function pdf_end_page(& $pdf)
 	{
-	return(pdf_end_page_ext($p, array()));
+	return(pdf_end_page_ext($pdf));
 	}
 
 ################################################################################
@@ -1316,34 +790,48 @@ function pdf_end_page(& $p)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_end_page_ext(& $pdfdoc, $optlist)
+function pdf_end_page_ext(& $pdf, $optlist = array())
 	{
-	$object = array
-		(
-		"id" => 6 + (2 * count($pdfdoc["page-dictionary"])),
-		"version" => 0,
-		"dictionary" => array
-			(
-			"/Type" => "/Page",
-			"/Parent" => "2 0 R",
-			"/MediaBox" => sprintf("[0 0 %d %d]", $pdfdoc["/Width"], $pdfdoc["/Height"]),
-			"/Resources" => "3 0 R",
-			"/Contents" => sprintf("%d 0 R", 7 + (2 * count($pdfdoc["page-dictionary"])))
-			),
-		"stream" => $pdfdoc["stream"]
-		);
+	# this is default if something went wrong
+	$resources = array("/ProcSet" => array("/PDF", "/Text", "/ImageB", "/ImageC", "/ImageI"));
 
-	foreach($optlist as $k => $v)
-		{
-		$object[$key] = $value;
-		}
+	################################################################################
 
-	if(isset($pdfdoc["/Dur"]))
-		$object["/Dur"] = $pdfdoc["/Dur"];
+	if(isset($pdf["used-resources"]["/ProcSet"]))
+		foreach($pdf["used-resources"]["/ProcSet"] as $object)
+			$resources["/ProcSet"][] = $object;
 
-	$pdfdoc["page-dictionary"][] = $object;
+	if(isset($pdf["used-resources"]["/Font"]))
+		foreach($pdf["used-resources"]["/Font"] as $index => $object)
+			$resources["/Font"]["/F" . $index] = $object;
 
-	return($pdfdoc["reference-id"] = $pdfdoc["reference-id"] + 2);
+	if(isset($pdf["used-resources"]["/XObject"]))
+		foreach($pdf["used-resources"]["/XObject"] as $index => $object)
+			$resources["/XObject"]["/X" . $index] = $object;
+
+	################################################################################
+
+	if(isset($resources["/ProcSet"]))
+		$resources["/ProcSet"] = sprintf("[%s]", _pdf_glue_array($resources["/ProcSet"]));
+
+	if(isset($resources["/Font"]))
+		$resources["/Font"] = sprintf("<< %s >>", _pdf_glue_dictionary($resources["/Font"]));
+
+	if(isset($resources["/XObject"]))
+		$resources["/XObject"] = sprintf("<< %s >>", _pdf_glue_dictionary($resources["/XObject"]));
+
+	################################################################################
+
+	$parent = $pdf["pages"];
+	$mediabox = sprintf("[%d %d %d %d]", 0, 0 , $pdf["width"], $pdf["height"]);
+	$resources = sprintf("<< %s >>", _pdf_glue_dictionary($resources));
+	$contents = implode(" ", $pdf["stream"]);
+
+	$contents = _pdf_add_stream($pdf, $contents);
+
+	$retval = _pdf_add_page($pdf, $parent, $resources, $mediabox, $contents);
+
+	return($retval);
 	}
 
 ################################################################################
@@ -1353,7 +841,7 @@ function pdf_end_page_ext(& $pdfdoc, $optlist)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_end_pattern(& $pdfdoc)
+function pdf_end_pattern(& $pdf)
 	{
 	}
 
@@ -1364,7 +852,7 @@ function pdf_end_pattern(& $pdfdoc)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_end_template(& $pdfdoc)
+function pdf_end_template(& $pdf)
 	{
 	}
 
@@ -1374,9 +862,9 @@ function pdf_end_template(& $pdfdoc)
 # Ends the current path without filling or stroking it.
 ################################################################################
 
-function pdf_endpath(& $p)
+function pdf_endpath(& $pdf)
 	{
-	$p["stream"][] = "n";
+	$pdf["stream"][] = "n";
 	}
 	
 ################################################################################
@@ -1387,9 +875,9 @@ function pdf_endpath(& $p)
 #
 ################################################################################
 
-function pdf_fill(& $p)
+function pdf_fill(& $pdf)
 	{
-	$p["stream"][] = "f";
+	$pdf["stream"][] = "f";
 	}
 
 ################################################################################
@@ -1399,7 +887,7 @@ function pdf_fill(& $p)
 # This function is only available in the PDFlib Personalization Server (PPS).
 ################################################################################
 
-function pdf_fill_imageblock(& $pdfdoc, $page, $blockname, $image, $optlist)
+function pdf_fill_imageblock(& $pdf, $page, $blockname, $image, $optlist)
 	{
 	}
 
@@ -1410,7 +898,7 @@ function pdf_fill_imageblock(& $pdfdoc, $page, $blockname, $image, $optlist)
 # This function is only available in the PDFlib Personalization Server (PPS).
 ################################################################################
 
-function pdf_fill_pdfblock(& $pdfdoc, $page, $blockname, $contents, $optlist)
+function pdf_fill_pdfblock(& $pdf, $page, $blockname, $contents, $optlist)
 	{
 	}
 
@@ -1421,9 +909,9 @@ function pdf_fill_pdfblock(& $pdfdoc, $page, $blockname, $contents, $optlist)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_fill_stroke(& $p)
+function pdf_fill_stroke(& $pdf)
 	{
-	$p["stream"][] = "B";
+	$pdf["stream"][] = "B";
 	}
 
 ################################################################################
@@ -1433,7 +921,7 @@ function pdf_fill_stroke(& $p)
 # This function is only available in the PDFlib Personalization Server (PPS).
 ################################################################################
 
-function pdf_fill_textblock(& $pdfdoc, $page, $blockname, $text, $optlist)
+function pdf_fill_textblock(& $pdf, $page, $blockname, $text, $optlist)
 	{
 	}
 
@@ -1447,21 +935,59 @@ function pdf_fill_textblock(& $pdfdoc, $page, $blockname, $text, $optlist)
 # This function is deprecated since PDFlib version 5, use PDF_load_font() instead.
 ################################################################################
 
-function pdf_findfont(& $p, $fontname, $encoding = "builtin", $embed = 0)
+function pdf_findfont(& $pdf, $fontname, $encoding = "builtin", $embed = 0)
 	{
-	if(in_array($encoding, array("builtin", "macroman", "winansi", "host")) === false)
-		die("unknown encoding in pdf_load_font");
+	if(in_array($encoding, array("builtin", "winansi", "macroman", "macexpert")) === false)
+		die("_pdf_add_font: invalid encoding: " . $encoding);
 
-	foreach($p["font-dictionary"] as $k => $v)
+	$a = 0; # found in objects
+	$b = 0;
+
+	foreach($pdf["objects"] as $index => $object)
 		{
-		if($k == $fontname)
-			return($k);
+		if($index == 0)
+			continue;
 
-		if(($v["dictionary"]["/BaseFont"] == $fontname) || ($v["dictionary"]["/FontName"] == $fontname))
-			return($k);
+		if(isset($object["dictionary"]["/Type"]) === false)
+			continue;
+
+		if(isset($object["dictionary"]["/Subtype"]) === false)
+			continue;
+
+		if(isset($object["dictionary"]["/BaseFont"]) === false)
+			continue;
+
+		if($object["dictionary"]["/Type"] != "/Font")
+			continue;
+
+		if($object["dictionary"]["/BaseFont"] != "/" . $fontname)
+			continue;
+
+		if($object["dictionary"]["/Subtype"] == "/Type1")
+			$a = $index;
+
+		if($object["dictionary"]["/Subtype"] == "/TrueType")
+			$a = $index;
 		}
 
-	return(pdf_load_font($p, $fontname, $encoding, array("embed" => intval($embed))));
+	if($a == 0)
+		{
+		$c = pdf_load_font($pdf, $fontname, $encoding);
+
+		return($c);
+		}
+
+	if(isset($pdf["loaded-resources"]["/Font"]) === false)
+		die("pdf_findfont: fonts not loaded.");
+
+	foreach($pdf["loaded-resources"]["/Font"] as $index => $resource)
+		if($a == $resource)
+			$b = $index;
+
+	if($b == 0)
+		die("pdf_findfont: font not found.");
+
+	return("/F" . $b);
 	}
 
 ################################################################################
@@ -1471,17 +997,28 @@ function pdf_findfont(& $p, $fontname, $encoding = "builtin", $embed = 0)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_fit_image(& $pdfdoc, $image, $x, $y, $optlist)
+function pdf_fit_image(& $pdf, $image, $x, $y, $optlist)
 	{
-	$s = $optlist["scale"] / 96 * 72; # px to inch to pt
+	if(sscanf($image, "/X%d", $image_id) != 1)
+		die("pdf_fit_image: invalid image.");
 
-	$w = $image["dictionary"]["/Width"] / 96 * 72; # px to inch to pt
-	$h = $image["dictionary"]["/Height"] / 96 * 72; # px to inch to pt
+	if(isset($pdf["loaded-resources"]["/XObject"]) === false)
+		die("pdf_fit_image: images not loaded.");
 
-	pdf_save($pdfdoc);
-	$pdfdoc["stream"][] = sprintf("%f 0 0 %f %f %f cm", $w * $s, $h * $s, $x, $y);
-	$pdfdoc["stream"][] = sprintf("%s Do", $image["x-procset-x-object-image-id"]); # Invoke named XObject
-	pdf_restore($pdfdoc);
+	$a = $pdf["loaded-resources"]["/XObject"][$image_id];
+
+	if(sscanf($a, "%d %d R", $a_id, $a_version) != 2)
+		die("pdf_fit_image: invalid image.");
+
+	$pdf["used-resources"]["/XObject"][$image_id] = $pdf["loaded-resources"]["/XObject"][$image_id];
+
+	$w = $pdf["objects"][$a_id]["dictionary"]["/Width"];
+	$h = $pdf["objects"][$a_id]["dictionary"]["/Height"];
+
+	pdf_save($pdf);
+	$pdf["stream"][] = sprintf("%d 0 0 %d %d %d cm", $w * $optlist["scale"], $h * $optlist["scale"], $x, $y);
+	$pdf["stream"][] = sprintf("%s Do", $image); # Invoke named XObject
+	pdf_restore($pdf);
 	}
 
 ################################################################################
@@ -1491,7 +1028,7 @@ function pdf_fit_image(& $pdfdoc, $image, $x, $y, $optlist)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_fit_pdi_page(& $pdfdoc, $page, $x, $y, $optlist)
+function pdf_fit_pdi_page(& $pdf, $page, $x, $y, $optlist)
 	{
 	}
 
@@ -1501,7 +1038,7 @@ function pdf_fit_pdi_page(& $pdfdoc, $page, $x, $y, $optlist)
 # Places a table on the page fully or partially.
 ################################################################################
 
-function pdf_fit_table(& $pdfdoc, $table, $llx, $lly, $urx, $ury, $optlist)
+function pdf_fit_table(& $pdf, $table, $llx, $lly, $urx, $ury, $optlist)
 	{
 	}
 
@@ -1511,7 +1048,7 @@ function pdf_fit_table(& $pdfdoc, $table, $llx, $lly, $urx, $ury, $optlist)
 # Formats the next portion of a textflow into a rectangular area.
 ################################################################################
 
-function pdf_fit_textflow(& $pdfdoc, $text, $llx, $lly, $urx, $ury, $optlist)
+function pdf_fit_textflow(& $pdf, $text, $llx, $lly, $urx, $ury, $optlist)
 	{
 	}
 
@@ -1522,7 +1059,7 @@ function pdf_fit_textflow(& $pdfdoc, $text, $llx, $lly, $urx, $ury, $optlist)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_fit_textline(& $pdfdoc, $text, $x, $y, $optlist)
+function pdf_fit_textline(& $pdf, $text, $x, $y, $optlist)
 	{
 	}
 
@@ -1532,9 +1069,9 @@ function pdf_fit_textline(& $pdfdoc, $text, $x, $y, $optlist)
 # Gets the name of the API function which threw the last exception or failed.
 ################################################################################
 
-function pdf_get_apiname(& $pdfdoc)
+function pdf_get_apiname(& $pdf)
 	{
-	return($pdfdoc["apiname"]);
+	return($pdf["apiname"]);
 	}
 
 ################################################################################
@@ -1543,9 +1080,9 @@ function pdf_get_apiname(& $pdfdoc)
 # Fetches the buffer containing the generated PDF data.
 ################################################################################
 
-function pdf_get_buffer(& $p)
+function pdf_get_buffer(& $pdf)
 	{
-	return(implode("\n", $p["stream"]));
+	return($pdf["stream"]);
 	}
 
 ################################################################################
@@ -1554,7 +1091,7 @@ function pdf_get_buffer(& $p)
 # Gets the text of the last thrown exception or the reason for a failed function call.
 ################################################################################
 
-function pdf_get_errmsg(& $pdfdoc)
+function pdf_get_errmsg(& $pdf)
 	{
 	}
 
@@ -1564,7 +1101,7 @@ function pdf_get_errmsg(& $pdfdoc)
 # Gets the number of the last thrown exception or the reason for a failed function call.
 ################################################################################
 
-function pdf_get_errnum(& $pdfdoc)
+function pdf_get_errnum(& $pdf)
 	{
 	}
 
@@ -1573,9 +1110,9 @@ function pdf_get_errnum(& $pdfdoc)
 # This function is deprecated since PDFlib version 3, use PDF_get_value() with the parameter font instead.
 ################################################################################
 
-function pdf_get_font(& $p)
+function pdf_get_font(& $pdf)
 	{
-	return(pdf_get_value($p, "font", 0));
+	return(pdf_get_value($pdf, "font", 0));
 	}
 
 ################################################################################
@@ -1583,9 +1120,9 @@ function pdf_get_font(& $p)
 # This function is deprecated since PDFlib version 3, use PDF_get_parameter() with the parameter fontname instead.
 ################################################################################
 
-function pdf_get_fontname(& $p, $font)
+function pdf_get_fontname(& $pdf, $font)
 	{
-	return(pdf_get_value($p, "/FontName", $font));
+	return(pdf_get_value($pdf, "/FontName", $font));
 	}
 
 ################################################################################
@@ -1593,9 +1130,9 @@ function pdf_get_fontname(& $p, $font)
 # This function is deprecated since PDFlib version 3, use PDF_get_value() with the parameter fontsize instead.
 ################################################################################
 
-function pdf_get_fontsize(& $p)
+function pdf_get_fontsize(& $pdf)
 	{
-	return(pdf_get_value($p, "fontsize", 0));
+	return(pdf_get_value($pdf, "fontsize", 0));
 	}
 
 ################################################################################
@@ -1603,9 +1140,9 @@ function pdf_get_fontsize(& $p)
 # This function is deprecated since PDFlib version 3, use PDF_get_value() with the parameter imageheight instead.
 ################################################################################
 
-function pdf_get_image_height(& $p, $image)
+function pdf_get_image_height(& $pdf, $image)
 	{
-	return(pdf_get_value($p, "imageheight", $image));
+	return(pdf_get_value($pdf, "imageheight", $image));
 	}
 
 ################################################################################
@@ -1613,9 +1150,9 @@ function pdf_get_image_height(& $p, $image)
 # This function is deprecated since PDFlib version 3, use PDF_get_value() with the parameter imagewidth instead.
 ################################################################################
 
-function pdf_get_image_width(& $p, $image)
+function pdf_get_image_width(& $pdf, $image)
 	{
-	return(pdf_get_value($p, "imagewidth", $image));
+	return(pdf_get_value($pdf, "imagewidth", $image));
 	}
 
 ################################################################################
@@ -1626,9 +1163,9 @@ function pdf_get_image_width(& $p, $image)
 
 function pdf_get_majorversion()
 	{
-	$p = pdf_new();
+	$pdf = pdf_new();
 
-	return(pdf_get_value($p, "major", 0));
+	return(pdf_get_value($pdf, "major", 0));
 	}
 
 ################################################################################
@@ -1640,9 +1177,9 @@ function pdf_get_majorversion()
 
 function pdf_get_minorversion()
 	{
-	$p = pdf_new();
+	$pdf = pdf_new();
 
-	return(pdf_get_value($p, "minor", 0));
+	return(pdf_get_value($pdf, "minor", 0));
 	}
 
 ################################################################################
@@ -1651,9 +1188,9 @@ function pdf_get_minorversion()
 # Gets the contents of some PDFlib parameter with string type.
 ################################################################################
 
-function pdf_get_parameter(& $p, $key, $modifier)
+function pdf_get_parameter(& $pdf, $key, $modifier)
 	{
-	return($p[$key]);
+	return($pdf[$key]);
 	}
 
 ################################################################################
@@ -1663,11 +1200,11 @@ function pdf_get_parameter(& $p, $key, $modifier)
 # This function is deprecated since PDFlib version 7, use PDF_pcos_get_string() instead.
 ################################################################################
 
-function pdf_get_pdi_parameter(& $p, $key, $doc, $page, $reserved)
+function pdf_get_pdi_parameter(& $pdf, $key, $doc, $page, $reserved)
 	{
 	$path = "";
 
-	return(pdf_pcos_get_string($p, $doc, $path));
+	return(pdf_pcos_get_string($pdf, $doc, $path));
 	}
 
 ################################################################################
@@ -1677,11 +1214,11 @@ function pdf_get_pdi_parameter(& $p, $key, $doc, $page, $reserved)
 # This function is deprecated since PDFlib version 7, use PDF_pcos_get_number() instead.
 ################################################################################
 
-function pdf_get_pdi_value(& $p, $key, $doc, $page, $reserved)
+function pdf_get_pdi_value(& $pdf, $key, $doc, $page, $reserved)
 	{
 	$path = "";
 
-	return(pdf_pcos_get_number($p, $doc, $path));
+	return(pdf_pcos_get_number($pdf, $doc, $path));
 	}
 
 ################################################################################
@@ -1690,24 +1227,24 @@ function pdf_get_pdi_value(& $p, $key, $doc, $page, $reserved)
 # Gets the value of some PDFlib parameter with numerical type.
 ################################################################################
 
-function pdf_get_value(& $p, $key, $modifier)
+function pdf_get_value(& $pdf, $key, $modifier)
 	{
 	switch($key)
 		{
 		case("font"):
-			return($p[$key]);
+			return($pdf[$key]);
 		case("/FontName"):
-			return($p["font-dictionary"][$modifier]["dictionary"]["/FontName"]);
+			return($pdf["font-dictionary"][$modifier]["dictionary"]["/FontName"]);
 		case("fontsize"):
-			return($p[$key]);
+			return($pdf[$key]);
 		case("imageheight"):
-			return($p["image-dictionary"][$modifier]["dictionary"]["/Height"]);
+			return($pdf["image-dictionary"][$modifier]["dictionary"]["/Height"]);
 		case("imagewidth"):
-			return($p["image-dictionary"][$modifier]["dictionary"]["/Width"]);
+			return($pdf["image-dictionary"][$modifier]["dictionary"]["/Width"]);
 		case("major"):
-			return($p["major"]);
+			return($pdf["major"]);
 		case("minor"):
-			return($p["minor"]);
+			return($pdf["minor"]);
 		}
 	}
 
@@ -1717,9 +1254,8 @@ function pdf_get_value(& $p, $key, $modifier)
 # Queries detailed information about a loaded font.
 ################################################################################
 
-function pdf_info_font(& $pdfdoc, $font, $keyword, $optlist)
+function pdf_info_font(& $pdf, $font, $keyword, $optlist)
 	{
-	return($pdfdoc["font-dictionary"][$font]["dictionary"][$keyword]);
 	}
 
 ################################################################################
@@ -1728,7 +1264,7 @@ function pdf_info_font(& $pdfdoc, $font, $keyword, $optlist)
 # Queries information about a matchbox on the current page.
 ################################################################################
 
-function pdf_info_matchbox(& $pdfdoc, $boxname, $num, $keyword)
+function pdf_info_matchbox(& $pdf, $boxname, $num, $keyword)
 	{
 	}
 
@@ -1738,7 +1274,7 @@ function pdf_info_matchbox(& $pdfdoc, $boxname, $num, $keyword)
 # Retrieves table information related to the most recently placed table instance.
 ################################################################################
 
-function pdf_info_table(& $pdfdoc, $table, $keyword)
+function pdf_info_table(& $pdf, $table, $keyword)
 	{
 	}
 
@@ -1748,7 +1284,7 @@ function pdf_info_table(& $pdfdoc, $table, $keyword)
 # Queries the current state of a textflow.
 ################################################################################
 
-function pdf_info_textflow(& $pdfdoc, $textflow, $keyword)
+function pdf_info_textflow(& $pdf, $textflow, $keyword)
 	{
 	}
 
@@ -1758,7 +1294,7 @@ function pdf_info_textflow(& $pdfdoc, $textflow, $keyword)
 # Performs textline formatting and queries the resulting metrics.
 ################################################################################
 
-function pdf_info_textline(& $pdfdoc, $text, $keyword, $optlist)
+function pdf_info_textline(& $pdf, $text, $keyword, $optlist)
 	{
 	}
 
@@ -1769,7 +1305,7 @@ function pdf_info_textline(& $pdfdoc, $text, $keyword, $optlist)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_initgraphics(& $p)
+function pdf_initgraphics(& $pdf)
 	{
 	}
 
@@ -1780,9 +1316,9 @@ function pdf_initgraphics(& $p)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_lineto(& $p, $x, $y)
+function pdf_lineto(& $pdf, $x, $y)
 	{
-	$p["stream"][] = sprintf("%f %f l", $x, $y);
+	$pdf["stream"][] = sprintf("%.2f %.2f l", $x, $y);
 	}
 
 ################################################################################
@@ -1792,7 +1328,7 @@ function pdf_lineto(& $p, $x, $y)
 # This function requires PDF 1.6.
 ################################################################################
 
-function pdf_load_3ddata(& $pdfdoc, $filename, $optlist)
+function pdf_load_3ddata(& $pdf, $filename, $optlist)
 	{
 	}
 
@@ -1802,76 +1338,15 @@ function pdf_load_3ddata(& $pdfdoc, $filename, $optlist)
 # Searches for a font and prepares it for later use.
 ################################################################################
 
-function pdf_load_font(& $pdfdoc, $fontname, $encoding = "builtin", $optlist = array())
+function pdf_load_font(& $pdf, $fontname, $encoding = "builtin", $optlist = array())
 	{
-	if(in_array($encoding, array("builtin", "macroman", "winansi", "host")) === false)
-		die("unknown encoding in pdf_load_font");
+	$a = _pdf_add_font($pdf, $fontname, $encoding);
 
-	$settings = array
-		(
-		"embedding" => true,
-		"subsetting" => true,
-		"subsetlimit" => 50,
-		"kerning" => false
-		);
+	$b = _pdf_get_free_font_id($pdf);
 
-	$object = array
-		(
-		"dictionary" => array
-			(
-			"/Type" => "/Font",
-			"/Subtype" => "",
-			"/BaseFont" => $fontname,
-			"/FontName" => $fontname,
-			"/Encoding" => $encoding
-			),
-		);
+	$pdf["loaded-resources"]["/Font"][$b] = $a;
 
-	foreach($pdfdoc["Core"] as $k => $v)
-		{
-		if(($v["/BaseFont"] == $fontname) || ($v["/FontName"] == $fontname))
-			{
-			$object["dictionary"]["/Subtype"] = "/Core";
-
-			foreach(range(0x00, 0xFF) as $char)
-				$object["dictionary"]["/Widths"][chr($char)] = $v["/Widths"][$char];
-
-			$object["x-procset-font-id"] = "/F" . count($pdfdoc["font-dictionary"]);
-
-			$pdfdoc["font-dictionary"][$fontname] = $object;
-
-			return(pdf_findfont($pdfdoc, $fontname, $encoding, 0));
-			}
-		}
-
-	if(file_exists("/usr/share/fonts/truetype/freefont/" . $fontname . ".ttf") === false)
-		return(pdf_load_font($pdfdoc, "Helvetica", $encoding, $optlist));
-
-	$object["dictionary"]["/Subtype"] = "/TrueType";
-
-	if((isset($optlist["embed"]) === true) && ($optlist["embed"] == 1))
-		$object["dictionary"]["/FontFile"] = "/usr/share/fonts/truetype/freefont/" . $fontname . ".ttf";
-
-	$object["dictionary"]["/FontDescriptor"] = array
-		(
-		"/Ascent" => 720,
-		"/CapHeight" => 720,
-		"/Descent" => 0 - 250,
-		"/Flags" => 32,
-		"/FontBBox" => "[0 -240 1440 1000]",
-		"/ItalicAngle" => 0,
-		"/StemV" => 90,
-		"/XHeight" => 480
-		);
-
-	foreach(range(0x00, 0xFF) as $char)
-		$object["dictionary"]["/Widths"][chr($char)] = (($image_ttf_bbox = imagettfbbox($object["dictionary"]["/FontDescriptor"]["/CapHeight"], 0, "/usr/share/fonts/truetype/freefont/" . $fontname . ".ttf", chr($char))) ? $image_ttf_bbox[2] : 1000);
-
-	$object["x-procset-font-id"] = "/F" . count($pdfdoc["font-dictionary"]);
-
-	$pdfdoc["font-dictionary"][$fontname] = $object;
-
-	return(pdf_findfont($pdfdoc, $fontname, $encoding, 0));
+	return("/F" . $b);
 	}
 
 ################################################################################
@@ -1880,7 +1355,7 @@ function pdf_load_font(& $pdfdoc, $fontname, $encoding = "builtin", $optlist = a
 # Searches for an ICC profile, and prepares it for later use.
 ################################################################################
 
-function pdf_load_iccprofile(& $pdfdoc, $profilename, $optlist)
+function pdf_load_iccprofile(& $pdf, $profilename, $optlist)
 	{
 	}
 
@@ -1890,47 +1365,15 @@ function pdf_load_iccprofile(& $pdfdoc, $profilename, $optlist)
 # Opens a disk-based or virtual image file subject to various options.
 ################################################################################
 
-function pdf_load_image(& $pdfdoc, $imagetype, $filename, $optlist)
+function pdf_load_image(& $pdf, $imagetype, $filename, $optlist)
 	{
-	if(isset($pdfdoc["image-dictionary"][$filename]))
-		return($pdfdoc["image-dictionary"][$filename]);
+	$a = _pdf_add_image($pdf, $filename);
 
-	if($imagetype == "")
-		{
-		if(($pos = strrpos($filename, ".")) === false)
-			die("Image file has no extension and no type was specified: " . $filename);
+	$b = _pdf_get_free_xobject_id($pdf);
 
-		$imagetype = substr($filename, $pos + 1);
-		}
+	$pdf["loaded-resources"]["/XObject"][$b] = $a;
 
-	$imagetype = strtolower($imagetype);
-
-	if(($imagetype == "cit") || ($imagetype == "ccitt"))
-		{
-		}
-
-	if($imagetype == "gif")
-		{
-		$object = _parse_image_gif($pdfdoc, $filename);
-		}
-
-	if(($imagetype == "jpg") || ($imagetype == "jpeg"))
-		{
-		$object = _parse_image_jpg($pdfdoc, $filename);
-		}
-
-	if(($imagetype == "tif") || ($imagetype == "tiff"))
-		{
-		}
-
-	if($imagetype == "png")
-		{
-		$object = _parse_image_png($pdfdoc, $filename);
-		}
-
-	$object["x-procset-x-object-image-id"] = "/XI" . count($pdfdoc["image-dictionary"]);
-
-	return($pdfdoc["image-dictionary"][$filename] = $object);
+	return("/X" . $b);
 	}
 
 ################################################################################
@@ -1940,7 +1383,7 @@ function pdf_load_image(& $pdfdoc, $imagetype, $filename, $optlist)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_makespotcolor(& $p, $spotname)
+function pdf_makespotcolor(& $pdf, $spotname)
 	{
 	}
 
@@ -1951,9 +1394,9 @@ function pdf_makespotcolor(& $p, $spotname)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_moveto(& $p, $x, $y)
+function pdf_moveto(& $pdf, $x, $y)
 	{
-	$p["stream"][] = sprintf("%f %f m", $x, $y);
+	$pdf["stream"][] = sprintf("%.2f %.2f m", $x, $y);
 	}
 
 ################################################################################
@@ -1964,440 +1407,23 @@ function pdf_moveto(& $p, $x, $y)
 
 function pdf_new()
 	{
-	################################################################################
-	# init array
-	################################################################################
-
 	$retval = array
 		(
-		"Core" => array
-			(
-			# widths are needed for stringwidth
-			array
-				(
-				"/BaseFont" => "courier",
-				"/FontName" => "Courier",
-				"/Widths" => array_fill(0, 256, 707)
-				),
-			array
-				(
-				"/BaseFont" => "courierb",
-				"/FontName" => "Courier-Bold",
-				"/Widths" => array_fill(0, 256, 707),
-				),
-			array
-				(
-				"/BaseFont" => "courierbi",
-				"/FontName" => "Courier-BoldOblique",
-				"/Widths" => array_fill(0, 256, 707),
-				),
-			array
-				(
-				"/BaseFont" => "courieri",
-				"/FontName" => "Courier-Oblique",
-				"/Widths" => array_fill(0, 256, 707),
-				),
-			array
-				(
-				"/BaseFont" => "helvetica",
-				"/FontName" => "Helvetica",
-				"/Widths" => array
-					(
-					278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278,
-					278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278,
-					278, 278, 355, 556, 556, 889, 667, 191, 333, 333, 389, 584, 278, 333, 278, 278,
-					556, 556, 556, 556, 556, 556, 556, 556, 556, 556, 278, 278, 584, 584, 584, 556,
-					1015, 667, 667, 722, 722, 667, 611, 778, 722, 278, 500, 667, 556, 833, 722, 778,
-					667, 778, 722, 667, 611, 722, 667, 944, 667, 667, 611, 278, 278, 278, 469, 556,
-					333, 556, 556, 500, 556, 556, 278, 556, 556, 222, 222, 500, 222, 833, 556, 556,
-					556, 556, 333, 500, 278, 556, 500, 722, 500, 500, 500, 334, 260, 334, 584, 350,
-					556, 350, 222, 556, 333, 1000, 556, 556, 333, 1000, 667, 333, 1000, 350, 611, 350,
-					350, 222, 222, 333, 333, 350, 556, 1000, 333, 1000, 500, 333, 944, 350, 500, 667,
-					278, 333, 556, 556, 556, 556, 260, 556, 333, 737, 370, 556, 584, 333, 737, 333,
-					400, 584, 333, 333, 333, 556, 537, 278, 333, 333, 365, 556, 834, 834, 834, 611,
-					667, 667, 667, 667, 667, 667, 1000, 722, 667, 667, 667, 667, 278, 278, 278, 278,
-					722, 722, 778, 778, 778, 778, 778, 584, 778, 722, 722, 722, 722, 667, 667, 611,
-					556, 556, 556, 556, 556, 556, 889, 500, 556, 556, 556, 556, 278, 278, 278, 278,
-					556, 556, 556, 556, 556, 556, 556, 584, 611, 556, 556, 556, 556, 500, 556, 500
-					),
-				),
-			array
-				(
-				"/BaseFont" => "helveticab",
-				"/FontName" => "Helvetica-Bold",
-				"/Widths" => array
-					(
-					 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278,
-					 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278,
-					 278, 333, 474, 556, 556, 889, 722, 238, 333, 333, 389, 584, 278, 333, 278, 278,
-					 556, 556, 556, 556, 556, 556, 556, 556, 556, 556, 333, 333, 584, 584, 584, 611,
-					 975, 722, 722, 722, 722, 667, 611, 778, 722, 278, 556, 722, 611, 833, 722, 778,
-					 667, 778, 722, 667, 611, 722, 667, 944, 667, 667, 611, 333, 278, 333, 584, 556,
-					 333, 556, 611, 556, 611, 556, 333, 611, 611, 278, 278, 556, 278, 889, 611, 611,
-					 611, 611, 389, 556, 333, 611, 556, 778, 556, 556, 500, 389, 280, 389, 584, 350,
-					 556, 350, 278, 556, 500, 1000, 556, 556, 333, 1000, 667, 333, 1000, 350, 611, 350,
-					 350, 278, 278, 500, 500, 350, 556, 1000, 333, 1000, 556, 333, 944, 350, 500, 667,
-					 278, 333, 556, 556, 556, 556, 280, 556, 333, 737, 370, 556, 584, 333, 737, 333,
-					 400, 584, 333, 333, 333, 611, 556, 278, 333, 333, 365, 556, 834, 834, 834, 611,
-					 722, 722, 722, 722, 722, 722, 1000, 722, 667, 667, 667, 667, 278, 278, 278, 278,
-					 722, 722, 778, 778, 778, 778, 778, 584, 778, 722, 722, 722, 722, 667, 667, 611,
-					 556, 556, 556, 556, 556, 556, 889, 556, 556, 556, 556, 556, 278, 278, 278, 278,
-					 611, 611, 611, 611, 611, 611, 611, 584, 611, 611, 611, 611, 611, 556, 611, 556
-					)
-				),
-			array
-				(
-				"/BaseFont" => "helveticabi",
-				"/FontName" => "Helvetica-BoldOblique",
-				"/Widths" => array
-					(
-					 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278,
-					 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278,
-					 278, 333, 474, 556, 556, 889, 722, 238, 333, 333, 389, 584, 278, 333, 278, 278,
-					 556, 556, 556, 556, 556, 556, 556, 556, 556, 556, 333, 333, 584, 584, 584, 611,
-					 975, 722, 722, 722, 722, 667, 611, 778, 722, 278, 556, 722, 611, 833, 722, 778,
-					 667, 778, 722, 667, 611, 722, 667, 944, 667, 667, 611, 333, 278, 333, 584, 556,
-					 333, 556, 611, 556, 611, 556, 333, 611, 611, 278, 278, 556, 278, 889, 611, 611,
-					 611, 611, 389, 556, 333, 611, 556, 778, 556, 556, 500, 389, 280, 389, 584, 350,
-					 556, 350, 278, 556, 500, 1000, 556, 556, 333, 1000, 667, 333, 1000, 350, 611, 350,
-					 350, 278, 278, 500, 500, 350, 556, 1000, 333, 1000, 556, 333, 944, 350, 500, 667,
-					 278, 333, 556, 556, 556, 556, 280, 556, 333, 737, 370, 556, 584, 333, 737, 333,
-					 400, 584, 333, 333, 333, 611, 556, 278, 333, 333, 365, 556, 834, 834, 834, 611,
-					 722, 722, 722, 722, 722, 722, 1000, 722, 667, 667, 667, 667, 278, 278, 278, 278,
-					 722, 722, 778, 778, 778, 778, 778, 584, 778, 722, 722, 722, 722, 667, 667, 611,
-					 556, 556, 556, 556, 556, 556, 889, 556, 556, 556, 556, 556, 278, 278, 278, 278,
-					 611, 611, 611, 611, 611, 611, 611, 584, 611, 611, 611, 611, 611, 556, 611, 556
-					)
-				),
-			array
-				(
-				"/BaseFont" => "helveticai",
-				"/FontName" => "Helvetica-Oblique",
-				"/Widths" => array
-					(
-					 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278,
-					 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278, 278,
-					 278, 278, 355, 556, 556, 889, 667, 191, 333, 333, 389, 584, 278, 333, 278, 278,
-					 556, 556, 556, 556, 556, 556, 556, 556, 556, 556, 278, 278, 584, 584, 584, 556,
-					 1015, 667, 667, 722, 722, 667, 611, 778, 722, 278, 500, 667, 556, 833, 722, 778,
-					 667, 778, 722, 667, 611, 722, 667, 944, 667, 667, 611, 278, 278, 278, 469, 556,
-					 333, 556, 556, 500, 556, 556, 278, 556, 556, 222, 222, 500, 222, 833, 556, 556,
-					 556, 556, 333, 500, 278, 556, 500, 722, 500, 500, 500, 334, 260, 334, 584, 350,
-					 556, 350, 222, 556, 333, 1000, 556, 556, 333, 1000, 667, 333, 1000, 350, 611, 350,
-					 350, 222, 222, 333, 333, 350, 556, 1000, 333, 1000, 500, 333, 944, 350, 500, 667,
-					 278, 333, 556, 556, 556, 556, 260, 556, 333, 737, 370, 556, 584, 333, 737, 333,
-					 400, 584, 333, 333, 333, 556, 537, 278, 333, 333, 365, 556, 834, 834, 834, 611,
-					 667, 667, 667, 667, 667, 667, 1000, 722, 667, 667, 667, 667, 278, 278, 278, 278,
-					 722, 722, 778, 778, 778, 778, 778, 584, 778, 722, 722, 722, 722, 667, 667, 611,
-					 556, 556, 556, 556, 556, 556, 889, 500, 556, 556, 556, 556, 278, 278, 278, 278,
-					 556, 556, 556, 556, 556, 556, 556, 584, 611, 556, 556, 556, 556, 500, 556, 500
-					),
-				),
-			array
-				(
-				"/BaseFont" => "symbol",
-				"/FontName" => "Symbol",
-				"/Widths" => array
-					(
-					 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250,
-					 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250,
-					 250, 333, 713, 500, 549, 833, 778, 439, 333, 333, 500, 549, 250, 549, 250, 278,
-					 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 278, 278, 549, 549, 549, 444,
-					 549, 722, 667, 722, 612, 611, 763, 603, 722, 333, 631, 722, 686, 889, 722, 722,
-					 768, 741, 556, 592, 611, 690, 439, 768, 645, 795, 611, 333, 863, 333, 658, 500,
-					 500, 631, 549, 549, 494, 439, 521, 411, 603, 329, 603, 549, 549, 576, 521, 549,
-					 549, 521, 549, 603, 439, 576, 713, 686, 493, 686, 494, 480, 200, 480, 549, 0,
-					 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-					 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-					 750, 620, 247, 549, 167, 713, 500, 753, 753, 753, 753, 1042, 987, 603, 987, 603,
-					 400, 549, 411, 549, 549, 713, 494, 460, 549, 549, 549, 549, 1000, 603, 1000, 658,
-					 823, 686, 795, 987, 768, 768, 823, 768, 768, 713, 713, 713, 713, 713, 713, 713,
-					 768, 713, 790, 790, 890, 823, 549, 250, 713, 603, 603, 1042, 987, 603, 987, 603,
-					 494, 329, 790, 790, 786, 713, 384, 384, 384, 384, 384, 384, 494, 494, 494, 494,
-					 0, 329, 274, 686, 686, 686, 384, 384, 384, 384, 384, 384, 494, 494, 494, 0
-					 ),
-				),
-			array
-				(
-				"/BaseFont" => "times",
-				"/FontName" => "Times-Roman",
-				"/Widths" => array
-					(
-					 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250,
-					 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250,
-					 250, 333, 408, 500, 500, 833, 778, 180, 333, 333, 500, 564, 250, 333, 250, 278,
-					 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 278, 278, 564, 564, 564, 444,
-					 921, 722, 667, 667, 722, 611, 556, 722, 722, 333, 389, 722, 611, 889, 722, 722,
-					 556, 722, 667, 556, 611, 722, 722, 944, 722, 722, 611, 333, 278, 333, 469, 500,
-					 333, 444, 500, 444, 500, 444, 333, 500, 500, 278, 278, 500, 278, 778, 500, 500,
-					 500, 500, 333, 389, 278, 500, 500, 722, 500, 500, 444, 480, 200, 480, 541, 350,
-					 500, 350, 333, 500, 444, 1000, 500, 500, 333, 1000, 556, 333, 889, 350, 611, 350,
-					 350, 333, 333, 444, 444, 350, 500, 1000, 333, 980, 389, 333, 722, 350, 444, 722,
-					 250, 333, 500, 500, 500, 500, 200, 500, 333, 760, 276, 500, 564, 333, 760, 333,
-					 400, 564, 300, 300, 333, 500, 453, 250, 333, 300, 310, 500, 750, 750, 750, 444,
-					 722, 722, 722, 722, 722, 722, 889, 667, 611, 611, 611, 611, 333, 333, 333, 333,
-					 722, 722, 722, 722, 722, 722, 722, 564, 722, 722, 722, 722, 722, 722, 556, 500,
-					 444, 444, 444, 444, 444, 444, 667, 444, 444, 444, 444, 444, 278, 278, 278, 278,
-					 500, 500, 500, 500, 500, 500, 500, 564, 500, 500, 500, 500, 500, 500, 500, 500
-					),
-				),
-			array
-				(
-				"/BaseFont" => "timesb",
-				"/FontName" => "Times-Bold",
-				"/Widths" => array
-					(
-					 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250,
-					 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250,
-					 250, 333, 555, 500, 500, 1000, 833, 278, 333, 333, 500, 570, 250, 333, 250, 278,
-					 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 333, 333, 570, 570, 570, 500,
-					 930, 722, 667, 722, 722, 667, 611, 778, 778, 389, 500, 778, 667, 944, 722, 778,
-					 611, 778, 722, 556, 667, 722, 722, 1000, 722, 722, 667, 333, 278, 333, 581, 500,
-					 333, 500, 556, 444, 556, 444, 333, 500, 556, 278, 333, 556, 278, 833, 556, 500,
-					 556, 556, 444, 389, 333, 556, 500, 722, 500, 500, 444, 394, 220, 394, 520, 350,
-					 500, 350, 333, 500, 500, 1000, 500, 500, 333, 1000, 556, 333, 1000, 350, 667, 350,
-					 350, 333, 333, 500, 500, 350, 500, 1000, 333, 1000, 389, 333, 722, 350, 444, 722,
-					 250, 333, 500, 500, 500, 500, 220, 500, 333, 747, 300, 500, 570, 333, 747, 333,
-					 400, 570, 300, 300, 333, 556, 540, 250, 333, 300, 330, 500, 750, 750, 750, 500,
-					 722, 722, 722, 722, 722, 722, 1000, 722, 667, 667, 667, 667, 389, 389, 389, 389,
-					 722, 722, 778, 778, 778, 778, 778, 570, 778, 722, 722, 722, 722, 722, 611, 556,
-					 500, 500, 500, 500, 500, 500, 722, 444, 444, 444, 444, 444, 278, 278, 278, 278,
-					 500, 556, 500, 500, 500, 500, 500, 570, 500, 556, 556, 556, 556, 500, 556, 500
-					),
-				),
-			array
-				(
-				"/BaseFont" => "timesbi",
-				"/FontName" => "Times-BoldOblique",
-				"/Widths" => array
-					(
-					 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250,
-					 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250,
-					 250, 389, 555, 500, 500, 833, 778, 278, 333, 333, 500, 570, 250, 333, 250, 278,
-					 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 333, 333, 570, 570, 570, 500,
-					 832, 667, 667, 667, 722, 667, 667, 722, 778, 389, 500, 667, 611, 889, 722, 722,
-					 611, 722, 667, 556, 611, 722, 667, 889, 667, 611, 611, 333, 278, 333, 570, 500,
-					 333, 500, 500, 444, 500, 444, 333, 500, 556, 278, 278, 500, 278, 778, 556, 500,
-					 500, 500, 389, 389, 278, 556, 444, 667, 500, 444, 389, 348, 220, 348, 570, 350,
-					 500, 350, 333, 500, 500, 1000, 500, 500, 333, 1000, 556, 333, 944, 350, 611, 350,
-					 350, 333, 333, 500, 500, 350, 500, 1000, 333, 1000, 389, 333, 722, 350, 389, 611,
-					 250, 389, 500, 500, 500, 500, 220, 500, 333, 747, 266, 500, 606, 333, 747, 333,
-					 400, 570, 300, 300, 333, 576, 500, 250, 333, 300, 300, 500, 750, 750, 750, 500,
-					 667, 667, 667, 667, 667, 667, 944, 667, 667, 667, 667, 667, 389, 389, 389, 389,
-					 722, 722, 722, 722, 722, 722, 722, 570, 722, 722, 722, 722, 722, 611, 611, 500,
-					 500, 500, 500, 500, 500, 500, 722, 444, 444, 444, 444, 444, 278, 278, 278, 278,
-					 500, 556, 500, 500, 500, 500, 500, 570, 500, 556, 556, 556, 556, 444, 500, 444
-					),
-				),
-			array
-				(
-				"/BaseFont" => "timesi",
-				"/FontName" => "Times-Oblique",
-				"/Widths" => array
-					(
-					 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250,
-					 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250,
-					 250, 333, 420, 500, 500, 833, 778, 214, 333, 333, 500, 675, 250, 333, 250, 278,
-					 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 333, 333, 675, 675, 675, 500,
-					 920, 611, 611, 667, 722, 611, 611, 722, 722, 333, 444, 667, 556, 833, 667, 722,
-					 611, 722, 611, 500, 556, 722, 611, 833, 611, 556, 556, 389, 278, 389, 422, 500,
-					 333, 500, 500, 444, 500, 444, 278, 500, 500, 278, 278, 444, 278, 722, 500, 500,
-					 500, 500, 389, 389, 278, 500, 444, 667, 444, 444, 389, 400, 275, 400, 541, 350,
-					 500, 350, 333, 500, 556, 889, 500, 500, 333, 1000, 500, 333, 944, 350, 556, 350,
-					 350, 333, 333, 556, 556, 350, 500, 889, 333, 980, 389, 333, 667, 350, 389, 556,
-					 250, 389, 500, 500, 500, 500, 275, 500, 333, 760, 276, 500, 675, 333, 760, 333,
-					 400, 675, 300, 300, 333, 500, 523, 250, 333, 300, 310, 500, 750, 750, 750, 500,
-					 611, 611, 611, 611, 611, 611, 889, 667, 611, 611, 611, 611, 333, 333, 333, 333,
-					 722, 667, 722, 722, 722, 722, 722, 675, 722, 722, 722, 722, 722, 556, 611, 500,
-					 500, 500, 500, 500, 500, 500, 667, 444, 444, 444, 444, 444, 278, 278, 278, 278,
-					 500, 500, 500, 500, 500, 500, 500, 675, 500, 500, 500, 500, 500, 444, 500, 444
-					),
-				),
-			array
-				(
-				"/BaseFont" => "zapfdingbats",
-				"/FontName" => "ZapfDingbats",
-				"/Widths" => array
-					(
-					 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-					 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-					 278, 974, 961, 974, 980, 719, 789, 790, 791, 690, 960, 939, 549, 855, 911, 933,
-					 911, 945, 974, 755, 846, 762, 761, 571, 677, 763, 760, 759, 754, 494, 552, 537,
-					 577, 692, 786, 788, 788, 790, 793, 794, 816, 823, 789, 841, 823, 833, 816, 831,
-					 923, 744, 723, 749, 790, 792, 695, 776, 768, 792, 759, 707, 708, 682, 701, 826,
-					 815, 789, 789, 707, 687, 696, 689, 786, 787, 713, 791, 785, 791, 873, 761, 762,
-					 762, 759, 759, 892, 892, 788, 784, 438, 138, 277, 415, 392, 392, 668, 668, 0,
-					 390, 390, 317, 317, 276, 276, 509, 509, 410, 410, 234, 234, 334, 334, 0, 0,
-					 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-					 0, 732, 544, 544, 910, 667, 760, 760, 776, 595, 694, 626, 788, 788, 788, 788,
-					 788, 788, 788, 788, 788, 788, 788, 788, 788, 788, 788, 788, 788, 788, 788, 788,
-					 788, 788, 788, 788, 788, 788, 788, 788, 788, 788, 788, 788, 788, 788, 788, 788,
-					 788, 788, 788, 788, 894, 838, 1016, 458, 748, 924, 748, 918, 927, 928, 928, 834,
-					 873, 828, 924, 924, 917, 930, 931, 463, 883, 836, 836, 867, 867, 696, 696, 874,
-					 0, 874, 760, 946, 771, 865, 771, 888, 967, 888, 831, 873, 927, 970, 918, 0
-					)
-				)
-			),
-
-		################################################################################
-
-		"action-dictionary" => array
-			(
-			),
-
-		################################################################################
-
-		"annotation-dictionary" => array
-			(
-			),
-
-		################################################################################
-		# pdf_begin_document(& $pdfdoc, $filename, $optlist)
-		################################################################################
-
-		"catalog-dictionary" => array
-			(
-			),
-
-		################################################################################
-
-		"encrypt-dictionary" => array
-			(
-			array
-				(
-				"dictionary" => array
-					(
-					"protection" => 0xC0,
-					"padding" => hex2bin("28BF4E5E4E758A4164004E56FFFA01082E2E00B6D0683E802F0CA9FE6453697A"),
-					"o-pass" => "mysecretownerpass",
-					"u-pass" => "",
-					"e-pass" => "",
-					"/O" => "",
-					"/U" => "",
-					"/P" => 0
-					),
-				),
-			),
-
-		################################################################################
-
-		"file-dictionary" => array
-			(
-			),
-
-		################################################################################
-		# pdf_load_font(& $pdfdoc, $fontname, $encoding = "builtin", $optlist = array())
-		################################################################################
-
-		"font-dictionary" => array
-			(
-			),
-
-		################################################################################
-
-		"form-dictionary" => array
-			(
-			),
-
-		################################################################################
-		# pdf_load_image(& $pdfdoc, $imagetype, $filename, $optlist)
-		################################################################################
-
-		"image-dictionary" => array
-			(
-			),
-
-		################################################################################
-
-		"info-dictionary" => array
-			(
-			array
-				(
-				"dictionary" => array
-					(
-					"/Author" => "Markus Olderdissen",
-					"/Creator" => basename(__FILE__),
-					"/Producer" => basename(__FILE__),
-					"/Keywords" => "Dokumentvorlagen",
-					"/Subject" => "Dokumentvorlagen",
-					"/Title" => "Dokumentvorlagen",
-					"/CreationDate" => "(D:19700101000000Z)",
-					"/ModDate" => "(D:19700101000000Z)"
-					)
-				)
-			),
-
-		################################################################################
-		# pdf_begin_page_ext(& $pdfdoc, $width, $height, $optlist)
-		# pdf_end_page_ext(& $pdfdoc, $optlist)
-		################################################################################
-
-		"page-dictionary" => array
-			(
-			),
-
-		################################################################################
-
-#		"filter-dictionary" => array
-#			(
-#			array
-#				(
-#				"dictionary" => array
-#					(
-#					"/Filter" => "/FlateDecode",
-#					"/Filter" => "[/ASCIIHexDecode /FlateDecode]",
-#					),
-#				),
-#			),
-
-		################################################################################
-
+		"apiname" => sprintf("%s %d.%d.%d (PHP/%s)", basename(__FILE__), 1, 0, 0, PHP_OS),
+		"catalog" => "0 0 R",
+		"filename" => "",
+		"height" => 0,
+		"info" => array(),
+		"loaded-resources" => array(),
 		"major" => 1,
 		"minor" => 3,
-		"apiname" => sprintf("PDFlib Lite Clone %d.%d.%d (PHP/%s)", 1, 0, 0, PHP_OS),
-		"apiversion" => 3,
-
-		################################################################################
-
-		"reference-id" => 0, # id is needed for encryption. this is where first page begin.
-		"/Height" => 0, # Height is transfered to dictionary of object for page after pdf_end_page has been called.
-		"/Width" => 0, # Width is transfered to dictionary of object for page after pdf_end_page has been called.
-		"/Dur" => 0, # Width is transfered to dictionary of object for page after pdf_end_page has been called.
-		"/FirstChar" => 255,
-		"/LastChar" => 0,
-		"/ProcSet" => array("/PDF"),
-		"stream" => array
-			(
-			), # stream is transfered to stream of object for page after pdf_end_page has been called.
-
-		"font" => null, # current working font id
-		"fontsize" => 0, # 12 x 6 = 72
-
-		"offsets" => array
-			(
-			),
-		"encrypt" => false,
-		"license" => "xxxxxxx-xxxxxx-xxxxxx-xxxxxx"
+		"objects" => array(0 => array("dictionary" => array("/Size" => 0))),
+		"outlines" => "0 0 R",
+		"pages" => "0 0 R",
+		"stream" => array(),
+		"used-resources" => array(),
+		"width" => 0
 		);
-
-	if($retval["encrypt"])
-		{
-		$options = array
-			(
-			"print" => 0x04,
-			"modify" => 0x08,
-			"copy" => 0x10,
-			"annot-forms" => 0x20
-			);
-
-		foreach(array("o-pass", "u-pass") as $k)
-			$retval["encrypt-dictionary"][0]["dictionary"][$k] = substr($retval["encrypt-dictionary"][0]["dictionary"][$k] . $retval["encrypt-dictionary"][0]["dictionary"]["padding"], 0, 32);
-
-		$retval["encrypt-dictionary"][0]["dictionary"]["/O"] = RC4(substr(_md5_16($retval["encrypt-dictionary"][0]["dictionary"]["o-pass"]), 0, 5), $retval["encrypt-dictionary"][0]["dictionary"]["u-pass"]);
-		$retval["encrypt-dictionary"][0]["dictionary"]["e-pass"] = substr(_md5_16($retval["encrypt-dictionary"][0]["dictionary"]["u-pass"] . $retval["encrypt-dictionary"][0]["dictionary"]["/O"] . chr($retval["encrypt-dictionary"][0]["dictionary"]["protection"]) . hex2bin("FFFFFF")), 0, 5);
-		$retval["encrypt-dictionary"][0]["dictionary"]["/U"] = RC4($retval["encrypt-dictionary"][0]["dictionary"]["e-pass"], $retval["encrypt-dictionary"][0]["dictionary"]["padding"]);
-		$retval["encrypt-dictionary"][0]["dictionary"]["/P"] = 0 - (($retval["encrypt-dictionary"][0]["dictionary"]["protection"] ^ 0xFF) + 1);
-		}
 
 	return($retval);
 	}
@@ -2409,9 +1435,9 @@ function pdf_new()
 # This function is deprecated since PDFlib version 5, use PDF_load_image() instead.
 ################################################################################
 
-function pdf_open_ccitt(& $pdfdoc, $filename, $width, $height, $BitReverse, $k, $Blackls1)
+function pdf_open_ccitt(& $pdf, $filename, $width, $height, $BitReverse, $k, $Blackls1)
 	{
-	return(pdf_load_image($pdfdoc, "ccitt", $filename, array("/Width" => $width, "/Height" => $height, "bitreverse" => $BitReverse, "k" => $k, "blacklsl" => $Blackls1)));
+	return(pdf_load_image($pdf, "ccitt", $filename, array("/Width" => $width, "/Height" => $height, "bitreverse" => $BitReverse, "k" => $k, "blacklsl" => $Blackls1)));
 	}
 
 ################################################################################
@@ -2422,9 +1448,9 @@ function pdf_open_ccitt(& $pdfdoc, $filename, $width, $height, $BitReverse, $k, 
 # This function is deprecated since PDFlib version 6, use PDF_begin_document() instead.
 ################################################################################
 
-function pdf_open_file(& $p, $filename)
+function pdf_open_file(& $pdf, $filename)
 	{
-	return(pdf_begin_document($p, $filename, array()));
+	return(pdf_begin_document($pdf, $filename));
 	}
 
 ################################################################################
@@ -2432,9 +1458,9 @@ function pdf_open_file(& $p, $filename)
 # This function is deprecated since PDFlib version 3, use PDF_load_image() instead.
 ################################################################################
 
-function pdf_open_gif(& $p, $filename)
+function pdf_open_gif(& $pdf, $filename)
 	{
-	return(pdf_load_image($p, "gif", $filename, array()));
+	return(pdf_load_image($pdf, "gif", $filename));
 	}
 
 ################################################################################
@@ -2444,9 +1470,9 @@ function pdf_open_gif(& $p, $filename)
 # This function is deprecated since PDFlib version 5, use PDF_load_image() with the colorize, ignoremask, invert, mask, masked, and page options instead.
 ################################################################################
 
-function pdf_open_image_file(& $p, $imagetype, $filename, $stringparam = "", $intparam = 0)
+function pdf_open_image_file(& $pdf, $imagetype, $filename, $stringparam = "", $intparam = 0)
 	{
-	return(pdf_load_image($p, $imagetype, $filename, array("colorize" => 0, "ignoremask" => 0, "invert" => 0, "mask" => 0, "masked" => 0, "page" => 0)));
+	return(pdf_load_image($pdf, $imagetype, $filename, array("colorize" => 0, "ignoremask" => 0, "invert" => 0, "mask" => 0, "masked" => 0, "page" => 0)));
 	}
 
 ################################################################################
@@ -2456,9 +1482,9 @@ function pdf_open_image_file(& $p, $imagetype, $filename, $stringparam = "", $in
 # This function is deprecated since PDFlib version 5, use virtual files and PDF_load_image() instead.
 ################################################################################
 
-function pdf_open_image(& $p, $imagetype, $source, $data, $length, $width, $height, $component, $bpc, $params)
+function pdf_open_image(& $pdf, $imagetype, $source, $data, $length, $width, $height, $component, $bpc, $params)
 	{
-	return(pdf_load_image($p, $imagetype, "", array("data" => $data, "/Length" => $length, "/Width" => $width, "/Height" => $height, "component" => $component, "bits_per_component" => $bpc, "params" => $params)));
+	return(pdf_load_image($pdf, $imagetype, "", array("data" => $data, "length" => $length, "width" => $width, "height" => $height, "component" => $component, "bits_per_component" => $bpc, "params" => $params)));
 	}
 
 ################################################################################
@@ -2466,9 +1492,9 @@ function pdf_open_image(& $p, $imagetype, $source, $data, $length, $width, $heig
 # This function is deprecated since PDFlib version 3, use PDF_load_image() instead.
 ################################################################################
 
-function pdf_open_jpeg(& $p, $filename)
+function pdf_open_jpeg(& $pdf, $filename)
 	{
-	return(pdf_load_image($p, "jpeg", $filename, array()));
+	return(pdf_load_image($pdf, "jpeg", $filename));
 	}
 
 ################################################################################
@@ -2477,7 +1503,7 @@ function pdf_open_jpeg(& $p, $filename)
 # This function is not supported by PDFlib GmbH.
 ################################################################################
 
-function pdf_open_memory_image(& $p, $image)
+function pdf_open_memory_image(& $pdf, $image)
 	{
 	# pdf_open_image uses php's image functions
 	# smells like imagecreatefromgif(); used for png manipulation
@@ -2490,13 +1516,13 @@ function pdf_open_memory_image(& $p, $image)
 # Open a disk-based or virtual PDF document and prepare it for later use.
 ################################################################################
 
-function pdf_open_pdi_document(& $p, $filename, $optlist)
+function pdf_open_pdi_document(& $pdf, $filename, $optlist)
 	{
-	$p["filename"] = $filename;
+	$pdf["filename"] = $filename;
 
-	$p["stream"] = file_get_contents($p["filename"]);
+	$pdf["stream"] = file_get_contents($pdf["filename"]);
 
-	if(preg_match("/(%pdf-(\d+)\.(\d+)[\s|\n]+)((.*)[\s|\n]+)(startxref[\s|\n]+(\d+)[\s|\n]+)(%%eof[\s|\n]+).*/is", $p["stream"], $matches) == 1)
+	if(preg_match("/(%pdf-(\d+)\.(\d+)[\s|\n]+)((.*)[\s|\n]+)(startxref[\s|\n]+(\d+)[\s|\n]+)(%%eof[\s|\n]+).*/is", $pdf["stream"], $matches) == 1)
 		{
 		}
 	}
@@ -2507,7 +1533,7 @@ function pdf_open_pdi_document(& $p, $filename, $optlist)
 # Prepares a page for later use with PDF_fit_pdi_page().
 ################################################################################
 
-function pdf_open_pdi_page(& $p, $doc, $pagenumber, $optlist)
+function pdf_open_pdi_page(& $pdf, $doc, $pagenumber, $optlist)
 	{
 	}
 
@@ -2518,9 +1544,9 @@ function pdf_open_pdi_page(& $p, $doc, $pagenumber, $optlist)
 # This function is deprecated since PDFlib version 7, use PDF_open_pdi_document() instead.
 ################################################################################
 
-function pdf_open_pdi(& $pdfdoc, $filename, $optlist)
+function pdf_open_pdi(& $pdf, $filename, $optlist)
 	{
-	return(pdf_open_pdi_document($pdfdoc, $filename, $optlist));
+	return(pdf_open_pdi_document($pdf, $filename, $optlist));
 	}
 
 ################################################################################
@@ -2528,9 +1554,9 @@ function pdf_open_pdi(& $pdfdoc, $filename, $optlist)
 # This function is deprecated since PDFlib version 3, use PDF_load_image() instead.
 ################################################################################
 
-function pdf_open_tiff(& $p, $filename)
+function pdf_open_tiff(& $pdf, $filename)
 	{
-	return(pdf_load_image($p, "tiff", $filename, array()));
+	return(pdf_load_image($pdf, "tiff", $filename));
 	}
 
 ################################################################################
@@ -2539,7 +1565,7 @@ function pdf_open_tiff(& $p, $filename)
 # Gets the value of a pCOS path with type number or boolean.
 ################################################################################
 
-function pdf_pcos_get_number(& $pdfdoc, $doc, $path)
+function pdf_pcos_get_number(& $pdf, $doc, $path)
 	{
 	}
 
@@ -2549,7 +1575,7 @@ function pdf_pcos_get_number(& $pdfdoc, $doc, $path)
 # Gets the contents of a pCOS path with type stream, fstream, or string.
 ################################################################################
 
-function pdf_pcos_get_stream(& $pdfdoc, $doc, $optlist, $path)
+function pdf_pcos_get_stream(& $pdf, $doc, $optlist, $path)
 	{
 	}
 
@@ -2560,7 +1586,7 @@ function pdf_pcos_get_stream(& $pdfdoc, $doc, $optlist, $path)
 #
 ################################################################################
 
-function pdf_pcos_get_string(& $pdfdoc, $doc, $path)
+function pdf_pcos_get_string(& $pdf, $doc, $path)
 	{
 	}
 
@@ -2572,9 +1598,9 @@ function pdf_pcos_get_string(& $pdfdoc, $doc, $path)
 # This function is deprecated since PDFlib version 5, use PDF_fit_image() instead.
 ################################################################################
 
-function pdf_place_image(& $pdfdoc, $image, $x, $y, $scale)
+function pdf_place_image(& $pdf, $image, $x, $y, $scale)
 	{
-	pdf_fit_image($pdfdoc, $image, $x, $y, array("scale" => $scale));
+	pdf_fit_image($pdf, $image, $x, $y, array("scale" => $scale));
 	}
 
 ################################################################################
@@ -2585,9 +1611,9 @@ function pdf_place_image(& $pdfdoc, $image, $x, $y, $scale)
 # This function is deprecated since PDFlib version 5, use PDF_fit_pdi_page() instead.
 ################################################################################
 
-function pdf_place_pdi_page(& $pdfdoc, $page, $x, $y, $sx, $sy)
+function pdf_place_pdi_page(& $pdf, $page, $x, $y, $sx, $sy)
 	{
-	pdf_fit_pdi_page($pdfdoc, $page, $x, $y, array("sx" => $sx, "sy" => $sy));
+	pdf_fit_pdi_page($pdf, $page, $x, $y, array("sx" => $sx, "sy" => $sy));
 	}
 
 ################################################################################
@@ -2596,7 +1622,7 @@ function pdf_place_pdi_page(& $pdfdoc, $page, $x, $y, $sx, $sy)
 # Processes certain elements of an imported PDF document.
 ################################################################################
 
-function pdf_process_pdi(& $pdfdoc, $doc, $page, $optlist)
+function pdf_process_pdi(& $pdf, $doc, $page, $optlist)
 	{
 	}
 
@@ -2607,9 +1633,9 @@ function pdf_process_pdi(& $pdfdoc, $doc, $page, $optlist)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_rect(& $p, $x, $y, $width, $height)
+function pdf_rect(& $pdf, $x, $y, $width, $height)
 	{
-	$p["stream"][] = sprintf("%f %f %f %f re", $x, $y, $width, $height);
+	$pdf["stream"][] = sprintf("%.2f %.2f %.2f %.2f re", $x, $y, $width, $height);
 	}
 
 ################################################################################
@@ -2619,9 +1645,9 @@ function pdf_rect(& $p, $x, $y, $width, $height)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_restore(& $p)
+function pdf_restore(& $pdf)
 	{
-	$p["stream"][] = "Q";
+	$pdf["stream"][] = "Q";
 	}
 
 ################################################################################
@@ -2630,7 +1656,7 @@ function pdf_restore(& $p)
 # Resumes a page to add more content to it.
 ################################################################################
 
-function pdf_resume_page(& $pdfdoc, $optlist)
+function pdf_resume_page(& $pdf, $optlist)
 	{
 	}
 
@@ -2641,12 +1667,12 @@ function pdf_resume_page(& $pdfdoc, $optlist)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_rotate(& $p, $phi)
+function pdf_rotate(& $pdf, $phi)
 	{
 	$sin = sin($phi * M_PI / 180);
 	$cos = cos($phi * M_PI / 180);
 
-	pdf_concat($p, 0 + $cos, 0 + $sin, 0 - $sin, 0 + $cos, 0, 0);
+	pdf_concat($pdf, 0 + $cos, 0 + $sin, 0 - $sin, 0 + $cos, 0, 0);
 	}
 
 ################################################################################
@@ -2656,9 +1682,9 @@ function pdf_rotate(& $p, $phi)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_save(& $p)
+function pdf_save(& $pdf)
 	{
-	$p["stream"][] = "q";
+	$pdf["stream"][] = "q";
 	}
 
 ################################################################################
@@ -2668,9 +1694,9 @@ function pdf_save(& $p)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_scale(& $p, $sx, $sy)
+function pdf_scale(& $pdf, $sx, $sy)
 	{
-	pdf_concat($p, $sx, 0, 0, $sy, 0, 0);
+	pdf_concat($pdf, $sx, 0, 0, $sy, 0, 0);
 	}
 
 ################################################################################
@@ -2681,7 +1707,7 @@ function pdf_scale(& $p, $sx, $sy)
 # This function is deprecated since PDFlib version 6, use the option annotcolor in PDF_create_annotation() instead.
 ################################################################################
 
-function pdf_set_border_color(& $p, $red, $green, $blue)
+function pdf_set_border_color(& $pdf, $red, $green, $blue)
 	{
 	}
 
@@ -2693,7 +1719,7 @@ function pdf_set_border_color(& $p, $red, $green, $blue)
 # This function is deprecated since PDFlib version 6, use the option dasharray in PDF_create_annotation() instead.
 ################################################################################
 
-function pdf_set_border_dash(& $p, $black, $white)
+function pdf_set_border_dash(& $pdf, $black, $white)
 	{
 	}
 
@@ -2705,7 +1731,7 @@ function pdf_set_border_dash(& $p, $black, $white)
 # This function is deprecated since PDFlib version 6, use the options borderstyle and linewidth in PDF_create_annotation() instead.
 ################################################################################
 
-function pdf_set_border_style(& $p, $style, $width)
+function pdf_set_border_style(& $pdf, $style, $width)
 	{
 	}
 
@@ -2714,9 +1740,9 @@ function pdf_set_border_style(& $p, $style, $width)
 # This function is deprecated since PDFlib version 3, use PDF_set_value() with parameter charspacing instead.
 ################################################################################
 
-function pdf_set_char_spacing(& $pdfdoc, $space)
+function pdf_set_char_spacing(& $pdf, $space)
 	{
-	pdf_set_value($pdfdoc, "charspacing", $space);
+	pdf_set_value($pdf, "charspacing", $space);
 	}
 
 ################################################################################
@@ -2724,9 +1750,9 @@ function pdf_set_char_spacing(& $pdfdoc, $space)
 # This function is deprecated since PDFlib version 3, use the duration option in PDF_begin_page_ext() or PDF_end_page_ext() instead.
 ################################################################################
 
-function pdf_set_duration(& $pdfdoc, $duration)
+function pdf_set_duration(& $pdf, $duration)
 	{
-	$pdfdoc["/Dur"] = $duration;
+	$pdf["duration"] = $duration; # not used yet
 	}
 
 ################################################################################
@@ -2735,7 +1761,7 @@ function pdf_set_duration(& $pdfdoc, $duration)
 # Activates a graphics state object.
 ################################################################################
 
-function pdf_set_gstate(& $pdfdoc, $gstate)
+function pdf_set_gstate(& $pdf, $gstate)
 	{
 	}
 
@@ -2744,9 +1770,9 @@ function pdf_set_gstate(& $pdfdoc, $gstate)
 # This function is deprecated since PDFlib version 3, use PDF_set_value() with parameter horizscaling instead.
 ################################################################################
 
-function pdf_set_horizontal_scaling(& $p, $value)
+function pdf_set_horizontal_scaling(& $pdf, $value)
 	{
-	pdf_set_value($p, "horizscaling", $value);
+	pdf_set_value($pdf, "horizscaling", $value);
 	}
 
 ################################################################################
@@ -2754,9 +1780,9 @@ function pdf_set_horizontal_scaling(& $p, $value)
 # This function is deprecated since PDFlib version 3, use PDF_set_info() instead.
 ################################################################################
 
-function pdf_set_info_author(& $p, $value)
+function pdf_set_info_author(& $pdf, $value)
 	{
-	pdf_set_info($p, "Author", $value);
+	pdf_set_info($pdf, "Author", $value);
 	}
 
 ################################################################################
@@ -2764,9 +1790,9 @@ function pdf_set_info_author(& $p, $value)
 # This function is deprecated since PDFlib version 3, use PDF_set_info() instead.
 ################################################################################
 
-function pdf_set_info_creator(& $p, $value)
+function pdf_set_info_creator(& $pdf, $value)
 	{
-	pdf_set_info($p, "Creator", $value);
+	pdf_set_info($pdf, "Creator", $value);
 	}
 
 ################################################################################
@@ -2774,9 +1800,9 @@ function pdf_set_info_creator(& $p, $value)
 # This function is deprecated since PDFlib version 3, use PDF_set_info() instead.
 ################################################################################
 
-function pdf_set_info_keywords(& $p, $value)
+function pdf_set_info_keywords(& $pdf, $value)
 	{
-	pdf_set_info($p, "Keywords", $value);
+	pdf_set_info($pdf, "Keywords", $value);
 	}
 
 ################################################################################
@@ -2784,9 +1810,9 @@ function pdf_set_info_keywords(& $p, $value)
 # This function is deprecated since PDFlib version 3, use PDF_set_info() instead.
 ################################################################################
 
-function pdf_set_info_subject(& $p, $value)
+function pdf_set_info_subject(& $pdf, $value)
 	{
-	pdf_set_info($p, "Subject", $value);
+	pdf_set_info($pdf, "Subject", $value);
 	}
 
 ################################################################################
@@ -2794,9 +1820,9 @@ function pdf_set_info_subject(& $p, $value)
 # This function is deprecated since PDFlib version 3, use PDF_set_info() instead.
 ################################################################################
 
-function pdf_set_info_title(& $p, $value)
+function pdf_set_info_title(& $pdf, $value)
 	{
-	pdf_set_info($p, "Title", $value);
+	pdf_set_info($pdf, "Title", $value);
 	}
 
 ################################################################################
@@ -2806,9 +1832,9 @@ function pdf_set_info_title(& $p, $value)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_set_info(& $p, $key, $value)
+function pdf_set_info(& $pdf, $key, $value)
 	{
-	$p["info-dictionary"][0]["dictionary"]["/" . $key] = utf8_decode($value);
+	$pdf["info"]["/" . $key] = utf8_decode($value);
 	}
 
 ################################################################################
@@ -2819,7 +1845,7 @@ function pdf_set_info(& $p, $key, $value)
 # This function requires PDF 1.5.
 ################################################################################
 
-function pdf_set_layer_dependency(& $pdfdoc, $type, $optlist)
+function pdf_set_layer_dependency(& $pdf, $type, $optlist)
 	{
 	}
 
@@ -2828,9 +1854,9 @@ function pdf_set_layer_dependency(& $pdfdoc, $type, $optlist)
 # This function is deprecated since PDFlib version 3, use PDF_set_value() with the parameter leading instead.
 ################################################################################
 
-function pdf_set_leading(& $pdfdoc, $distance)
+function pdf_set_leading(& $pdf, $distance)
 	{
-	pdf_set_value($pdfdoc, "leading", $distance);
+	pdf_set_value($pdf, "leading", $distance);
 	}
 
 ################################################################################
@@ -2840,9 +1866,9 @@ function pdf_set_leading(& $pdfdoc, $distance)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_set_parameter(& $p, $key, $value)
+function pdf_set_parameter(& $pdf, $key, $value)
 	{
-	$p[$key] = $value;
+	$pdf[$key] = $value;
 	}
 
 ################################################################################
@@ -2852,9 +1878,9 @@ function pdf_set_parameter(& $p, $key, $value)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_set_text_pos(& $p, $x, $y)
+function pdf_set_text_pos(& $pdf, $x, $y)
 	{
-	$p["stream"][] = sprintf("%d %d Td", $x, $y);
+	$pdf["stream"][] = sprintf("%d %d Td", $x, $y);
 	}
 
 ################################################################################
@@ -2862,9 +1888,9 @@ function pdf_set_text_pos(& $p, $x, $y)
 # This function is deprecated since PDFlib version 3, use PDF_set_value() with the textrendering parameter instead.
 ################################################################################
 
-function pdf_set_text_rendering(& $pdfdoc, $textrendering)
+function pdf_set_text_rendering(& $pdf, $textrendering)
 	{
-	pdf_set_value($pdfdoc, "textrendering", $textrendering);
+	pdf_set_value($pdf, "textrendering", $textrendering);
 	}
 
 ################################################################################
@@ -2872,9 +1898,9 @@ function pdf_set_text_rendering(& $pdfdoc, $textrendering)
 # This function is deprecated since PDFlib version 3, use PDF_set_value() with the textrise parameter instead.
 ################################################################################
 
-function pdf_set_text_rise(& $pdfdoc, $textrise)
+function pdf_set_text_rise(& $pdf, $textrise)
 	{
-	pdf_set_value($pdfdoc, "textrise", $textrise);
+	pdf_set_value($pdf, "textrise", $textrise);
 	}
 
 ################################################################################
@@ -2884,30 +1910,30 @@ function pdf_set_text_rise(& $pdfdoc, $textrise)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_set_value(& $p, $key, $value)
+function pdf_set_value(& $pdf, $key, $value)
 	{
 	switch($key)
 		{
 		case("charspacing"):
-			$p["stream"][] = sprintf("%f Tc", $value); break;
+			$pdf["stream"][] = sprintf("%.2f Tc", $value); break;
 		case("horizscaling"):
-			$p["stream"][] = sprintf("%f Tz", $value); break;
+			$pdf["stream"][] = sprintf("%.2f Tz", $value); break;
 		case("leading"):
-			$p["stream"][] = sprintf("%f TL", $value); break;
+			$pdf["stream"][] = sprintf("%.2f TL", $value); break;
 		case("linecap"):
-			$p["stream"][] = sprintf("%f J", $value); break;
+			$pdf["stream"][] = sprintf("%.2f J", $value); break;
 		case("linejoin"):
-			$p["stream"][] = sprintf("%f j", $value); break;
+			$pdf["stream"][] = sprintf("%.2f j", $value); break;
 		case("linewidth"):
-			$p["stream"][] = sprintf("%f w", $value); break;
+			$pdf["stream"][] = sprintf("%.2f w", $value); break;
 		case("miterlimit"):
-			$p["stream"][] = sprintf("%f M", $value); break;
+			$pdf["stream"][] = sprintf("%.2f M", $value); break;
 		case("textrendering"):
-			$p["stream"][] = sprintf("%f Tr", $value); break;
+			$pdf["stream"][] = sprintf("%.2f Tr", $value); break;
 		case("textrise"):
-			$p["stream"][] = sprintf("%f Ts", $value); break;
+			$pdf["stream"][] = sprintf("%.2f Ts", $value); break;
 		case("wordspacing"):
-			$p["stream"][] = sprintf("%f Tw", $value); break;
+			$pdf["stream"][] = sprintf("%.2f Tw", $value); break;
 		}
 	}
 
@@ -2916,9 +1942,9 @@ function pdf_set_value(& $p, $key, $value)
 # This function is deprecated since PDFlib version 3, use PDF_set_value() with the wordspacing parameter instead.
 ################################################################################
 
-function pdf_set_word_spacing(& $pdfdoc, $wordspacing)
+function pdf_set_word_spacing(& $pdf, $wordspacing)
 	{
-	pdf_set_value($pdfdoc, "wordspacing", $wordspacing);
+	pdf_set_value($pdf, "wordspacing", $wordspacing);
 	}
 
 ################################################################################
@@ -2928,25 +1954,25 @@ function pdf_set_word_spacing(& $pdfdoc, $wordspacing)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_setcolor(& $p, $fstype, $colorspace, $c1, $c2 = 0, $c3 = 0, $c4 = 0)
+function pdf_setcolor(& $pdf, $fstype, $colorspace, $c1, $c2 = 0, $c3 = 0, $c4 = 0)
 	{
 	if(($fstype == "fill") && ($colorspace == "gray"))
-		return($p["stream"][] = sprintf("%f g", $c1));
+		return($pdf["stream"][] = sprintf("%.2f g", $c1));
 
 	if(($fstype == "fill") && ($colorspace == "rgb"))
-		return($p["stream"][] = sprintf("%f %f %f rg", $c1, $c2, $c3));
+		return($pdf["stream"][] = sprintf("%.2f %.2f %.2f rg", $c1, $c2, $c3));
 
 	if(($fstype == "fill") && ($colorspace == "cmyk"))
-		return($p["stream"][] = sprintf("%f %f %f %f k", $c1, $c2, $c3, $c4));
+		return($pdf["stream"][] = sprintf("%.2f %.2f %.2f %.2f k", $c1, $c2, $c3, $c4));
 
 	if(($fstype == "stroke") && ($colorspace == "gray"))
-		return($p["stream"][] = sprintf("%f G", $c1));
+		return($pdf["stream"][] = sprintf("%.2f G", $c1));
 
 	if( ($fstype == "stroke") &&($colorspace == "rgb"))
-		return($p["stream"][] = sprintf("%f %f %f RG", $c1, $c2, $c3));
+		return($pdf["stream"][] = sprintf("%.2f %.2f %.2f RG", $c1, $c2, $c3));
 
 	if(($fstype == "stroke") && ($colorspace == "cmyk"))
-		return($p["stream"][] = sprintf("%f %f %f %f K", $c1, $c2, $c3, $c4));
+		return($pdf["stream"][] = sprintf("%.2f %.2f %.2f %.2f K", $c1, $c2, $c3, $c4));
 	}
 
 ################################################################################
@@ -2956,9 +1982,9 @@ function pdf_setcolor(& $p, $fstype, $colorspace, $c1, $c2 = 0, $c3 = 0, $c4 = 0
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_setdash(& $pdfdoc, $b, $w)
+function pdf_setdash(& $pdf, $b, $w)
 	{
-	$pdfdoc["stream"][] = sprintf("%f %f d", $b, $w);
+	$pdf["stream"][] = sprintf("%.2f %.2f d", $b, $w);
 	}
 
 ################################################################################
@@ -2968,7 +1994,7 @@ function pdf_setdash(& $pdfdoc, $b, $w)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_setdashpattern(& $pdfdoc, $optlist)
+function pdf_setdashpattern(& $pdf, $optlist)
 	{
 	}
 
@@ -2979,9 +2005,9 @@ function pdf_setdashpattern(& $pdfdoc, $optlist)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_setflat(& $pdfdoc, $flatness)
+function pdf_setflat(& $pdf, $flatness)
 	{
-	$pdfdoc["stream"][] = sprintf("%f i", $flatness);
+	$pdf["stream"][] = sprintf("%.2f i", $flatness);
 	}
 
 ################################################################################
@@ -2991,13 +2017,19 @@ function pdf_setflat(& $pdfdoc, $flatness)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_setfont(& $pdfdoc, $font, $fontsize)
+function pdf_setfont(& $pdf, $font, $fontsize)
 	{
-	$pdfdoc["font"] = pdf_findfont($pdfdoc, $font, "builtin", 0);
+	if(sscanf($font, "/F%d", $font_id) != 1)
+		$font = pdf_findfont($pdf, $font, "winansi");
 
-	$i = $pdfdoc["font"];
+	if(sscanf($font, "/F%d", $font_id) != 1)
+		die("pdf_setfont: invalid font.");
 
-	return($pdfdoc["stream"][] = sprintf("%s %f Tf", $pdfdoc["font-dictionary"][$i]["x-procset-font-id"], ($pdfdoc["fontsize"] = intval($fontsize))));
+	$pdf["used-resources"]["/Font"][$font_id] = $pdf["loaded-resources"]["/Font"][$font_id];
+	
+	$pdf["font"] = $font;
+	$pdf["fontsize"] = $fontsize;
+	$pdf["stream"][] = sprintf("%s %d Tf", $font, $fontsize);
 	}
 
 ################################################################################
@@ -3008,10 +2040,10 @@ function pdf_setfont(& $pdfdoc, $font, $fontsize)
 # This function is deprecated since PDFlib version 4, use PDF_setcolor() instead.
 ################################################################################
 
-function pdf_setgray(& $p, $g)
+function pdf_setgray(& $pdf, $g)
 	{
-	pdf_setcolor($p, "fill", "gray", $g);
-	pdf_setcolor($p, "stroke", "gray", $g);
+	pdf_setcolor($pdf, "fill", "gray", $g);
+	pdf_setcolor($pdf, "stroke", "gray", $g);
 	}
 
 ################################################################################
@@ -3022,9 +2054,9 @@ function pdf_setgray(& $p, $g)
 # This function is deprecated since PDFlib version 4, use PDF_setcolor() instead.
 ################################################################################
 
-function pdf_setgray_fill(& $p, $g)
+function pdf_setgray_fill(& $pdf, $g)
 	{
-	pdf_setcolor($p, "fill", "gray", $g);
+	pdf_setcolor($pdf, "fill", "gray", $g);
 	}
 
 ################################################################################
@@ -3036,9 +2068,9 @@ function pdf_setgray_fill(& $p, $g)
 # This function is deprecated since PDFlib version 4, use PDF_setcolor() instead.
 ################################################################################
 
-function pdf_setgray_stroke(& $p, $g)
+function pdf_setgray_stroke(& $pdf, $g)
 	{
-	pdf_setcolor($p, "stroke", "gray", $g);
+	pdf_setcolor($pdf, "stroke", "gray", $g);
 	}
 
 ################################################################################
@@ -3047,9 +2079,9 @@ function pdf_setgray_stroke(& $p, $g)
 # Sets the linecap parameter to control the shape at the end of a path with respect to stroking.
 ################################################################################
 
-function pdf_setlinecap(& $p, $linecap)
+function pdf_setlinecap(& $pdf, $linecap)
 	{
-	pdf_set_value($p, "linecap", $linecap);
+	pdf_set_value($pdf, "linecap", $linecap);
 	}
 
 ################################################################################
@@ -3060,9 +2092,9 @@ function pdf_setlinecap(& $p, $linecap)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_setlinejoin(& $p, $value)
+function pdf_setlinejoin(& $pdf, $value)
 	{
-	pdf_set_value($p, "linejoin", $value);
+	pdf_set_value($pdf, "linejoin", $value);
 	}
 
 ################################################################################
@@ -3073,9 +2105,9 @@ function pdf_setlinejoin(& $p, $value)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_setlinewidth(& $p, $width)
+function pdf_setlinewidth(& $pdf, $width)
 	{
-	pdf_set_value($p, "linewidth", $width);
+	pdf_set_value($pdf, "linewidth", $width);
 	}
 
 ################################################################################
@@ -3086,9 +2118,9 @@ function pdf_setlinewidth(& $p, $width)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_setmatrix(& $p, $a, $b, $c, $d, $e, $f)
+function pdf_setmatrix(& $pdf, $a, $b, $c, $d, $e, $f)
 	{
-	$p["stream"][] = sprintf("%f %f %f %f %f %f Tm", $a, $b, $c, $d, $e, $f);
+	$pdf["stream"][] = sprintf("%.2f %.2f %.2f %.2f %.2f %.2f Tm", $a, $b, $c, $d, $e, $f);
 	}
 
 ################################################################################
@@ -3099,9 +2131,9 @@ function pdf_setmatrix(& $p, $a, $b, $c, $d, $e, $f)
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
-function pdf_setmiterlimit(& $pdfdoc, $miter)
+function pdf_setmiterlimit(& $pdf, $miter)
 	{
-	pdf_set_value($pdfdoc, "miterlimit", $miter);
+	pdf_set_value($pdf, "miterlimit", $miter);
 	}
 
 ################################################################################
@@ -3109,9 +2141,9 @@ function pdf_setmiterlimit(& $pdfdoc, $miter)
 # This function is deprecated since PDFlib version 5, use PDF_setdashpattern() instead.
 ################################################################################
 
-function pdf_setpolydash(& $p, $dash)
+function pdf_setpolydash(& $pdf, $dash)
 	{
-	pdf_setdashpattern($p, $dash);
+	pdf_setdashpattern($pdf, $dash);
 	}
 
 ################################################################################
@@ -3122,10 +2154,10 @@ function pdf_setpolydash(& $p, $dash)
 # This function is deprecated since PDFlib version 4, use PDF_setcolor() instead.
 ################################################################################
 
-function pdf_setrgbcolor(& $p, $red, $green, $blue)
+function pdf_setrgbcolor(& $pdf, $red, $green, $blue)
 	{
-	pdf_setcolor($p, "fill", "rgb", $red, $green, $blue);
-	pdf_setcolor($p, "stroke", "rgb", $red, $green, $blue);
+	pdf_setcolor($pdf, "fill", "rgb", $red, $green, $blue);
+	pdf_setcolor($pdf, "stroke", "rgb", $red, $green, $blue);
 	}
 
 ################################################################################
@@ -3137,9 +2169,9 @@ function pdf_setrgbcolor(& $p, $red, $green, $blue)
 # This function is deprecated since PDFlib version 4, use PDF_setcolor() instead.
 ################################################################################
 
-function pdf_setrgbcolor_fill(& $p, $red, $green, $blue)
+function pdf_setrgbcolor_fill(& $pdf, $red, $green, $blue)
 	{
-	pdf_setcolor($p, "fill", "rgb", $red, $green, $blue);
+	pdf_setcolor($pdf, "fill", "rgb", $red, $green, $blue);
 	}
 
 ################################################################################
@@ -3151,9 +2183,9 @@ function pdf_setrgbcolor_fill(& $p, $red, $green, $blue)
 # This function is deprecated since PDFlib version 4, use PDF_setcolor() instead.
 ################################################################################
 
-function pdf_setrgbcolor_stroke(& $p, $red, $green, $blue)
+function pdf_setrgbcolor_stroke(& $pdf, $red, $green, $blue)
 	{
-	pdf_setcolor($p, "stroke", "rgb", $red, $green, $blue);
+	pdf_setcolor($pdf, "stroke", "rgb", $red, $green, $blue);
 	}
 
 ################################################################################
@@ -3161,30 +2193,30 @@ function pdf_setrgbcolor_stroke(& $p, $red, $green, $blue)
 # This function is deprecated since PDFlib version 3, use PDF_scale(), PDF_translate(), PDF_rotate(), or PDF_skew() instead.
 ################################################################################
 
-function pdf_settext_matrix(& $p, $a, $b, $c, $d, $e, $f)
+function pdf_settext_matrix(& $pdf, $a, $b, $c, $d, $e, $f)
 	{
-	$p["stream"][] = sprintf("%f %f %f %f %f %f Tm", $a, $b, $c, $d, $e, $f);
+	$pdf["stream"][] = sprintf("%.2f %.2f %.2f %.2f %.2f %.2f Tm", $a, $b, $c, $d, $e, $f);
 	}
 
 ################################################################################
-# _pdf_shading - Define blend
-# _pdf_shading ( array $pdf , string $shtype , float $x0 , float $y0 , float $x1 , float $y1 , float $c1 , float $c2 , float $c3 , float $c4 , string $optlist ) : int
+# pdf_shading - Define blend
+# pdf_shading ( resource $pdf , string $shtype , float $x0 , float $y0 , float $x1 , float $y1 , float $c1 , float $c2 , float $c3 , float $c4 , string $optlist ) : int
 # Defines a blend from the current fill color to another color.
 # This function requires PDF 1.4 or above.
 ################################################################################
 
-function _pdf_shading(& $pdf, $shtype, $x0, $y0, $x1, $y1, $c1, $c2, $c3, $c4, $optlist)
+function pdf_shading(& $pdf, $shtype, $x0, $y0, $x1, $y1, $c1, $c2, $c3, $c4, $optlist)
 	{
 	}
 
 ################################################################################
-# _pdf_shading_pattern - Define shading pattern
-# _pdf_shading_pattern ( array $pdf , int $shading , string $optlist ) : int
+# pdf_shading_pattern - Define shading pattern
+# pdf_shading_pattern ( resource $pdf , int $shading , string $optlist ) : int
 # Defines a shading pattern using a shading object.
 # This function requires PDF 1.4 or above.
 ################################################################################
 
-function _pdf_shading_pattern(& $pdf, $shading, $optlist)
+function pdf_shading_pattern(& $pdf, $shading, $optlist)
 	{
 	}
 
@@ -3195,9 +2227,9 @@ function _pdf_shading_pattern(& $pdf, $shading, $optlist)
 # This function requires PDF 1.4 or above.
 ################################################################################
 
-function pdf_shfill(& $pdfdoc, $shading)
+function pdf_shfill(& $pdf, $shading)
 	{
-	$pdfdoc["stream"][] = sprintf("/Sh%d sh", $shading);
+	$pdf["stream"][] = sprintf("/Sh%d sh", $shading);
 	}
 
 ################################################################################
@@ -3209,8 +2241,14 @@ function pdf_shfill(& $pdfdoc, $shading)
 
 function pdf_show(& $pdf, $text)
 	{
-	if($text)
-		$pdf["stream"][] = sprintf("%s Tj", _textstring($pdf, $text));
+	if(! $text)
+		return;
+
+	$text = str_replace("\r", "", $text);
+	$text = utf8_decode($text);
+	$text = str_replace(array("\\", "(", ")"), array("\\\\", "\\(", "\\)"), $text);
+
+	$pdf["stream"][] = sprintf("(%s) Tj", $text);
 	}
 
 ################################################################################
@@ -3219,7 +2257,7 @@ function pdf_show(& $pdf, $text)
 # This function is deprecated since PDFlib version 6, use PDF_fit_textline() for single lines, or the PDF_*_textflow() functions for multi-line formatting instead.
 ################################################################################
 
-function pdf_show_boxed(& $p, $text, $left, $top, $width, $height, $mode, $feature = "")
+function pdf_show_boxed(& $pdf, $text, $left, $top, $width, $height, $mode, $feature = "")
 	{
 	$settings = array
 		(
@@ -3249,8 +2287,8 @@ function pdf_show_boxed(& $p, $text, $left, $top, $width, $height, $mode, $featu
 
 	################################################################################
 
-	$fontsize = pdf_get_value($p, "fontsize", 0);
-	$font = pdf_get_value($p, "font", 0);
+	$fontsize = pdf_get_value($pdf, "fontsize", 0);
+	$font = pdf_get_value($pdf, "font", 0);
 
 	if($height - $fontsize < 0)
 		return(strlen($text));
@@ -3265,7 +2303,7 @@ function pdf_show_boxed(& $p, $text, $left, $top, $width, $height, $mode, $featu
 
 		$test = ($words ? $words . " " : "") . $word;
 
-		if($width - pdf_stringwidth($p, $test, $font, $fontsize) < 0)
+		if($width - pdf_stringwidth($pdf, $test, $font, $fontsize) < 0)
 			{
 			$text = $word . ($line ? " " . $line : "") . ($text ? "\n" . $text : "");
 
@@ -3282,14 +2320,14 @@ function pdf_show_boxed(& $p, $text, $left, $top, $width, $height, $mode, $featu
 	# export to pdf_*_textflow
 	################################################################################
 
-	$spacing = $width - pdf_stringwidth($p, $words, $font, $fontsize);
+	$spacing = $width - pdf_stringwidth($pdf, $words, $font, $fontsize);
 
 	if(($mode == "justify") || ($mode == "fulljustify"))
 		{
 #		if(($mode == "justify") && ($spacing > ($width / 2)))
 #			$spacing = $width / 2;
 
-		pdf_set_word_spacing($p, $spacing / (count(explode(" ", $words)) - 1));
+		pdf_set_word_spacing($pdf, $spacing / (count(explode(" ", $words)) - 1));
 
 		$spacing = 0;
 		}
@@ -3306,14 +2344,14 @@ function pdf_show_boxed(& $p, $text, $left, $top, $width, $height, $mode, $featu
 	# export to pdf_*_textflow
 	################################################################################
 
-	pdf_show_xy($p, $words, $left + $spacing, $top);
+	pdf_show_xy($pdf, $words, $left + $spacing, $top);
 
-	return(pdf_show_boxed($p, $text, $left, $top - $fontsize, $width, $height - $fontsize, $mode, $feature));
+	return(pdf_show_boxed($pdf, $text, $left, $top - $fontsize, $width, $height - $fontsize, $mode, $feature));
 	}
 
 ################################################################################
 # pdf_show_xy - Output text at given position
-# pdf_show_xy ( array $pdf , string $text , float $x , float $y ) : bool
+# pdf_show_xy ( resource $pdf , string $text , float $x , float $y ) : bool
 # Prints text in the current font.
 #
 # Returns TRUE on success or FALSE on failure.
@@ -3321,35 +2359,22 @@ function pdf_show_boxed(& $p, $text, $left, $top, $width, $height, $mode, $featu
 
 function pdf_show_xy(& $pdf, $text, $x, $y)
 	{
-	if(strlen($text) == 0)
-		return(false);
+	if(! $text)
+		return;
 
-	################################################################################
-
-	if(isset($pdf["/ProcSet"]) === false)
-		$pdf["/ProcSet"][] = "/Text";
-	elseif(in_array("/Text", $pdf["/ProcSet"]) === false)
-		$pdf["/ProcSet"][] = "/Text";
-
-	################################################################################
-
-	foreach(str_split($text) as $char)
-		{
-		$pdf["/FirstChar"] = min($pdf["/FirstChar"], ord($char));
-		$pdf["/LastChar"] = max($pdf["/LastChar"], ord($char));
-		}
-
-	################################################################################
+	$text = str_replace("\r", "", $text);
+	$text = utf8_decode($text);
+	$text = str_replace(array("\\", "(", ")"), array("\\\\", "\\(", "\\)"), $text);
 
 	$pdf["stream"][] = "BT";
-	$pdf["stream"][] = sprintf("%f %f Td", $x, $y); # pdf_set_text_pos
-	$pdf["stream"][] = sprintf("%s Tj", _textstring($pdf, $text));
+	$pdf["stream"][] = sprintf("%.2f %.2f Td", $x, $y); # pdf_set_text_pos
+	$pdf["stream"][] = sprintf("(%s) Tj", $text);
 	$pdf["stream"][] = "ET";
 	}
 
 ################################################################################
 # pdf_skew - Skew the coordinate system
-# pdf_skew ( array $p , float $alpha , float $beta ) : bool
+# pdf_skew ( resource $p , float $alpha , float $beta ) : bool
 # Skews the coordinate system in x and y direction by alpha and beta degrees, respectively.
 #
 # Returns TRUE on success or FALSE on failure.
@@ -3365,28 +2390,34 @@ function pdf_skew(& $pdf, $alpha, $beta)
 
 ################################################################################
 # pdf_stringwidth - Return width of text
-# pdf_stringwidth ( array $pdf , string $text , int $font , float $fontsize ) : float
+# pdf_stringwidth ( resource $pdf , string $text , int $font , float $fontsize ) : float
 # Returns the width of text in an arbitrary font.
 ################################################################################
 
 function pdf_stringwidth(& $pdf, $text, $font, $fonsize)
 	{
-	$text = iconv("UTF-8", "ISO-8859-1", $text);
+	if(sscanf($font, "/F%d", $font_id) != 1)
+		$font = pdf_load_font($pdf, $font, "winansi");
 
-	$pdf["font"] = pdf_findfont($pdf, $font, "builtin", 0);
+	if(sscanf($font, "/F%d", $font_id) != 1)
+		die("pdf_setfont: invalid font.");
+
+	$text = utf8_decode($text);
+
+	$pdf["font"] = $font_id;
 
 	$i = $pdf["font"];
 	$w = 0;
 
-	foreach(str_split($text) as $char)
-		$w += $pdf["font-dictionary"][$i]["dictionary"]["/Widths"][$char];
+#	foreach(str_split($text) as $char)
+#		$w += $pdf["font-dictionary"][$i]["dictionary"]["/Widths"][$char];
 
 	return($w / 1000 * $fonsize);
 	}
 
 ################################################################################
 # pdf_stroke - Stroke path
-# pdf_stroke ( array $pdf ) : bool
+# pdf_stroke ( resource $pdf ) : bool
 # Strokes the path with the current color and line width, and clear it.
 #
 # Returns TRUE on success or FALSE on failure.
@@ -3399,7 +2430,7 @@ function pdf_stroke(& $pdf)
 
 ################################################################################
 # pdf_suspend_page - Suspend page
-# pdf_suspend_page ( array $pdf , string $optlist ) : bool
+# pdf_suspend_page ( resource $pdf , string $optlist ) : bool
 # Suspends the current page so that it can later be resumed with PDF_resume_page().
 ################################################################################
 
@@ -3409,7 +2440,7 @@ function pdf_suspend_page(& $pdf, $optlist = array())
 
 ################################################################################
 # pdf_translate - Set origin of coordinate system
-# pdf_translate ( array $pdf , float $tx , float $ty ) : bool
+# pdf_translate ( resource $pdf , float $tx , float $ty ) : bool
 # Translates the origin of the coordinate system.
 ################################################################################
 
@@ -3420,7 +2451,7 @@ function pdf_translate(& $pdf, $tx, $ty)
 
 ################################################################################
 # pdf_utf8_to_utf16 - Convert string from UTF-8 to UTF-16
-# pdf_utf8_to_utf16 ( rray $pdf , string $utf8string , string $ordering ) : string
+# pdf_utf8_to_utf16 ( resource $pdf , string $utf8string , string $ordering ) : string
 # Converts a string from UTF-8 format to UTF-16.
 ################################################################################
 
@@ -3444,8 +2475,8 @@ function pdf_utf16_to_utf8(& $pdf, $utf16string)
 	}
 
 ################################################################################
-# _pdf_utf32_to_utf16 - Convert string from UTF-32 to UTF-16
-# _pdf_utf32_to_utf16 ( array $pdf , string $utf32string , string $ordering ) : string
+# pdf_utf32_to_utf16 - Convert string from UTF-32 to UTF-16
+# pdf_utf32_to_utf16 ( array $pdf , string $utf32string , string $ordering ) : string
 # Converts a string from UTF-32 format to UTF-16.
 ################################################################################
 
