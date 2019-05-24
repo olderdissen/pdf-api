@@ -723,6 +723,8 @@ function pdf_encoding_set_char(& $pdf, $encoding, $slot, $glyphname, $uv)
 
 function pdf_end_document(& $pdf, $optlist = array())
 	{
+	_pdf_filter_change($pdf, "/FlateDecode");
+
 	$pdf["stream"] = _pdf_glue_document($pdf["objects"]);
 
 	if($pdf["filename"])
@@ -795,33 +797,25 @@ function pdf_end_page_ext(& $pdf, $optlist = array())
 	# this is default if something went wrong
 	$resources = array("/ProcSet" => array("/PDF", "/Text", "/ImageB", "/ImageC", "/ImageI"));
 
-	################################################################################
-
+	# translate used data
 	if(isset($pdf["used-resources"]["/ProcSet"]))
 		foreach($pdf["used-resources"]["/ProcSet"] as $object)
 			$resources["/ProcSet"][] = $object;
 
-	if(isset($pdf["used-resources"]["/Font"]))
-		foreach($pdf["used-resources"]["/Font"] as $index => $object)
-			$resources["/Font"]["/F" . $index] = $object;
+	foreach(array("/Font" => "/F", "/XObject" => "/X") as $type => $prefix)
+		if(isset($pdf["used-resources"][$type]))
+			foreach($pdf["used-resources"][$type] as $index => $object)
+				$resources[$type][$prefix . $index] = $object;
 
-	if(isset($pdf["used-resources"]["/XObject"]))
-		foreach($pdf["used-resources"]["/XObject"] as $index => $object)
-			$resources["/XObject"]["/X" . $index] = $object;
-
-	################################################################################
-
+	# glue resources
 	if(isset($resources["/ProcSet"]))
 		$resources["/ProcSet"] = sprintf("[%s]", _pdf_glue_array($resources["/ProcSet"]));
 
-	if(isset($resources["/Font"]))
-		$resources["/Font"] = sprintf("<< %s >>", _pdf_glue_dictionary($resources["/Font"]));
+	foreach(array("/Font", "/XObject") as $type)
+		if(isset($resources[$type]))
+			$resources[$type] = sprintf("<< %s >>", _pdf_glue_dictionary($resources[$type]));
 
-	if(isset($resources["/XObject"]))
-		$resources["/XObject"] = sprintf("<< %s >>", _pdf_glue_dictionary($resources["/XObject"]));
-
-	################################################################################
-
+	# prepare data
 	$parent = $pdf["pages"];
 	$mediabox = sprintf("[%d %d %d %d]", 0, 0 , $pdf["width"], $pdf["height"]);
 	$resources = sprintf("<< %s >>", _pdf_glue_dictionary($resources));
@@ -872,7 +866,6 @@ function pdf_endpath(& $pdf)
 # PDF_fill ( resource $p ) : bool
 # Fills the interior of the current path with the current fill color.
 # Returns TRUE on success or FALSE on failure.
-#
 ################################################################################
 
 function pdf_fill(& $pdf)
@@ -1414,14 +1407,14 @@ function pdf_new()
 		"filename" => "",
 		"height" => 0,
 		"info" => array(),
-		"loaded-resources" => array(),
+		"loaded-resources" => array(), # global
 		"major" => 1,
 		"minor" => 3,
 		"objects" => array(0 => array("dictionary" => array("/Size" => 0))),
 		"outlines" => "0 0 R",
 		"pages" => "0 0 R",
 		"stream" => array(),
-		"used-resources" => array(),
+		"used-resources" => array(), # page
 		"width" => 0
 		);
 
@@ -1583,7 +1576,6 @@ function pdf_pcos_get_stream(& $pdf, $doc, $optlist, $path)
 # PDF_pcos_get_string - Get value of pCOS path with type name, string, or boolean
 # PDF_pcos_get_string ( resource $p , int $doc , string $path ) : string
 # Gets the value of a pCOS path with type name, string, or boolean.
-#
 ################################################################################
 
 function pdf_pcos_get_string(& $pdf, $doc, $path)
@@ -2063,7 +2055,6 @@ function pdf_setgray_fill(& $pdf, $g)
 # PDF_setgray_stroke - Set stroke color to gray [deprecated]
 # PDF_setgray_stroke ( resource $p , float $g ) : bool
 # Sets the current stroke color to a gray value between 0 and 1 inclusive.
-#
 # Returns TRUE on success or FALSE on failure.
 # This function is deprecated since PDFlib version 4, use PDF_setcolor() instead.
 ################################################################################
@@ -2088,7 +2079,6 @@ function pdf_setlinecap(& $pdf, $linecap)
 # PDF_setlinejoin - Set linejoin parameter
 # PDF_setlinejoin ( resource $p , int $value ) : bool
 # Sets the linejoin parameter to specify the shape at the corners of paths that are stroked.
-#
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
@@ -2101,7 +2091,6 @@ function pdf_setlinejoin(& $pdf, $value)
 # PDF_setlinewidth - Set line width
 # PDF_setlinewidth ( resource $p , float $width ) : bool
 # Sets the current line width.
-#
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
@@ -2114,7 +2103,6 @@ function pdf_setlinewidth(& $pdf, $width)
 # PDF_setmatrix - Set current transformation matrix
 # PDF_setmatrix ( resource $p , float $a , float $b , float $c , float $d , float $e , float $f ) : bool
 # Explicitly sets the current transformation matrix.
-#
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
@@ -2127,7 +2115,6 @@ function pdf_setmatrix(& $pdf, $a, $b, $c, $d, $e, $f)
 # PDF_setmiterlimit - Set miter limit
 # PDF_setmiterlimit ( resource $pdfdoc , float $miter ) : bool
 # Sets the miter limit.
-#
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
@@ -2164,7 +2151,6 @@ function pdf_setrgbcolor(& $pdf, $red, $green, $blue)
 # PDF_setrgbcolor_fill - Set fill rgb color values [deprecated]
 # PDF_setrgbcolor_fill ( resource $p , float $red , float $green , float $blue ) : bool
 # Sets the current fill color to the supplied RGB values.
-#
 # Returns TRUE on success or FALSE on failure.
 # This function is deprecated since PDFlib version 4, use PDF_setcolor() instead.
 ################################################################################
@@ -2178,7 +2164,6 @@ function pdf_setrgbcolor_fill(& $pdf, $red, $green, $blue)
 # PDF_setrgbcolor_stroke - Set stroke rgb color values [deprecated]
 # PDF_setrgbcolor_stroke ( resource $p , float $red , float $green , float $blue ) : bool
 # Sets the current stroke color to the supplied RGB values.
-#
 # Returns TRUE on success or FALSE on failure.
 # This function is deprecated since PDFlib version 4, use PDF_setcolor() instead.
 ################################################################################
@@ -2334,7 +2319,6 @@ function pdf_show_boxed(& $pdf, $text, $left, $top, $width, $height, $mode, $fea
 # pdf_show_xy - Output text at given position
 # pdf_show_xy ( resource $pdf , string $text , float $x , float $y ) : bool
 # Prints text in the current font.
-#
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
@@ -2357,7 +2341,6 @@ function pdf_show_xy(& $pdf, $text, $x, $y)
 # pdf_skew - Skew the coordinate system
 # pdf_skew ( resource $p , float $alpha , float $beta ) : bool
 # Skews the coordinate system in x and y direction by alpha and beta degrees, respectively.
-#
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 
@@ -2391,22 +2374,24 @@ function pdf_stringwidth(& $pdf, $text, $font, $fontsize)
 	if(sscanf($pdf["loaded-resources"]["/Font"][$font_id], "%d %d R", $id, $version) != 2)
 		die("pdf_setfont: invalid font.");
 
-	$w = 0;
+	$a = $pdf["objects"][$id]["dictionary"]["/Widths"];
+
+	$a = substr($a, 1);
+	list($b, $a) = _pdf_parse_array($a);
+	$a = substr($a, 1);
+
+	$width = 0;
 
 	foreach(str_split($text) as $char)
-		if(isset($pdf["objects"][$id]["dictionary"]["/Widths"]))
-			$w += $pdf["objects"][$id]["dictionary"]["/Widths"][$char];
-		else
-			$w += 700;
+		$width += $b[ord($char)];
 
-	return($w / 1000 * $fontsize);
+	return($width / 1000 * $fontsize);
 	}
 
 ################################################################################
 # pdf_stroke - Stroke path
 # pdf_stroke ( resource $pdf ) : bool
 # Strokes the path with the current color and line width, and clear it.
-#
 # Returns TRUE on success or FALSE on failure.
 ################################################################################
 

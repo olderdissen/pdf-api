@@ -9,7 +9,7 @@ include_once("pdf-api.php");
 include_once("pdf-lib-lite-clone.php");
 
 #_pdf_main();
-_pdf_test();
+#_pdf_test();
 
 function _pdf_main()
 	{
