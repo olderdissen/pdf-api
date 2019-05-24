@@ -208,7 +208,7 @@ function _pdf_add_catalog(& $pdf)
 
 	$this_id = _pdf_get_free_object_id($pdf);
 
-	$pdf["objects"][] = array
+	$pdf["objects"][$this_id] = array
 		(
 		"id" => $this_id,
 		"version" => 0,
@@ -751,23 +751,7 @@ function _pdf_add_image_png(& $pdf, $filename)
 	################################################################################
 
 	if($color_type == 3)
-		{
-		$this_id = _pdf_get_free_object_id($pdf);
-
-		$pdf["objects"][$this_id] = array
-			(
-			"id" => $this_id,
-			"version" => 0,
-			"dictionary" => array
-				(
-				"/Filter" => "/FlateDecode",
-				"/Length" => strlen($plte_stream)
-				),
-			"stream" => $plte_stream
-			);
-
-		$p = sprintf("%d 0 R", $this_id);
-		}
+		$p = _pdf_add_stream($pdf, $plte_stream);
 
 	################################################################################
 	# smask
@@ -781,39 +765,23 @@ function _pdf_add_image_png(& $pdf, $filename)
 		$alpha_stream = "";
 
 		if($color_type == 4)
-			{
-			$width_index = 2 * $width;
-
-			for($height_index = 0; $height_index < $height; $height_index = $height_index + 1)
-				{
-				$temp_index = (1 + $width_index) * $height_index;
-
-				$alpha_stream .= $data_stream[$temp_index];
-				$alpha_stream .= preg_replace("/.{1}(.)/s", "$1", substr($data_stream, $temp_index + 1, $width_index));
-
-				$color_stream .= $data_stream[$temp_index];
-				$color_stream .= preg_replace("/(.{1})./s", "$1", substr($data_stream, $temp_index + 1, $width_index));
-				}
-			}
+			list($width_index, $width_char) = array(2 * $width, 1);
 		else
+			list($width_index, $width_char) = array(4 * $width, 3);
+
+		for($height_index = 0; $height_index < $height; $height_index = $height_index + 1)
 			{
-			$width_index = 4 * $width;
+			$temp_index = $height_index * ($width_index + 1);
 
-			for($height_index = 0; $height_index < $height; $height_index = $height_index + 1)
-				{
-				$temp_index = (1 + $width_index) * $height_index;
+			$alpha_stream .= $data_stream[$temp_index];
+			$alpha_stream .= preg_replace("/.{" . $width_char . "}(.)/s", "$1", substr($data_stream, $temp_index + 1, $width_index));
 
-				$alpha_stream .= $data_stream[$temp_index];
-				$alpha_stream .= preg_replace("/.{3}(.)/s", "$1", substr($data_stream, $temp_index + 1, $width_index));
-
-				$color_stream .= $data_stream[$temp_index];
-				$color_stream .= preg_replace("/(.{3})./s", "$1", substr($data_stream, $temp_index + 1, $width_index));
-				}
+			$color_stream .= $data_stream[$temp_index];
+			$color_stream .= preg_replace("/(.{" . $width_char . "})./s", "$1", substr($data_stream, $temp_index + 1, $width_index));
 			}
 
 		$alpha_stream = gzcompress($alpha_stream);
 		$data_stream = gzcompress($color_stream);
-		$plte_stream = gzcompress($plte_stream);
 
 		################################################################################
 
@@ -892,18 +860,12 @@ function _pdf_add_image_png(& $pdf, $filename)
 		$pdf["objects"][$this_id]["dictionary"]["/Mask"] = sprintf("[%s]", _pdf_glue_array($mask));
 		}
 
+	$type = ($bits_per_component == 1 ? "/ImageB" : "/ImageC");
 
-	if($bits_per_component == 1)
-		if(in_array("/ImageB", $pdf["loaded-resources"]["/ProcSet"]) === false)
-			$pdf["loaded-resources"]["/ProcSet"][] = "/ImageB";
-		elseif(in_array("/ImageB", $pdf["loaded-resources"]["/ProcSet"]) === false)
-			$pdf["loaded-resources"]["/ProcSet"][] = "/ImageB";
-
-	if($bits_per_component != 1)
-		if(isset($pdf["loaded-resources"]["/ProcSet"]) === false)
-			$pdf["loaded-resources"]["/ProcSet"][] = "/ImageC";
-		elseif(in_array("/ImageC", $pdf["loaded-resources"]["/ProcSet"]) === false)
-			$pdf["loaded-resources"]["/ProcSet"][] = "/ImageC";
+	if(isset($pdf["loaded-resources"]["/ProcSet"]) === false)
+		$pdf["loaded-resources"]["/ProcSet"][] = $type;
+	elseif(in_array($type, $pdf["loaded-resources"]["/ProcSet"]) === false)
+		$pdf["loaded-resources"]["/ProcSet"][] = $type;
 
 	if($color_space == "/Indexed")
 		if(isset($pdf["loaded-resources"]["/ProcSet"]) === false)
