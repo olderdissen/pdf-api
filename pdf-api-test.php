@@ -6,10 +6,9 @@
 ################################################################################
 
 include_once("pdf-api.php");
-include_once("pdf-lib-lite-clone.php");
 
 #_pdf_main();
-#_pdf_test();
+_pdf_test();
 
 function _pdf_main()
 	{
@@ -58,10 +57,9 @@ function _pdf_test()
 				pdf_setfont($pdf, $font, 72);
 
 				pdf_set_leading($pdf, 12);
-				pdf_set_text_pos($pdf, 3, 3);
-				pdf_show($pdf, "ABC " . $i);
+				pdf_show_xy($pdf, "ABC " . $i, 3, 3);
 
-				pdf_fit_image($pdf, $image, 20, 20, array("scale" => 1));
+				pdf_fit_image($pdf, $image, 20, 20, array("scale" => 10));
 
 			# store loaded resources
 			$page = pdf_end_page($pdf);
