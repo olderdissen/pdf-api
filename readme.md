@@ -26,12 +26,12 @@ supported fonts
 
 ## note ##
 
-the precision of floating-numbers, for sprintf and such functions, is set to one digit.
+the precision of floating-numbers, for **sprintf** and such functions, is set to one digit.
 this is enough for most drawings and saves a lot of space too.
 a regular page got a size of 595 x 842 pixel which is 210 x 297 millimeter.
 in this case 1 pixel is equal to (0.1 : 72 x 2.54) 0.35 millimeter.
 there is no need for 6 digits precision under normal circumstances.
-if more precission is needed %.1f
+if more precission is needed **sprintf("%.1f", ...)** need to be replaced with **sprintf("%.f", ...)** inside script.
 
 # pdf-lib-lite-clone
 
