@@ -41,7 +41,7 @@ function _pdf_test()
 
 		# returns /Fx where x is integer
 		$font = pdf_load_font($pdf, "Courier", "winansi");
-#		$font = pdf_load_font($pdf, "Verdana", "winansi");
+		$font = pdf_load_font($pdf, "Verdana", "winansi");
 
 		# returns /Fx where x is integer but returns error on unloaded font.
 #		$font = pdf_find_font($pdf, "Courier");
@@ -67,7 +67,6 @@ function _pdf_test()
 #			$outline = _pdf_add_outline($pdf, $pdf["outlines"], $page, "page " . $i);
 			}
 
-#		_pdf_filter_change($pdf, "/FlateDecode");
 	pdf_end_document($pdf);
 
 	$data = pdf_get_buffer($pdf);
