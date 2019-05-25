@@ -1232,7 +1232,7 @@ function pdf_fit_image(& $pdf, $image, $x, $y, $optlist = array())
 	$h = $pdf["objects"][$a_id]["dictionary"]["/Height"];
 
 	pdf_save($pdf);
-	$pdf["stream"][] = sprintf("%d 0 0 %d %d %d cm", $w * $optlist["scale"], $h * $optlist["scale"], $x, $y);
+	$pdf["stream"][] = sprintf("%.1f %.1f %.1f %.1f %.1f %.1f cm", $w * $optlist["scale"], 0, 0, $h * $optlist["scale"], $x, $y);
 	$pdf["stream"][] = sprintf("%s Do", $image); # Invoke named XObject
 	pdf_restore($pdf);
 	}
@@ -1534,7 +1534,7 @@ function pdf_initgraphics(& $pdf)
 
 function pdf_lineto(& $pdf, $x, $y)
 	{
-	$pdf["stream"][] = sprintf("%d %d l", $x, $y);
+	$pdf["stream"][] = sprintf("%.1f %.1f l", $x, $y);
 	}
 
 ################################################################################
@@ -2018,7 +2018,7 @@ function pdf_makespotcolor(& $pdf, $spotname)
 
 function pdf_moveto(& $pdf, $x, $y)
 	{
-	$pdf["stream"][] = sprintf("%d %d m", $x, $y);
+	$pdf["stream"][] = sprintf("%.1f %.1f m", $x, $y);
 	}
 
 ################################################################################
@@ -2541,7 +2541,7 @@ function pdf_process_pdi(& $pdf, $doc, $page, $optlist = array())
 
 function pdf_rect(& $pdf, $x, $y, $width, $height)
 	{
-	$pdf["stream"][] = sprintf("%d %d %d %d re", $x, $y, $width, $height);
+	$pdf["stream"][] = sprintf("%.1f %.1f %.1f %.1f re", $x, $y, $width, $height);
 	}
 
 ################################################################################
@@ -2805,7 +2805,7 @@ function pdf_set_parameter(& $pdf, $key, $value)
 
 function pdf_set_text_pos(& $pdf, $x, $y)
 	{
-	$pdf["stream"][] = sprintf("%d %d Td", $x, $y);
+	$pdf["stream"][] = sprintf("%.1f %.1f Td", $x, $y);
 	}
 
 ################################################################################
@@ -2857,7 +2857,7 @@ function pdf_set_value(& $pdf, $key, $value)
 	if(is_numeric($value) === false)
 		die("pdf_set_value: invalid value.");
 
-	$pdf["stream"][] = sprintf("%d %s", $value, $table[$key]);
+	$pdf["stream"][] = sprintf("%.1f %s", $value, $table[$key]);
 	}
 
 ################################################################################
@@ -2952,7 +2952,7 @@ function pdf_setfont(& $pdf, $font, $fontsize)
 	
 	$pdf["font"] = $font;
 	$pdf["fontsize"] = $fontsize;
-	$pdf["stream"][] = sprintf("%s %d Tf", $font, $fontsize);
+	$pdf["stream"][] = sprintf("%s %.1f Tf", $font, $fontsize);
 	}
 
 ################################################################################
@@ -3145,7 +3145,7 @@ function pdf_shading_pattern(& $pdf, $shading, $optlist = array())
 
 function pdf_shfill(& $pdf, $shading)
 	{
-	$pdf["stream"][] = sprintf("/Sh%d sh", $shading);
+	$pdf["stream"][] = sprintf("/S%d sh", $shading);
 	}
 
 ################################################################################
@@ -3261,7 +3261,7 @@ function pdf_show_xy(& $pdf, $text, $x, $y)
 	$text = str_replace(array("\\", "(", ")"), array("\\\\", "\\(", "\\)"), $text);
 
 	$pdf["stream"][] = "BT";
-	$pdf["stream"][] = sprintf("%d %d Td", $x, $y); # pdf_set_text_pos
+	$pdf["stream"][] = sprintf("%.1f %.1f Td", $x, $y); # pdf_set_text_pos
 	$pdf["stream"][] = sprintf("(%s) Tj", $text);
 	$pdf["stream"][] = "ET";
 	}
