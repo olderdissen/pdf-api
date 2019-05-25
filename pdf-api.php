@@ -92,11 +92,11 @@ function pdf_add_outline(& $pdf, $text, $parent, $open)
 	if(sscanf($open, "%d %d R", $open_id, $open_version) != 2)
 		die("_pdf_add_outline: invalid open: " . $open);
 
-	$xthis_id = _pdf_get_free_object_id($pdf);
+	$outline_id = _pdf_get_free_object_id($pdf);
 
-	$pdf["objects"][$xthis_id] = array
+	$pdf["objects"][$outline_id] = array
 		(
-		"id" => $xthis_id,
+		"id" => $outline_id,
 		"version" => 0,
 		"dictionary" => array
 			(
@@ -106,22 +106,22 @@ function pdf_add_outline(& $pdf, $text, $parent, $open)
 			)
 		);
 
-	$xthis = sprintf("%d 0 R", $xthis_id);
+	$outline = sprintf("%d 0 R", $outline_id);
 
 	if(isset($pdf["objects"][$parent_id]["dictionary"]["/First"]) === false)
-		$pdf["objects"][$parent_id]["dictionary"]["/First"] = $xthis;
+		$pdf["objects"][$parent_id]["dictionary"]["/First"] = $outline;
 
 	if(isset($pdf["objects"][$parent_id]["dictionary"]["/Last"]))
 		{
 		$last = $pdf["objects"][$parent_id]["dictionary"]["/Last"];
 
 		if(sscanf($last, "%d %d R", $last_id, $last_version) == 2)
-			$pdf["objects"][$last_id]["dictionary"]["/Next"] = $xthis;
+			$pdf["objects"][$last_id]["dictionary"]["/Next"] = $outline;
 
-		$pdf["objects"][$xthis_id]["dictionary"]["/Prev"] = $last;
+		$pdf["objects"][$outline_id]["dictionary"]["/Prev"] = $last;
 		}
 
-	$pdf["objects"][$parent_id]["dictionary"]["/Last"] = $xthis;
+	$pdf["objects"][$parent_id]["dictionary"]["/Last"] = $outline;
 
 	# increase counter
 	if(isset($pdf["objects"][$parent_id]["dictionary"]["/Count"]))
@@ -131,7 +131,7 @@ function pdf_add_outline(& $pdf, $text, $parent, $open)
 
 	$pdf["objects"][$parent_id]["dictionary"]["/Count"] = $count;
 
-	return($xthis);
+	return($outline);
 	}
 
 ################################################################################
@@ -658,13 +658,13 @@ function pdf_create_action(& $pdf, $type, $optlist = array())
 	if(in_array($type, array("goto", "gotor", "launch", "uri")) === false)
 		die("_pdf_add_action: invalid type: " . $type);
 
-	$xthis_id = _pdf_get_free_object_id($pdf);
+	$action_id = _pdf_get_free_object_id($pdf);
 
 	if($type == "goto")
 		{
-		$pdf["objects"][$xthis_id] = array
+		$pdf["objects"][$action_id] = array
 			(
-			"id" => $xthis_id,
+			"id" => $action_id,
 			"version" => 0,
 			"dictionary" => array
 				(
@@ -677,9 +677,9 @@ function pdf_create_action(& $pdf, $type, $optlist = array())
 
 	if($type == "gotor")
 		{
-		$pdf["objects"][$xthis_id] = array
+		$pdf["objects"][$action_id] = array
 			(
-			"id" => $xthis_id,
+			"id" => $action_id,
 			"version" => 0,
 			"dictionary" => array
 				(
@@ -693,9 +693,9 @@ function pdf_create_action(& $pdf, $type, $optlist = array())
 
 	if($type == "launch")
 		{
-		$pdf["objects"][$xthis_id] = array
+		$pdf["objects"][$action_id] = array
 			(
-			"id" => $xthis_id,
+			"id" => $action_id,
 			"version" => 0,
 			"dictionary" => array
 				(
@@ -708,9 +708,9 @@ function pdf_create_action(& $pdf, $type, $optlist = array())
 
 	if($type == "uri")
 		{
-		$pdf["objects"][$xthis_id] = array
+		$pdf["objects"][$action_id] = array
 			(
-			"id" => $xthis_id,
+			"id" => $action_id,
 			"version" => 0,
 			"dictionary" => array
 				(
@@ -721,7 +721,7 @@ function pdf_create_action(& $pdf, $type, $optlist = array())
 			);
 		}
 
-	return(sprintf("%d 0 R", $xthis_id));
+	return(sprintf("%d 0 R", $action_id));
 	}
 
 ################################################################################
@@ -1157,7 +1157,7 @@ function pdf_fill_textblock(& $pdf, $page, $blockname, $text, $optlist = array()
 function pdf_findfont(& $pdf, $fontname, $encoding = "builtin", $embed = 0)
 	{
 	if(in_array($encoding, array("builtin", "winansi", "macroman", "macexpert")) === false)
-		die("_pdf_add_font: invalid encoding.");
+		die("_pdf_findfont: invalid encoding.");
 
 	$a = 0; # found in objects
 	$b = 0;
@@ -1191,11 +1191,7 @@ function pdf_findfont(& $pdf, $fontname, $encoding = "builtin", $embed = 0)
 		}
 
 	if($a == 0)
-		{
-		$c = pdf_load_font($pdf, $fontname, $encoding);
-
-		return($c);
-		}
+		return(pdf_load_font($pdf, $fontname, $encoding));
 
 	if(isset($pdf["loaded-resources"]["/Font"]) === false)
 		die("pdf_findfont: no fonts loaded.");
@@ -1560,7 +1556,109 @@ function pdf_load_3ddata(& $pdf, $filename, $optlist = array())
 
 function pdf_load_font(& $pdf, $fontname, $encoding = "builtin", $optlist = array())
 	{
-	$a = _pdf_add_font($pdf, $fontname, $encoding);
+	if(in_array($encoding, array("builtin", "winansi", "macroman", "macexpert")) === false)
+		die("_pdf_add_font: invalid encoding: " . $encoding);
+
+	foreach($pdf["fonts"] as $index => $object)
+		{
+		if($object["/BaseFont"] != "/" . $fontname)
+			continue;
+
+		$a_id = _pdf_get_free_object_id($pdf);
+
+		$pdf["objects"][$a_id] = array
+			(
+			"id" => $a_id,
+			"version" => 0,
+			"dictionary" => array
+				(
+				"/Type" => "/Font",
+				"/Subtype" => "/Type1",
+				"/BaseFont" => "/" . $fontname
+				)
+			);
+
+		$a = sprintf("%d 0 R", $a_id);
+
+		# valid encodings
+		$encodings = array("winansi" => "/WinAnsiEncoding", "macroman" => "/MacRomanEncoding", "macexpert" => "/MacExpertEncoding");
+
+		# apply encoding
+		if($encoding != "builtin")
+			if(isset($encodings[$encoding]))
+				$pdf["objects"][$a_id]["dictionary"]["/Encoding"] = $encodings[$encoding];
+			else
+				$pdf["objects"][$a_id]["dictionary"]["/Encoding"] = $encoding;
+
+		
+		# apply widths ... this need to be written here, for easier access to object where we get data from
+		$pdf["objects"][$a_id]["dictionary"]["/FirstChar"] = 0x20;
+		$pdf["objects"][$a_id]["dictionary"]["/LastChar"] = 0xFF;
+		$pdf["objects"][$a_id]["dictionary"]["/Widths"] = sprintf("[%s]", _pdf_glue_array(array_slice($object["/Widths"], 0x20, 0xE0)));
+
+		$b = _pdf_get_free_font_id($pdf);
+
+		$pdf["loaded-resources"]["/Font"][$b] = $a;
+
+		return("/F" . $b);
+		}
+
+	################################################################################
+
+#	$filename = "/home/nomatrix/externe_platte/daten/ttf/" . strtolower($fontname[0]) . "/" . $fontname . ".ttf";
+	$filename = "/usr/share/fonts/truetype/freefont/" . $fontname . ".ttf";
+
+	if(file_exists($filename) === false)
+		return(pdf_load_font($pdf, "Courier", $encoding, $optlist));
+
+	################################################################################
+
+	$fontname = basename($filename, ".ttf");
+	
+	$file = pdf_add_stream($pdf, file_get_contents($filename), array("/Length1" => filesize($filename)));
+
+	$descriptor = _pdf_add_font_descriptor($pdf, $fontname, $file);
+
+	$a_id = _pdf_get_free_object_id($pdf);
+
+	$pdf["objects"][$a_id] = array
+		(
+		"id" => $a_id,
+		"version" => 0,
+		"dictionary" => array
+			(
+			"/Type" => "/Font",
+			"/Subtype" => "/TrueType",
+			"/BaseFont" => "/" . $fontname,
+			"/FirstChar" => 32,
+			"/LastChar" => 255,
+			"/Widths" => "[]",
+			"/FontDescriptor" => $descriptor
+			)
+		);
+
+	$a = sprintf("%d 0 R", $a_id);
+
+	# valid encodings
+	$encodings = array("winansi" => "/WinAnsiEncoding", "macroman" => "/MacRomanEncoding", "macexpert" => "/MacExpertEncoding");
+
+	# apply encoding
+	if($encoding != "builtin")
+		if(isset($encodings[$encoding]))
+			$pdf["objects"][$a_id]["dictionary"]["/Encoding"] = $encodings[$encoding];
+		else
+			$pdf["objects"][$a_id]["dictionary"]["/Encoding"] = $encoding;
+
+	# apply widths
+	$widths = array();
+
+	foreach(range(0x20, 0xFF) as $char)
+		$widths[chr($char)] = (($info = imagettfbbox(720, 0, $filename, chr($char))) ? $info[2] : 1000);
+
+	# apply widths
+	$pdf["objects"][$a_id]["dictionary"]["/FirstChar"] = 0x20;
+	$pdf["objects"][$a_id]["dictionary"]["/LastChar"] = 0xFF;
+	$pdf["objects"][$a_id]["dictionary"]["/Widths"] = sprintf("[%s]", _pdf_glue_array($widths));
 
 	$b = _pdf_get_free_font_id($pdf);
 
@@ -1587,7 +1685,311 @@ function pdf_load_iccprofile(& $pdf, $profilename, $optlist = array())
 
 function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = array())
 	{
-	$a = _pdf_add_image($pdf, $filename);
+	$imagetype = pathinfo($filename, PATHINFO_EXTENSION);
+
+	if($imagetype == "gif")
+		{
+		if(function_exists("imagecreatefromgif") === false)
+			die("_pdf_add_image_jpg: no gif support.");
+
+		if(($image_create_from_gif = imagecreatefromgif($filename)) === false)
+			die("_pdf_add_image_jpg: invalid file: " . $filename);
+
+		imageinterlace($image_create_from_gif, 0);
+
+		if(function_exists("imagepng") === false)
+			die("_pdf_add_image_jpg: no png support.");
+
+		if(($temp_filename = tempnam(".", "gif")) === false)
+			die("_pdf_add_image_jpg: unable to create a temporary file.");
+
+		if(imagepng($image_create_from_gif, $temp_filename) === false)
+			die("_pdf_add_image_jpg: error while saving to temporary file.");
+
+		imagedestroy($image_create_from_gif);
+
+		$b = pdf_load_image($pdf, "png", $temp_filename);
+
+		unlink($temp_filename);
+
+		return($b);
+		}
+	elseif($imagetype == "jpg")
+		{
+		if(($image = getimagesize($filename)) === false)
+			die("_pdf_add_image_jpg: invalid file: " . $filename);
+
+		if($image[2] != 2)
+			die("_pdf_add_image_jpg: invalid file: " . $filename);
+
+		if(isset($image["channels"]) === false)
+			$color_space = "/DeviceRGB";
+		elseif($image["channels"] == 3)
+			$color_space = "/DeviceRGB";
+		elseif($image["channels"] == 4)
+			$color_space = "/DeviceCMYK";
+		else
+			$color_space = "/DeviceGray";
+
+		################################################################################
+
+		$image_id = _pdf_get_free_object_id($pdf);
+
+		$pdf["objects"][$image_id] = array
+			(
+			"id" => $image_id,
+			"version" => 0,
+			"dictionary" => array
+				(
+				"/Type" => "/XObject",
+				"/Subtype" => "/Image",
+
+				# PDF32000-1:2008 8.9.3 Sample Representtion
+				# The source format for an image shall be described by four parameters:
+				"/Width" => $image[0],
+				"/Height" => $image[1],
+				"/ColorSpace" => $color_space,
+				"/BitsPerComponent" => (isset($image["bits"]) ? $image["bits"] : 8),
+
+				"/Filter" => "/DCTDecode",
+				"/Length" => filesize($filename)
+				),
+			"stream" => file_get_contents($filename)
+			);
+
+		$a = sprintf("%d 0 R", $image_id);
+		}
+	elseif($imagetype == "png")
+		{
+		if(($f = fopen($filename, "rb")) === false)
+			die("_pdf_add_image_png: invalid file: " . $filename);
+
+		if(_readstream($f, 8) != "\x89PNG\x0D\x0A\x1A\x0A")
+			die("_pdf_add_image_png: invalid file: " . $filename);
+
+		################################################################################
+
+		$trns_stream = array();
+		$plte_stream = "";
+		$data_stream = "";
+
+		do
+			{
+			$chunk_length = _readint($f);
+			$chunk_type = _readstream($f, 4);
+			$chunk_data = "";
+
+			if($chunk_type == "PLTE")
+				$plte_stream .= _readstream($f, $chunk_length);
+			elseif($chunk_type == "IDAT")
+				$data_stream .= _readstream($f, $chunk_length);
+			elseif($chunk_type == "IHDR")
+				{
+				$width = _readint($f);
+
+				$height = _readint($f);
+
+				$bits_per_component = ord(_readstream($f, 1));
+
+				if($bits_per_component > 0x08)
+					die("_pdf_add_image_png: 16-bit depth not supported: " . $filename);
+
+				$color_type = ord(_readstream($f, 1));
+
+				if($color_type == 0x00)
+					$color_space = "/DeviceGray";
+				elseif($color_type == 0x02)
+					$color_space = "/DeviceRGB";
+				elseif($color_type == 0x03)
+					$color_space = "/Indexed";
+				elseif($color_type == 0x04)
+					$color_space = "/DeviceGray";
+				elseif($color_type == 0x06)
+					$color_space = "/DeviceRGB";
+				else
+					die("_pdf_add_image_png: unknown color type: " . $filename);
+
+				$compression_method = ord(_readstream($f, 1));
+
+				if($compression_method != 0x00)
+					die("_pdf_add_image_png: unknown compression method: " . $filename);
+
+				$filter_method = ord(_readstream($f, 1));
+
+				if($filter_method != 0x00)
+					die("_pdf_add_image_png: unknown filter method: " . $filename);
+
+				$interlacing = ord(_readstream($f, 1));
+
+				if($interlacing != 0x00)
+					die("_pdf_add_image_png: interlacing not supported: " . $filename);
+				}
+			elseif($chunk_type == "IEND")
+				break;
+			elseif($chunk_type == "bKGD")
+				$chunk_data = _readstream($f, $chunk_length);
+			elseif($chunk_type == "pHYs")
+				$chunk_data = _readstream($f, $chunk_length);
+			elseif($chunk_type == "tEXt")
+				$chunk_data = _readstream($f, $chunk_length);
+			elseif($chunk_type == "tIMe")
+				$chunk_data = _readstream($f, $chunk_length);
+			elseif($chunk_type == "tRNS")
+				{
+				$chunk_data = _readstream($f, $chunk_length);
+
+				if($color_type == 0)
+					$trns_stream[] = array(ord($chunk_data[1]));
+				elseif($color_type == 2)
+					$trns_stream[] = array(ord($chunk_data[1]), ord($chunk_data[3]), ord($chunk_data[5]));
+				elseif($pos = strpos($chunk_data, chr(0)))
+					$trns_stream[] = array($pos);
+				}
+			else
+				$chunk_data = _readstream($f, $chunk_length);
+
+			$chunk_crc = _readstream($f, 4);
+			}
+		while($chunk_length);
+
+		################################################################################
+		# palette
+		################################################################################
+
+		if($color_type == 3)
+			$p = _pdf_add_stream($pdf, $plte_stream);
+
+		################################################################################
+		# smask
+		################################################################################
+
+		if($color_type >= 4)
+			{
+			$data_stream = gzuncompress($data_stream);
+
+			$color_stream = "";
+			$alpha_stream = "";
+
+			if($color_type == 4)
+				list($width_index, $width_char) = array(2 * $width, 1);
+			else
+				list($width_index, $width_char) = array(4 * $width, 3);
+
+			for($height_index = 0; $height_index < $height; $height_index = $height_index + 1)
+				{
+				$temp_index = $height_index * ($width_index + 1);
+
+				$alpha_stream .= $data_stream[$temp_index];
+				$alpha_stream .= preg_replace("/.{" . $width_char . "}(.)/s", "$1", substr($data_stream, $temp_index + 1, $width_index));
+
+				$color_stream .= $data_stream[$temp_index];
+				$color_stream .= preg_replace("/(.{" . $width_char . "})./s", "$1", substr($data_stream, $temp_index + 1, $width_index));
+				}
+
+			$alpha_stream = gzcompress($alpha_stream);
+			$data_stream = gzcompress($color_stream);
+
+			################################################################################
+
+			$s_id = _pdf_get_free_object_id($pdf);
+
+			$pdf["objects"][$s_id] = array
+				(
+				"id" => $s_id,
+				"version" => 0,
+				"dictionary" => array
+					(
+					"/Type" => "/Object",
+					"/Subtype" => "/Image",
+
+					# PDF32000-1:2008 8.9.3 Sample Representtion
+					# The source format for an image shall be described by four parameters:
+					"/Width" => $width,
+					"/Height" => $height,
+					"/ColorSpace" => "/DeviceGray",
+					"/BitsPerComponent" => 8,
+
+					"/DecodeParms" => array
+						(
+						"/Predictor" => 15,
+						"/Colors" => 1,
+						"/BitsPerComponent" => 8,
+						"/Columns" => $width
+						),
+
+					"/Filter" => "/FlateDecode",
+					"/Length" => strlen($alpha_stream)
+					),
+				"stream" => $alpha_stream
+				);
+
+			$s = sprintf("%d 0 R", $s_id);
+			}
+
+		################################################################################
+		# finally ...
+		################################################################################
+
+		$image_id = _pdf_get_free_object_id($pdf);
+
+		$pdf["objects"][$image_id] = array
+			(
+			"id" => $image_id,
+			"version" => 0,
+			"dictionary" => array
+				(
+				"/Type" => "/XObject",
+				"/Subtype" => "/Image",
+
+				# PDF32000-1:2008 8.9.3 Sample Representtion
+				# The source format for an image shall be described by four parameters:
+				"/Width" => $width,
+				"/Height" => $height,
+				"/ColorSpace" => $color_space,
+				"/BitsPerComponent" => $bits_per_component,
+
+				"/DecodeParms" => array
+					(
+					"/Predictor" => 15,
+					"/Colors" => ($color_space == "/DeviceRGB" ? 3 : 1),
+					"/BitsPerComponent" => $bits_per_component,
+					"/Columns" => $width
+					),
+
+				"/Filter" => "/FlateDecode",
+				"/Length" => strlen($data_stream)
+				),
+			"stream" => $data_stream
+			);
+
+		if($color_type == 3)
+			$pdf["objects"][$image_id]["dictionary"]["/ColorSpace"] = sprintf("[/Indexed /DeviceRGB %d %s]", strlen($plte_stream) / 3 - 1, $p);
+
+		if($color_type >= 4)
+			$pdf["objects"][$image_id]["dictionary"]["/SMask"] = $s;
+
+		if(count($trns_stream) > 0)
+			{
+			$mask = array();
+
+			for($i = 0; $i < count($trns_stream); $i = $i + 1)
+				$mask[] = implode(" ", array($trns_stream[$i], $trns_stream[$i]));
+
+			$pdf["objects"][$image_id]["dictionary"]["/Mask"] = sprintf("[%s]", _pdf_glue_array($mask));
+			}
+
+		$a = sprintf("%d 0 R", $image_id);
+		}
+	else
+		{
+		system("convert " . $filename . " -quality 15 lolo.jpg");
+
+		$a = pdf_load_image($pdf, "jpg", "lolo.jpg");
+
+		unlink("lolo.jpg");
+
+		return($a);
+		}
 
 	$b = _pdf_get_free_xobject_id($pdf);
 
@@ -2300,6 +2702,8 @@ function pdf_set_info(& $pdf, $key, $value)
 	if(in_array(strtolower($key), $table) === false)
 		die("pdf_set_info: invalid key: " . $key);
 
+	$value = iconv("UTF-8", "ISO-8859-1", $value);
+
 	$pdf["info"][$key] = $value;
 	}
 
@@ -2852,6 +3256,8 @@ function pdf_show_xy(& $pdf, $text, $x, $y)
 	if(! $text)
 		return;
 
+	$text = iconv("UTF-8", "ISO-8859-1", $text);
+
 	$text = str_replace(array("\\", "(", ")"), array("\\\\", "\\(", "\\)"), $text);
 
 	$pdf["stream"][] = "BT";
@@ -2892,7 +3298,7 @@ function pdf_stringwidth(& $pdf, $text, $font, $fontsize)
 	if($fontsize == 0)
 		die("pdf_setfont: invalid fontsize.");
 
-#	$text = utf8_decode($text);
+	$text = iconv("UTF-8", "ISO-8859-1", $text);
 
 	if(sscanf($pdf["loaded-resources"]["/Font"][$font_id], "%d %d R", $id, $version) != 2)
 		die("pdf_setfont: invalid font.");
@@ -2906,7 +3312,7 @@ function pdf_stringwidth(& $pdf, $text, $font, $fontsize)
 	$width = 0;
 
 	foreach(str_split($text) as $char)
-		$width += $b[ord($char)];
+		$width += $b[ord($char) - 0x20];
 
 	return($width / 1000 * $fontsize);
 	}
@@ -3046,13 +3452,13 @@ function _pdf_add_annotation(& $pdf, $parent, $rect, $type, $optlist)
 	if(in_array($type, array("attachment", "link", "text", "widget")) === false)
 		die("_pdf_add_annotation: invalid type: " . $type);
 
-	$xthis_id = _pdf_get_free_object_id($pdf);
+	$annot_id = _pdf_get_free_object_id($pdf);
 
 	if($type == "attachment")
 		{
-		$pdf["objects"][$xthis_id] = array
+		$pdf["objects"][$annot_id] = array
 			(
-			"id" => $xthis_id,
+			"id" => $annot_id,
 			"version" => 0,
 			"dictionary" => array
 				(
@@ -3064,9 +3470,9 @@ function _pdf_add_annotation(& $pdf, $parent, $rect, $type, $optlist)
 
 	if($type == "link")
 		{
-		$pdf["objects"][$xthis_id] = array
+		$pdf["objects"][$annot_id] = array
 			(
-			"id" => $xthis_id,
+			"id" => $annot_id,
 			"version" => 0,
 			"dictionary" => array
 				(
@@ -3078,9 +3484,9 @@ function _pdf_add_annotation(& $pdf, $parent, $rect, $type, $optlist)
 
 	if($type == "text")
 		{
-		$pdf["objects"][$xthis_id] = array
+		$pdf["objects"][$annot_id] = array
 			(
-			"id" => $xthis_id,
+			"id" => $annot_id,
 			"version" => 0,
 			"dictionary" => array
 				(
@@ -3090,7 +3496,7 @@ function _pdf_add_annotation(& $pdf, $parent, $rect, $type, $optlist)
 			);
 		}
 
-	$xthis = sprintf("%d 0 R", $xthis_id);
+	$annot = sprintf("%d 0 R", $annot_id);
 
 	# apply ...
 	if(isset($pdf["objects"][$parent_id]["dictionary"]["/Annots"]))
@@ -3102,104 +3508,11 @@ function _pdf_add_annotation(& $pdf, $parent, $rect, $type, $optlist)
 	list($annots, $data) = _pdf_parse_array($data);
 	$data = substr($data, 1);
 
-	$annots[] = $xthis;
+	$annots[] = $annot;
 
 	$pdf["objects"][$parent_id]["dictionary"]["/Annots"] = sprintf("[%s]", _pdf_glue_array($annots));
 
-	return($xthis);
-	}
-
-################################################################################
-# _pdf_add_font ( array $pdf , string $fontname , string $encoding ) : string
-################################################################################
-
-function _pdf_add_font(& $pdf, $fontname, $encoding = "builtin")
-	{
-	if(in_array($encoding, array("builtin", "winansi", "macroman", "macexpert")) === false)
-		die("_pdf_add_font: invalid encoding: " . $encoding);
-
-	foreach($pdf["fonts"] as $index => $object)
-		{
-		if($object["/BaseFont"] != "/" . $fontname)
-			continue;
-
-		$xthis = _pdf_add_font_core($pdf, $fontname, $encoding);
-
-		if(sscanf($xthis, "%d %d R", $xthis_id, $xthis_version) != 2)
-			die("_pdf_add_font: invalid font.");
-			
-		# apply widths ... this need to be written here, for easier access to object where we get data from
-		$pdf["objects"][$xthis_id]["dictionary"]["/FirstChar"] = 0x20;
-		$pdf["objects"][$xthis_id]["dictionary"]["/LastChar"] = 0xFF;
-		$pdf["objects"][$xthis_id]["dictionary"]["/Widths"] = sprintf("[%s]", _pdf_glue_array(array_slice($object["/Widths"], 0x20, 0xE0)));
-
-		return($xthis);
-		}
-
-	################################################################################
-
-#	$filename = "/home/nomatrix/externe_platte/daten/ttf/" . strtolower($fontname[0]) . "/" . $fontname . ".ttf";
-	$filename = "/usr/share/fonts/truetype/freefont/" . $fontname . ".ttf";
-
-	if(file_exists($filename) === false)
-		return(_pdf_add_font($pdf["objects"], "Courier", $encoding));
-
-	################################################################################
-
-	$xthis = _pdf_add_font_truetype($pdf, $filename, $encoding);
-
-	if(sscanf($xthis, "%d %d R", $xthis_id, $xthis_version) != 2)
-		die("_pdf_add_font: invalid font.");
-
-	$widths = array();
-
-	foreach(range(0x20, 0xFF) as $char)
-		$widths[chr($char)] = (($info = imagettfbbox(720, 0, $filename, chr($char))) ? $info[2] : 1000);
-
-	# apply widths
-	$pdf["objects"][$xthis_id]["dictionary"]["/FirstChar"] = 0x20;
-	$pdf["objects"][$xthis_id]["dictionary"]["/LastChar"] = 0xFF;
-	$pdf["objects"][$xthis_id]["dictionary"]["/Widths"] = sprintf("[%s]", _pdf_glue_array($widths));
-
-	return($xthis);
-	}
-
-################################################################################
-# _pdf_add_font_core ( array $pdf , string $fontname , string $encoding ) : string
-################################################################################
-
-function _pdf_add_font_core(& $pdf, $fontname, $encoding = "builtin")
-	{
-	if(in_array($encoding, array("builtin", "winansi", "macroman", "macexpert")) === false)
-		die("_pdf_add_font: invalid encoding: " . $encoding);
-
-	$xthis_id = _pdf_get_free_object_id($pdf);
-
-	$pdf["objects"][$xthis_id] = array
-		(
-		"id" => $xthis_id,
-		"version" => 0,
-		"dictionary" => array
-			(
-			"/Type" => "/Font",
-			"/Subtype" => "/Type1",
-			"/BaseFont" => "/" . $fontname
-			)
-		);
-
-	$xthis = sprintf("%d 0 R", $xthis_id);
-
-	# valid encodings
-	$encodings = array("winansi" => "/WinAnsiEncoding", "macroman" => "/MacRomanEncoding", "macexpert" => "/MacExpertEncoding");
-
-	# apply encoding
-	if($encoding != "builtin")
-		if(isset($encodings[$encoding]))
-			$pdf["objects"][$xthis_id]["dictionary"]["/Encoding"] = $encodings[$encoding];
-		else
-			$pdf["objects"][$xthis_id]["dictionary"]["/Encoding"] = $encoding;
-
-	return($xthis);
+	return($annot);
 	}
 
 ################################################################################
@@ -3315,88 +3628,6 @@ function _pdf_add_font_encoding(& $pdf, $encoding = "builtin", $differences = ""
 	}
 
 ################################################################################
-# _pdf_add_font_file ( array $pdf , string $filename ) : string
-################################################################################
-
-function _pdf_add_font_file(& $pdf, $filename)
-	{
-	if(file_exists($filename) === false)
-		die("_pdf_add_font_truetype: invalid file: " . $filename);
-
-	$xthis_id = _pdf_get_free_object_id($pdf);
-
-	$pdf["objects"][$xthis_id] = array
-		(
-		"id" => $xthis_id,
-		"version" => 0,
-		"dictionary" => array
-			(
-			"/Length" => filesize($filename),
-			"/Length1" => filesize($filename) # untouched during filter
-			),
-		"stream" => file_get_contents($filename)
-		);
-
-	$xthis = sprintf("%d 0 R", $xthis_id);
-
-	return($xthis);
-	}
-
-################################################################################
-# _pdf_add_font_truetype ( array $pdf , string $filename , string $encoding ) : string
-################################################################################
-
-function _pdf_add_font_truetype(& $pdf, $filename, $encoding = "builtin")
-	{
-	if(in_array($encoding, array("builtin", "winansi", "macroman", "macexpert")) === false)
-		die("_pdf_add_font_truetype: invalid encoding: " . $encoding);
-
-	$fontname = basename($filename, ".ttf");
-
-	$file = _pdf_add_font_file($pdf, $filename);
-
-	$descriptor = _pdf_add_font_descriptor($pdf, $fontname, $file);
-
-	$xthis_id = _pdf_get_free_object_id($pdf);
-
-	$pdf["objects"][$xthis_id] = array
-		(
-		"id" => $fothisnt_id,
-		"version" => 0,
-		"dictionary" => array
-			(
-			"/Type" => "/Font",
-			"/Subtype" => "/TrueType",
-			"/BaseFont" => "/" . $fontname,
-			"/FirstChar" => 32,
-			"/LastChar" => 255,
-			"/Widths" => "[]",
-			"/FontDescriptor" => $descriptor
-			)
-		);
-
-	# apply widths
-	$widths = array();
-
-	foreach(range(0x20, 0xFF) as $char)
-		$widths[chr($char)] = (($image_ttf_bbox = imagettfbbox(720, 0, $filename, chr($char))) ? $image_ttf_bbox[2] : 1000);
-
-	$pdf["objects"][$xthis_id]["dictionary"]["/Widths"] = sprintf("[%s]", _pdf_glue_array($widths));
-
-	# valid encodings
-	$encodings = array("winansi" => "/WinAnsiEncoding", "macroman" => "/MacRomanEncoding", "macexpert" => "/MacExpertEncoding");
-
-	# apply encoding
-	if($encoding != "builtin")
-		if(isset($encodings[$encoding]))
-			$pdf["objects"][$xthis_id]["dictionary"]["/Encoding"] = $encodings[$encoding];
-		else
-			$pdf["objects"][$xthis_id]["dictionary"]["/Encoding"] = $encoding;
-
-	return(sprintf("%d 0 R", $xthis_id));
-	}
-
-################################################################################
 # _pdf_add_form ( array $pdf , string $bbox , string $resources , string $stream ) : string
 ################################################################################
 
@@ -3404,14 +3635,14 @@ function _pdf_add_form(& $pdf, $resources, $bbox, $stream)
 	{
 	# check resources for beeing dictionary or pointer to such
 
-	if(sscanf($bbox, "[%f %f %f %f]", $x, $ly, $w, $h) != 4)
+	if(sscanf($bbox, "[%f %f %f %f]", $x, $y, $w, $h) != 4)
 		die("_pdf_add_form: invalid bbox:" . $bbox);
 
-	$xthis_id = _pdf_get_free_object_id($pdf);
+	$form_id = _pdf_get_free_object_id($pdf);
 
-	$pdf["objects"][$xthis_id] = array
+	$pdf["objects"][$form_id] = array
 		(
-		"id" => $xthis_id,
+		"id" => $form_id,
 		"version" => 0,
 		"dictionary" => array
 			(
@@ -3425,350 +3656,7 @@ function _pdf_add_form(& $pdf, $resources, $bbox, $stream)
 		"stream" => $stream
 		);
 
-	return(sprintf("%d 0 R", $xthis_id));
-	}
-
-################################################################################
-# _pdf_add_image ( array $pdf , string $filename ) : string
-################################################################################
-
-function _pdf_add_image(& $pdf, $filename)
-	{
-	$imagetype = pathinfo($filename, PATHINFO_EXTENSION);
-
-	if($imagetype == "jpg")
-		$xthis = _pdf_add_image_jpg($pdf, $filename);
-	elseif($imagetype == "gif")
-		$xthis = _pdf_add_image_gif($pdf, $filename);
-	elseif($imagetype == "png")
-		$xthis = _pdf_add_image_png($pdf, $filename);
-	else
-		{
-		system("convert " . $filename . " -quality 15 lolo.jpg");
-
-		$xthis = _pdf_add_image($pdf, "lolo.jpg");
-
-		# don't change it!
-		# keep this name!
-		# don't make fun here!
-
-		unlink("lolo.jpg");
-		}
-
-	return($xthis);
-	}
-
-################################################################################
-# _pdf_add_image_gif ( array $pdf , string $filename ) : string
-################################################################################
-
-function _pdf_add_image_gif(& $pdf, $filename)
-	{
-	if(function_exists("imagecreatefromgif") === false)
-		die("_pdf_add_image_jpg: no gif support.");
-
-	if(($image_create_from_gif = imagecreatefromgif($filename)) === false)
-		die("_pdf_add_image_jpg: invalid file: " . $filename);
-
-	imageinterlace($image_create_from_gif, 0);
-
-	if(function_exists("imagepng") === false)
-		die("_pdf_add_image_jpg: no png support.");
-
-	if(($temp_filename = tempnam(".", "gif")) === false)
-		die("_pdf_add_image_jpg: unable to create a temporary file.");
-
-	if(imagepng($image_create_from_gif, $temp_filename) === false)
-		die("_pdf_add_image_jpg: error while saving to temporary file.");
-
-	imagedestroy($image_create_from_gif);
-
-	$xthis = _pdf_add_image_png($pdf, $temp_filename);
-
-	unlink($temp_filename);
-
-	return($xthis);
-	}
-
-################################################################################
-# _pdf_add_image_jpeg ( array $pdf , string $filename ) : string
-################################################################################
-
-function _pdf_add_image_jpg(& $pdf, $filename)
-	{
-	if(($get_image_size = getimagesize($filename)) === false)
-		die("_pdf_add_image_jpg: invalid file: " . $filename);
-
-	$width = $get_image_size[0];
-	$height = $get_image_size[1];
-
-	if($get_image_size[2] != 2)
-		die("_pdf_add_image_jpg: invalid file: " . $filename);
-
-	if(isset($get_image_size["channels"]) === false)
-		$color_space = "/DeviceRGB";
-	elseif($get_image_size["channels"] == 3)
-		$color_space = "/DeviceRGB";
-	elseif($get_image_size["channels"] == 4)
-		$color_space = "/DeviceCMYK";
-	else
-		$color_space = "/DeviceGray";
-
-	if(isset($get_image_size["bits"]))
-		$bits_per_component = $get_image_size["bits"];
-	else
-		$bits_per_component = 8;
-
-	################################################################################
-
-	$xthis_id = _pdf_get_free_object_id($pdf);
-
-	$pdf["objects"][$xthis_id] = array
-		(
-		"id" => $xthis_id,
-		"version" => 0,
-		"dictionary" => array
-			(
-			"/Type" => "/XObject",
-			"/Subtype" => "/Image",
-
-			# PDF32000-1:2008 8.9.3 Sample Representtion
-			# The source format for an image shall be described by four parameters:
-			"/Width" => $width,
-			"/Height" => $height,
-			"/ColorSpace" => $color_space,
-			"/BitsPerComponent" => $bits_per_component,
-
-			"/Filter" => "/DCTDecode",
-			"/Length" => filesize($filename)
-			),
-		"stream" => file_get_contents($filename)
-		);
-
-	return(sprintf("%d 0 R", $xthis_id));
-	}
-
-################################################################################
-# _pdf_add_image_png ( array $pdf , string $filename ) : string
-################################################################################
-
-function _pdf_add_image_png(& $pdf, $filename)
-	{
-	if(($f = fopen($filename, "rb")) === false)
-		die("_pdf_add_image_png: invalid file: " . $filename);
-
-	if(_readstream($f, 8) != "\x89PNG\x0D\x0A\x1A\x0A")
-		die("_pdf_add_image_png: invalid file: " . $filename);
-
-	_readstream($f, 4);
-
-	if(_readstream($f, 4) != "IHDR")
-		die("_pdf_add_image_png: invalid file: " . $filename);
-
-	$width = _readint($f);
-
-	$height = _readint($f);
-
-	$bits_per_component = ord(_readstream($f, 1));
-
-	if($bits_per_component > 8)
-		die("_pdf_add_image_png: 16-bit depth not supported: " . $filename);
-
-	$color_type = ord(_readstream($f, 1));
-
-	if($color_type == 0)
-		$color_space = "/DeviceGray";
-	elseif($color_type == 2)
-		$color_space = "/DeviceRGB";
-	elseif($color_type == 3)
-		$color_space = "/Indexed";
-	elseif($color_type == 4)
-		$color_space = "/DeviceGray";
-	elseif($color_type == 6)
-		$color_space = "/DeviceRGB";
-	else
-		die("_pdf_add_image_png: unknown color type: " . $filename);
-
-	$compression_method = ord(_readstream($f, 1));
-
-	if($compression_method != 0)
-		die("_pdf_add_image_png: unknown compression method: " . $filename);
-
-	$filter_method = ord(_readstream($f, 1));
-
-	if($filter_method != 0)
-		die("_pdf_add_image_png: unknown filter method: " . $filename);
-
-	$interlacing = ord(_readstream($f, 1));
-
-	if($interlacing != 0)
-		die("_pdf_add_image_png: interlacing not supported: " . $filename);
-
-	_readstream($f, 4);
-
-	################################################################################
-
-	$trns_stream = array();
-	$plte_stream = "";
-	$data_stream = "";
-
-	do
-		{
-		$chunk_length = _readint($f);
-		$chunk_type = _readstream($f, 4);
-		$chunk_data = "";
-
-		if($chunk_type == "PLTE")
-			$plte_stream = _readstream($f, $chunk_length);
-		elseif($chunk_type == "tRNS")
-			{
-			$chunk_data = _readstream($f, $chunk_length);
-
-			if($color_type == 0)
-				$trns_stream[] = array(ord($chunk_data[1]));
-			elseif($color_type == 2)
-				$trns_stream[] = array(ord($chunk_data[1]), ord($chunk_data[3]), ord($chunk_data[5]));
-			elseif($pos = strpos($chunk_data, chr(0)))
-				$trns_stream[] = array($pos);
-			}
-		elseif($chunk_type == "IDAT")
-			$data_stream .= _readstream($f, $chunk_length);
-		elseif($chunk_type == "IEND")
-			break;
-		else
-			_readstream($f, $chunk_length);
-
-		_readstream($f, 4);
-		}
-	while($chunk_length);
-
-	################################################################################
-	# palette
-	################################################################################
-
-	if($color_type == 3)
-		$p = _pdf_add_stream($pdf, $plte_stream);
-
-	################################################################################
-	# smask
-	################################################################################
-
-	if($color_type >= 4)
-		{
-		$data_stream = gzuncompress($data_stream);
-
-		$color_stream = "";
-		$alpha_stream = "";
-
-		if($color_type == 4)
-			list($width_index, $width_char) = array(2 * $width, 1);
-		else
-			list($width_index, $width_char) = array(4 * $width, 3);
-
-		for($height_index = 0; $height_index < $height; $height_index = $height_index + 1)
-			{
-			$temp_index = $height_index * ($width_index + 1);
-
-			$alpha_stream .= $data_stream[$temp_index];
-			$alpha_stream .= preg_replace("/.{" . $width_char . "}(.)/s", "$1", substr($data_stream, $temp_index + 1, $width_index));
-
-			$color_stream .= $data_stream[$temp_index];
-			$color_stream .= preg_replace("/(.{" . $width_char . "})./s", "$1", substr($data_stream, $temp_index + 1, $width_index));
-			}
-
-		$alpha_stream = gzcompress($alpha_stream);
-		$data_stream = gzcompress($color_stream);
-
-		################################################################################
-
-		$xthis_id = _pdf_get_free_object_id($pdf);
-
-		$pdf["objects"][$xthis_id] = array
-			(
-			"id" => $xthis_id,
-			"version" => 0,
-			"dictionary" => array
-				(
-				"/Type" => "/Object",
-				"/Subtype" => "/Image",
-
-				# PDF32000-1:2008 8.9.3 Sample Representtion
-				# The source format for an image shall be described by four parameters:
-				"/Width" => $width,
-				"/Height" => $height,
-				"/ColorSpace" => "/DeviceGray",
-				"/BitsPerComponent" => 8,
-
-				"/DecodeParms" => array
-					(
-					"/Predictor" => 15,
-					"/Colors" => 1,
-					"/BitsPerComponent" => 8,
-					"/Columns" => $width
-					),
-
-				"/Filter" => "/FlateDecode",
-				"/Length" => strlen($alpha_stream)
-				),
-			"stream" => $alpha_stream
-			);
-
-		$s = sprintf("%d 0 R", $xthis_id);
-		}
-
-	################################################################################
-	# finally ...
-	################################################################################
-
-	$xthis_id = _pdf_get_free_object_id($pdf);
-
-	$pdf["objects"][$xthis_id] = array
-		(
-		"id" => $xthis_id,
-		"version" => 0,
-		"dictionary" => array
-			(
-			"/Type" => "/XObject",
-			"/Subtype" => "/Image",
-
-			# PDF32000-1:2008 8.9.3 Sample Representtion
-			# The source format for an image shall be described by four parameters:
-			"/Width" => $width,
-			"/Height" => $height,
-			"/ColorSpace" => $color_space,
-			"/BitsPerComponent" => $bits_per_component,
-
-			"/DecodeParms" => array
-				(
-				"/Predictor" => 15,
-				"/Colors" => ($color_space == "/DeviceRGB" ? 3 : 1),
-				"/BitsPerComponent" => $bits_per_component,
-				"/Columns" => $width
-				),
-
-			"/Filter" => "/FlateDecode",
-			"/Length" => strlen($data_stream)
-			),
-		"stream" => $data_stream
-		);
-
-	if($color_type == 3)
-		$pdf["objects"][$xthis_id]["dictionary"]["/ColorSpace"] = sprintf("[/Indexed /DeviceRGB %d %s]", strlen($plte_stream) / 3 - 1, $p);
-
-	if($color_type >= 4)
-		$pdf["objects"][$xthis_id]["dictionary"]["/SMask"] = $s;
-
-	if(count($trns_stream) > 0)
-		{
-		$mask = array();
-
-		for($i = 0; $i < count($trns_stream); $i = $i + 1)
-			$mask[] = implode(" ", array($trns_stream[$i], $trns_stream[$i]));
-
-		$pdf["objects"][$xthis_id]["dictionary"]["/Mask"] = sprintf("[%s]", _pdf_glue_array($mask));
-		}
-
-	return(sprintf("%d 0 R", $xthis_id));
+	return(sprintf("%d 0 R", $form_id));
 	}
 
 ################################################################################
@@ -4485,18 +4373,6 @@ function _pdf_glue_object($object)
 	$retval[] = "endobj";
 
 	return(implode("\n", $retval));
-	}
-
-################################################################################
-# _pdf_load_includes ( string $path ) : bool
-################################################################################
-
-function _pdf_load_includes($path)
-	{
-	foreach(glob($path . "/*.php") as $file)
-		include_once($file);
-
-	return(true);
 	}
 
 ################################################################################
