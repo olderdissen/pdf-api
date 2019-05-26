@@ -1,6 +1,6 @@
 # pdf-api
 
-updated project to create pdf-file like **PDFlib** but without restrictions.
+updated project to create pdf-file like **[PDFlib][]** but without restrictions.
 this project follows a different strategy of collecting and storing data.
 all data is stored inside an array for easy access.
 each element is accessible, changeable and removable at any time.
@@ -15,7 +15,7 @@ supported image formats
 * GIF to PNG
 * JPG
 * PNG
-* others to JPG (depends on **convert**)
+* others to JPG (depends on **[convert][]**)
 
 supported fonts
 * /Type1 (14 core fonts)
@@ -25,8 +25,8 @@ supported fonts
 ## example ##
 
 see **pdf-api-test.php** for a working example.
-more examples can be found in manual-pages of **PDFlib**.
-keep in mind that some functions may work different than in the original **PDFlib**.
+more examples can be found in manual-pages of **[PDFlib][php]**.
+keep in mind that some functions may work different than in the original **[PDFlib][php]**.
 
 ## requirements ##
 
@@ -48,7 +48,7 @@ this project can be used to replace **[PDFlib][php]** since basic functionality 
 
 ## references ##
 
-* [PDF32000:2008-1] [pdf]
+* [PDF32000:2008-1][pdf]
 * [php - pdf_\*][php]
 * [php - gzcompress][gzcompress]
 * [php - gzuncompress][gzuncompress]
