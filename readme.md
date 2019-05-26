@@ -48,9 +48,9 @@ this project can be used to replace **PDFlib** since basic functionality is impl
 
 ## references ##
 
-* [pdf] (https://www.adobe.com/content/dam/acom/en/devnet/pdf/pdfs/PDF32000_2008.pdf)
-* [pdflib] (https://www.php.net/manual/en/ref.pdf.php)
-* [gzcompress] (https://www.php.net/manual/en/function.gzcompress.php)
-* [gzuncompress] (https://www.php.net/manual/en/function.gzuncompress.php)
-* [sprintf] (https://www.php.net/manual/en/function.sprintf.php)
-* [fpdf] (http://www.fpdf.org/)
+* [pdf](https://www.adobe.com/content/dam/acom/en/devnet/pdf/pdfs/PDF32000_2008.pdf)
+* [pdflib](https://www.php.net/manual/en/ref.pdf.php)
+* [gzcompress](https://www.php.net/manual/en/function.gzcompress.php)
+* [gzuncompress](https://www.php.net/manual/en/function.gzuncompress.php)
+* [sprintf](https://www.php.net/manual/en/function.sprintf.php)
+* [fpdf](http://www.fpdf.org/)
