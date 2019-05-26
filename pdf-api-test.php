@@ -40,11 +40,11 @@ function _pdf_test()
 	pdf_begin_document($pdf, "");
 
 		# returns /Fx where x is integer
+#		$font = pdf_load_font($pdf, "Verdana", "winansi");
 		$font = pdf_load_font($pdf, "Courier", "winansi");
-		$font = pdf_load_font($pdf, "Verdana", "winansi");
 
 		# returns /Fx where x is integer but returns error on unloaded font.
-#		$font = pdf_find_font($pdf, "Courier");
+#		$font = pdf_findfont($pdf, "Verdana");
 
 		# returns /Xx where x is integer
 		$image = pdf_load_image($pdf, "png", "pdf-api-test.png");

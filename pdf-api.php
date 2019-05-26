@@ -1206,21 +1206,21 @@ function pdf_fill_textblock(& $pdf, $page, $blockname, $text, $optlist = array()
 
 function pdf_findfont(& $pdf, $fontname, $encoding = "builtin", $embed = 1)
 	{
-	if(in_array($encoding, array("builtin", "winansi", "macroman", "macexpert")) === false)
-		die("_pdf_findfont: invalid encoding.");
+#	printf("pdf_findfont: %s\n", $fontname);
 
-	if(isset($pdf["loaded-resources"]["fonts"]) === false)
-		return(pdf_load_font($pdf, $fontname, $encoding, array("embed" => $embed)));
+	if(in_array($encoding, array("builtin", "winansi", "macroman", "macexpert")) === false)
+		die("pdf_findfont: invalid encoding.");
 
 	$font_id = 0;
 
-	foreach($pdf["loaded-resources"]["fonts"] as $index => $object)
-		if(sscanf($object, "%d %d R", $object_id, $object_version) == 2)
-			if($pdf["objects"][$object_id]["dictionary"]["/BaseFont"] == "/" . $fontname)
-				$font_id = $index;
+	if(isset($pdf["loaded-resources"]["fonts"]))
+		foreach($pdf["loaded-resources"]["fonts"] as $index => $object)
+			if(sscanf($object, "%d %d R", $object_id, $object_version) == 2)
+				if($pdf["objects"][$object_id]["dictionary"]["/BaseFont"] == "/" . $fontname)
+					$font_id = $index;
 
 	if($font_id == 0)
-		die("pdf_findfont: no fonts loaded. there should be loaded at least one. so what is wrong here?");
+		return(pdf_load_font($pdf, $fontname, $encoding, array("embed" => $embed)));
 
 	return("/F" . $font_id);
 	}
@@ -1604,6 +1604,8 @@ function pdf_load_3ddata(& $pdf, $filename, $optlist = array())
 
 function pdf_load_font(& $pdf, $fontname, $encoding = "builtin", $optlist = array("embed" => 1))
 	{
+#	printf("pdf_load_font: %s\n" , $fontname);
+
 	if(in_array($encoding, array("builtin", "winansi", "macroman", "macexpert")) === false)
 		die("_pdf_add_font: invalid encoding: " . $encoding);
 
@@ -1647,6 +1649,7 @@ function pdf_load_font(& $pdf, $fontname, $encoding = "builtin", $optlist = arra
 		$b = _pdf_get_free_font_id($pdf);
 
 		$pdf["loaded-resources"]["fonts"][$b] = $font;
+		$pdf["used-resources"]["fonts"][$b] = $font;
 
 		return("/F" . $b);
 		}
@@ -1654,7 +1657,9 @@ function pdf_load_font(& $pdf, $fontname, $encoding = "builtin", $optlist = arra
 	################################################################################
 
 #	$filename = "/home/nomatrix/externe_platte/daten/ttf/" . strtolower($fontname[0]) . "/" . $fontname . ".ttf";
-	$filename = "/usr/share/fonts/truetype/freefont/" . $fontname . ".ttf";
+#	$filename = "/usr/share/fonts/truetype/freefont/" . $fontname . ".ttf";
+	$filename = "pdf-lib/" . $fontname . ".ttf";
+
 
 	if(file_exists($filename) === false)
 		return(pdf_load_font($pdf, "Courier", $encoding, $optlist));
@@ -1717,6 +1722,7 @@ function pdf_load_font(& $pdf, $fontname, $encoding = "builtin", $optlist = arra
 	$b = _pdf_get_free_font_id($pdf);
 
 	$pdf["loaded-resources"]["fonts"][$b] = $font;
+	$pdf["used-resources"]["fonts"][$b] = $font;
 
 	return("/F" . $b);
 	}
@@ -1739,42 +1745,40 @@ function pdf_load_iccprofile(& $pdf, $profilename, $optlist = array())
 
 function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = array())
 	{
-	$imagetype = pathinfo($filename, PATHINFO_EXTENSION);
-
 	if($imagetype == "gif")
 		{
 		if(function_exists("imagecreatefromgif") === false)
-			die("_pdf_add_image_jpg: no gif support.");
+			die("pdf_load_image: no gif support.");
 
 		if(($info = imagecreatefromgif($filename)) === false)
-			die("_pdf_add_image_jpg: invalid file: " . $filename);
+			die("pdf_load_image: invalid file: " . $filename);
 
 		imageinterlace($info, 0);
 
 		if(function_exists("imagepng") === false)
-			die("_pdf_add_image_jpg: no png support.");
+			die("pdf_load_image: no png support.");
 
-		if(($temp_filename = tempnam(".", "gif")) === false)
-			die("_pdf_add_image_jpg: unable to create a temporary file.");
+		if(($temp = tempnam("", "gif")) === false)
+			die("pdf_load_image: unable to create a temporary file.");
 
-		if(imagepng($info, $temp_filename) === false)
-			die("_pdf_add_image_jpg: error while saving to temporary file.");
+		if(imagepng($info, $temp) === false)
+			die("pdf_load_image: error while saving to temporary file.");
 
 		imagedestroy($info);
 
-		$b = pdf_load_image($pdf, "png", $temp_filename);
+		$b = pdf_load_image($pdf, "png", $temp);
 
-		unlink($temp_filename);
+		unlink($temp);
 
 		return($b);
 		}
 	elseif($imagetype == "jpg")
 		{
 		if(($info = getimagesize($filename)) === false)
-			die("_pdf_add_image_jpg: invalid file: " . $filename);
+			die("pdf_load_image: invalid file: " . $filename);
 
 		if($info[2] != 2)
-			die("_pdf_add_image_jpg: invalid file: " . $filename);
+			die("pdf_load_image: invalid file: " . $filename);
 
 		if(isset($info["channels"]) === false)
 			$color_space = "/DeviceRGB";
@@ -1816,10 +1820,10 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = array())
 	elseif($imagetype == "png")
 		{
 		if(($f = fopen($filename, "rb")) === false)
-			die("_pdf_add_image_png: invalid file: " . $filename);
+			die("pdf_load_image: invalid file: " . $filename);
 
 		if(_readstream($f, 8) != "\x89PNG\x0D\x0A\x1A\x0A")
-			die("_pdf_add_image_png: invalid file: " . $filename);
+			die("pdf_load_image: invalid file: " . $filename);
 
 		################################################################################
 
@@ -1846,7 +1850,7 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = array())
 				$bits_per_component = ord(_readstream($f, 1));
 
 				if($bits_per_component > 0x08)
-					die("_pdf_add_image_png: 16-bit depth not supported: " . $filename);
+					die("pdf_load_image: 16-bit depth not supported: " . $filename);
 
 				$color_type = ord(_readstream($f, 1));
 
@@ -1861,22 +1865,22 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = array())
 				elseif($color_type == 0x06)
 					$color_space = "/DeviceRGB";
 				else
-					die("_pdf_add_image_png: unknown color type: " . $filename);
+					die("pdf_load_image: unknown color type: " . $filename);
 
 				$compression_method = ord(_readstream($f, 1));
 
 				if($compression_method != 0x00)
-					die("_pdf_add_image_png: unknown compression method: " . $filename);
+					die("pdf_load_image: unknown compression method: " . $filename);
 
 				$filter_method = ord(_readstream($f, 1));
 
 				if($filter_method != 0x00)
-					die("_pdf_add_image_png: unknown filter method: " . $filename);
+					die("pdf_load_image: unknown filter method: " . $filename);
 
 				$interlacing = ord(_readstream($f, 1));
 
 				if($interlacing != 0x00)
-					die("_pdf_add_image_png: interlacing not supported: " . $filename);
+					die("pdf_load_image: interlacing not supported: " . $filename);
 				}
 			elseif($chunk_type == "IEND")
 				break;
@@ -2969,6 +2973,8 @@ function pdf_setflat(& $pdf, $flatness)
 
 function pdf_setfont(& $pdf, $font, $fontsize)
 	{
+#	printf("pdf_setfont: %s\n", $font);
+
 	# workaround to allow fontname (Helvetica) instead of its alias (/Fx)
 	if(sscanf($font, "/F%d", $b) != 1)
 		$font = pdf_findfont($pdf, $font, "winansi");
