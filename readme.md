@@ -30,27 +30,35 @@ keep in mind that some functions may work different than in the original **PDFli
 
 ## requirements ##
 
-there are no special requirements to run this script except php's builtin functions **gzcompress** and **gzuncompress**.
+there are no special requirements to run this script except php's builtin functions **[gzcompress][]** and **[gzuncompress][]**.
 it could be useful to have **convert** installed for additional image support.
 
 ## note ##
 
-the precision of floating-numbers, for **sprintf** and such functions, is set to one digit.
+the precision of floating-numbers, for **[sprintf][]** and such functions, is set to one digit.
 this is enough for most drawings and saves a lot of space too.
 a regular page got a size of 595 x 842 pixel which is 210 x 297 millimeter.
 in this case 1 pixel is equal to (0.1 : 72 x 2.54) 0.35 millimeter.
 there is no need for 6 digits precision under normal circumstances.
-if more precission is needed **sprintf("%.1f", ...)** need to be replaced with **sprintf("%.f", ...)** inside script.
+if more precission is needed **[sprintf][]("%.1f", ...)** need to be replaced with **[sprintf][]("%.f", ...)** inside script.
 
 ## compatibility ##
 
-this project can be used to replace **PDFlib** since basic functionality is implemented.
+this project can be used to replace **[PDFlib][php]** since basic functionality is implemented.
 
 ## references ##
 
-* [PDF32000:2008-1](https://www.adobe.com/content/dam/acom/en/devnet/pdf/pdfs/PDF32000_2008.pdf)
-* [php - pdf_\*](https://www.php.net/manual/en/ref.pdf.php)
-* [php - gzcompress](https://www.php.net/manual/en/function.gzcompress.php)
-* [php - gzuncompress](https://www.php.net/manual/en/function.gzuncompress.php)
-* [php - sprintf](https://www.php.net/manual/en/function.sprintf.php)
-* [FDPF](http://www.fpdf.org/)
+* [PDF32000:2008-1] [pdf]
+* [php - pdf_\*][php]
+* [php - gzcompress][gzcompress]
+* [php - gzuncompress][gzuncompress]
+* [php - sprintf][sprint]
+* [FDPF][fpdf]
+
+
+[pdf]: https://www.adobe.com/content/dam/acom/en/devnet/pdf/pdfs/PDF32000_2008.pdf
+[php]: https://www.php.net/manual/en/ref.pdf.php
+[gzcompress]: https://www.php.net/manual/en/function.gzcompress.php
+[gzuncompress]: https://www.php.net/manual/en/function.gzuncompress.php
+[sprintf]: https://www.php.net/manual/en/function.sprintf.php
+[fpdf]: http://www.fpdf.org/
