@@ -17,7 +17,7 @@ supported image formats
 * PNG
 * others to JPG (depends on **convert**)
 
-__supported fonts__
+supported fonts
 * /Type1 (14 core fonts)
 * /Type2 (TTF)
 * /Type3 (experimental)
