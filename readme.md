@@ -28,6 +28,11 @@ see **pdf-api-test.php** for a working example.
 more examples can be found in manual-pages of **pdflib**.
 keep in mind that some functions may work different than in the original **pdflib**.
 
+## requirements ##
+
+there are no special requirements to run this script except php.
+it could be useful to have **convert** installed for more image support.
+
 ## note ##
 
 the precision of floating-numbers, for **sprintf** and such functions, is set to one digit.
@@ -36,4 +41,9 @@ a regular page got a size of 595 x 842 pixel which is 210 x 297 millimeter.
 in this case 1 pixel is equal to (0.1 : 72 x 2.54) 0.35 millimeter.
 there is no need for 6 digits precision under normal circumstances.
 if more precission is needed **sprintf("%.1f", ...)** need to be replaced with **sprintf("%.f", ...)** inside script.
+
 this project can be used to replace **pdf-lib-lite** since most function-names are equal.
+
+## references ##
+
+* [https://www.adobe.com/content/dam/acom/en/devnet/pdf/pdfs/PDF32000_2008.pdf|PDF32000:2008-1]
