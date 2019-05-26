@@ -15,7 +15,7 @@ supported image formats
 * GIF to PNG
 * JPG
 * PNG
-* others to JPG (depends on **[convert][]**)
+* others to JPG (depends on **convert**)
 
 supported fonts
 * /Type1 (14 core fonts)
