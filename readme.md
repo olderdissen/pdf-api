@@ -19,7 +19,7 @@ supported image formats
 
 supported fonts
 * /Type1 (14 core fonts)
-* /Type2 (TTF)
+* /TrueType
 * /Type3 (experimental)
 
 ## example ##
@@ -56,3 +56,4 @@ this project can be used to replace **PDFlib** since basic functionality is impl
 * [sprintf] (https://www.php.net/manual/en/function.sprintf.php)
 * [convert] (https://wiki.ubuntuusers.de/ImageMagick/)
 * [fpdf] (http://www.fpdf.org/)
+
