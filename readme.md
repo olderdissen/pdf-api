@@ -1,6 +1,6 @@
 # pdf-api
 
-updated project to create pdf-file like **pdflib** but without restrictions.
+updated project to create pdf-file like **PDFlib** but without restrictions.
 this project follows a different strategy of collecting and storing data.
 all data is stored inside an array for easy access.
 each element is accessible, changeable and removable at any time.
@@ -25,13 +25,13 @@ supported fonts
 ## example ##
 
 see **pdf-api-test.php** for a working example.
-more examples can be found in manual-pages of **pdflib**.
-keep in mind that some functions may work different than in the original **pdflib**.
+more examples can be found in manual-pages of **PDFlib**.
+keep in mind that some functions may work different than in the original **PDFlib**.
 
 ## requirements ##
 
-there are no special requirements to run this script except php.
-it could be useful to have **convert** installed for more image support.
+there are no special requirements to run this script except php's builtin functions **gzcompress** and **gzuncompress**.
+it could be useful to have **convert** installed for additional image support.
 
 ## note ##
 
@@ -42,10 +42,15 @@ in this case 1 pixel is equal to (0.1 : 72 x 2.54) 0.35 millimeter.
 there is no need for 6 digits precision under normal circumstances.
 if more precission is needed **sprintf("%.1f", ...)** need to be replaced with **sprintf("%.f", ...)** inside script.
 
-this project can be used to replace **pdf-lib-lite** since most function-names are equal.
+## compatibility ##
+
+this project can be used to replace **PDFlib** since basic functionality is implemented.
 
 ## references ##
 
 * [PDF32000:2008-1](https://www.adobe.com/content/dam/acom/en/devnet/pdf/pdfs/PDF32000_2008.pdf)
-* [pdflib](https://www.php.net/manual/en/ref.pdf.php)
-* [fpdf](http://www.fpdf.org/)
+* [php - pdf_\*](https://www.php.net/manual/en/ref.pdf.php)
+* [php - gzcompress](https://www.php.net/manual/en/function.gzcompress.php)
+* [php - gzuncompress](https://www.php.net/manual/en/function.gzuncompress.php)
+* [php - sprintf](https://www.php.net/manual/en/function.sprintf.php)
+* [FDPF](http://www.fpdf.org/)
