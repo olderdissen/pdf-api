@@ -1,6 +1,6 @@
 <?
 ################################################################################
-# copyright 2019 by Markus Olderdissen
+# copyright 2008 - 2019 by Markus Olderdissen
 # free for private use or inspiration. 
 # public use need written permission.
 ################################################################################
