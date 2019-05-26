@@ -19,7 +19,7 @@ supported image formats
 
 supported fonts
 * /Type1 (14 core fonts)
-* /Type2 (TTF)
+* /TrueType
 * /Type3 (experimental)
 
 ## example ##
