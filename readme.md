@@ -46,6 +46,6 @@ this project can be used to replace **pdf-lib-lite** since most function-names a
 
 ## references ##
 
-* [https://www.adobe.com/content/dam/acom/en/devnet/pdf/pdfs/PDF32000_2008.pdf](PDF32000:2008-1)
+* [https://www.adobe.com/content/dam/acom/en/devnet/pdf/pdfs/PDF32000_2008.pdf](PDF32000 2008 1)
 * [https://www.php.net/manual/en/ref.pdf.php](pdflib)
 * [http://www.fpdf.org/](fpdf)
