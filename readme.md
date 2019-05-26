@@ -5,19 +5,19 @@ this project follows a different strategy of collecting and storing data.
 all data is stored inside an array for easy access.
 each element is accessible, changeable and removable at any time.
 
-supported filters:
+supported filters
 * /ASCIIHexDecode
 * /ASCII85Decode
 * /FlateDecode
 * /LZWDecode
 
-supported image formats:
+supported image formats
 * GIF to PNG
 * JPG
 * PNG
 * others to JPG (depends on **convert**)
 
-supported fonts:
+supported fonts
 * /Type1 (14 core fonts)
 * /Type2 (TTF)
 * /Type3 (experimental)
