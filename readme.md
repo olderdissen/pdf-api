@@ -17,7 +17,7 @@ supported image formats
 * PNG
 * others to JPG (depends on **convert**)
 
-_supported fonts_
+__supported fonts__
 * /Type1 (14 core fonts)
 * /Type2 (TTF)
 * /Type3 (experimental)
@@ -30,7 +30,8 @@ keep in mind that some functions may work different than in the original **PDFli
 
 ## requirements ##
 
-there are no special requirements to run this script except php's builtin functions **gzcompress** and **gzuncompress**.
+there are no special requirements to run this script.
+php's builtin functions **gzcompress** and **gzuncompress** are used for compression.
 it could be useful to have **convert** installed for additional image support.
 
 ## note ##
@@ -48,9 +49,10 @@ this project can be used to replace **PDFlib** since basic functionality is impl
 
 ## references ##
 
-* [pdf](https://www.adobe.com/content/dam/acom/en/devnet/pdf/pdfs/PDF32000_2008.pdf)
-* [pdflib](https://www.php.net/manual/en/ref.pdf.php)
-* [gzcompress](https://www.php.net/manual/en/function.gzcompress.php)
-* [gzuncompress](https://www.php.net/manual/en/function.gzuncompress.php)
-* [sprintf](https://www.php.net/manual/en/function.sprintf.php)
-* [fpdf](http://www.fpdf.org/)
+* [pdf] (https://www.adobe.com/content/dam/acom/en/devnet/pdf/pdfs/PDF32000_2008.pdf)
+* [pdflib] (https://www.php.net/manual/en/ref.pdf.php)
+* [gzcompress] (https://www.php.net/manual/en/function.gzcompress.php)
+* [gzuncompress] (https://www.php.net/manual/en/function.gzuncompress.php)
+* [sprintf] (https://www.php.net/manual/en/function.sprintf.php)
+* [convert] (https://wiki.ubuntuusers.de/ImageMagick/)
+* [fpdf] (http://www.fpdf.org/)
