@@ -1,10 +1,8 @@
 # pdf-api
 
-newer project to create pdf-file like pdf-lib-lite but without restrictions.
-see **pdf-api-test.php** for a working example.
-
-this newer project follows a different strategy of collecting and storing data than the older project described below.
-resources are stored inside a single array for easier access.
+updated project to create pdf-file like **pdflib** but without restrictions.
+this project follows a different strategy of collecting and storing data.
+all data is stored inside an array for easy access.
 each element is accessible, changeable and removable at any time.
 
 supported filters
@@ -23,6 +21,12 @@ supported fonts
 * /Type1 (14 core fonts)
 * /Type2 (TTF)
 * /Type3 (experimental)
+
+## example ##
+
+see **pdf-api-test.php** for a working example.
+more examples can be found in manual-pages of **pdflib**.
+keep in mind that some functions may work different than in the original **pdflib**.
 
 ## note ##
 
