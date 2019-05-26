@@ -40,7 +40,7 @@ this is enough for most drawings and saves a lot of space too.
 a regular page got a size of 595 x 842 pixel which is 210 x 297 millimeter.
 in this case 1 pixel is equal to (0.1 : 72 x 2.54) 0.35 millimeter.
 there is no need for 6 digits precision under normal circumstances.
-if more precission is needed **[sprintf("%.1f", ...)][sprintf]** need to be replaced with **[sprintf("%.f", ...)][sprint]** inside script.
+if more precission is needed **[sprintf("%.1f", ...)][sprintf]** need to be replaced with **[sprintf("%.f", ...)][sprintf]** inside script.
 
 ## compatibility ##
 
@@ -52,7 +52,7 @@ this project can be used to replace **[PDFlib][php]** since basic functionality 
 * [php - pdf_\*][php]
 * [php - gzcompress][gzcompress]
 * [php - gzuncompress][gzuncompress]
-* [php - sprintf][sprint]
+* [php - sprintf][sprintf]
 * [FDPF][fpdf]
 
 
