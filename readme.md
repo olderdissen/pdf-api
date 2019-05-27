@@ -6,16 +6,16 @@ all data is stored inside an array for easy access.
 each element is accessible, changeable and removable at any time.
 
 supported filters
-* /ASCIIHexDecode (processed by **bin2hex** and **hex2bin**)
+* /ASCIIHexDecode
 * /ASCII85Decode
-* /FlateDecode (processed by **gzcompress** and **gzuncompress**)
+* /FlateDecode
 * /LZWDecode
 
 supported image formats
-* GIF (processed by **imagecreatefromgif** and **imagepng** to PNG)
-* JPG (processed by **file_get_contents**)
-* PNG (processed by **fclose**, **feof**, **fopen**, **fread**)
-* others (processed by **convert** to JPG)
+* GIF (PNG)
+* JPG
+* PNG
+* others (JPG from **convert**)
 
 supported fonts
 * /Type1 (14 core fonts)
