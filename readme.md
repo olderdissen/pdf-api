@@ -24,9 +24,9 @@ supported fonts
 
 ## feature ##
 
-the list of loaded resources is internally stored the same way like the list of used resources of a single page.
+the internal list of loaded resources is stored the same way like /Resources of a single page.
 whenever a resource is loaded, it is applied to the internal list of loaded resources.
-whenver a resource is used by a page, it is applied to the list of used resources of the page.
+whenver a resource is used by a page, it is applied to /Resources of the page.
 this makes it possible to let users have real-time access to all key, values and elements at any time.
 this prevent multiple loadings of identical fonts.
 
