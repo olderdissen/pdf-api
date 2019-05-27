@@ -64,7 +64,7 @@ function _pdf_test()
 			# store loaded resources
 			$page = pdf_end_page($pdf);
 
-#			$outline = _pdf_add_outline($pdf, $pdf["outlines"], $page, "page " . $i);
+			$outline = pdf_add_outline($pdf, "page " . $i, "", $page);
 			}
 
 	pdf_end_document($pdf);

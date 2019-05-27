@@ -98,9 +98,15 @@ function pdf_add_note(& $pdf, $llx, $lly, $urx, $ury, $contents, $title, $icon, 
 
 function pdf_add_outline(& $pdf, $text, $parent, $open)
 	{
+	# allow empty parent
+	if(! $parent)
+		$parent = $pdf["outlines"];
+
+	# check parent
 	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
 		die("_pdf_add_outline: invalid parent: " . $parent);
 
+	# check open
 	if(sscanf($open, "%d %d R", $open_id, $open_version) != 2)
 		die("_pdf_add_outline: invalid open: " . $open);
 
@@ -120,27 +126,37 @@ function pdf_add_outline(& $pdf, $text, $parent, $open)
 
 	$outline = sprintf("%d 0 R", $outline_id);
 
-	# increase counter
+	# get counter
 	if(isset($pdf["objects"][$parent_id]["dictionary"]["/Count"]))
 		$count = $pdf["objects"][$parent_id]["dictionary"]["/Count"];
 	else
 		$count = 0;
 
-	# modify parent
+	# this is the first outline ... maybe
 	if(isset($pdf["objects"][$parent_id]["dictionary"]["/First"]) === false)
 		$pdf["objects"][$parent_id]["dictionary"]["/First"] = $outline;
 
+	# modify pointer to last outline
 	if(isset($pdf["objects"][$parent_id]["dictionary"]["/Last"]))
 		{
+		# get previous 
 		$last = $pdf["objects"][$parent_id]["dictionary"]["/Last"];
 
-		if(sscanf($last, "%d %d R", $last_id, $last_version) == 2)
-			$pdf["objects"][$last_id]["dictionary"]["/Next"] = $outline;
+		# check pointer
+		if(sscanf($last, "%d %d R", $last_id, $last_version) != 2)
+			die("pdf_add_outline: invalid outline: " . $last);
 
+		# this outline is the next one for the previoous outline
+		$pdf["objects"][$last_id]["dictionary"]["/Next"] = $outline;
+
+		# the last outline is the previous now
 		$pdf["objects"][$outline_id]["dictionary"]["/Prev"] = $last;
 		}
 
+	# this outline is the last one
 	$pdf["objects"][$parent_id]["dictionary"]["/Last"] = $outline;
+
+	# update counter
 	$pdf["objects"][$parent_id]["dictionary"]["/Count"] = ($count < 0 ? $count - 1 : $count + 1);
 
 	return($outline);
