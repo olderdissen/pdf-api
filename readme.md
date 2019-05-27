@@ -39,6 +39,46 @@ see **pdf-api-test.php** for a working example.
 more examples can be found in manual-pages of **PDFlib**.
 keep in mind that some functions may work different than in the original **PDFlib**.
 
+	$pdf = pdf_new();
+
+	pdf_begin_document($pdf, "");
+
+		# returns /Fx where x is integer
+	#	$font = pdf_load_font($pdf, "Verdana", "winansi");
+		$font = pdf_load_font($pdf, "Courier", "winansi");
+
+		# returns /Fx where x is integer but returns error on unloaded font.
+	#	$font = pdf_findfont($pdf, "Verdana");
+
+		# returns /Xx where x is integer
+		$image = pdf_load_image($pdf, "png", "pdf-api-test.png");
+
+		foreach(range(1, 1) as $i)
+			{
+			pdf_begin_page($pdf, 595, 842);
+
+				# use return value of _pdf_add_font as fontname
+				pdf_setfont($pdf, $font, 72);
+
+				pdf_set_leading($pdf, 12);
+				pdf_show_xy($pdf, "ABC " . $i, 3, 3);
+
+				pdf_fit_image($pdf, $image, 20, 20, array("scale" => 10));
+
+			# store loaded resources
+			$page = pdf_end_page($pdf);
+			}
+
+	pdf_end_document($pdf);
+
+	$data = pdf_get_buffer($pdf);
+
+	header("Content-Type: application/pdf");
+	header("Content-Disposition: inline; filename=parse-test.pdf");
+	header("Content-Length: " . strlen($data));
+
+	print($data);
+
 ## compatibility ##
 
 this project can be used to replace **PDFlib** since basic functionality is implemented.
