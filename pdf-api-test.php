@@ -20,7 +20,7 @@ function _pdf_main()
 
 #		_pdf_filter_change($pdf);
 #		_pdf_filter_change($pdf, "/FlateDecode");
-		_pdf_filter_change($pdf, "/ASCIIHexDecode /FlateDecode");
+#		_pdf_filter_change($pdf, "/ASCIIHexDecode /FlateDecode");
 
 #		print_r($pdf); exit;
 
