@@ -268,9 +268,7 @@ function pdf_arc_orient(& $pdf, $x, $y, $r, $alpha, $beta, $orient)
 		}
 
 	if($alpha != $beta)
-		{
 		pdf_arc_short($pdf, $x, $y, $r, $alpha, $beta);
-		}
 	}
 
 ################################################################################
@@ -659,12 +657,21 @@ function pdf_concat(& $pdf, $a, $b, $c, $d, $e, $f)
 
 function pdf_continue_text(& $pdf, $text)
 	{
+	# used by pdf_show_boxed:
+	#  BT will set
+	#  pdf_set_textpos will be used
+	#  pdf_show and pdf_continue_text will be used
+	#  ET will be set
+
+	$pdf["stream"][] = "T*";
+
 	if(! $text)
 		return;
 
+	$text = iconv("UTF-8", "ISO-8859-1", $text);
+
 	$text = str_replace(array("\\", "(", ")"), array("\\\\", "\\(", "\\)"), $text);
 
-	$pdf["stream"][] = "T*";
 	$pdf["stream"][] = sprintf("(%s) Tj", $text);
 	}
 
@@ -764,6 +771,75 @@ function pdf_create_action(& $pdf, $type, $optlist = array())
 
 function pdf_create_annotation(& $pdf, $llx, $lly, $urx, $ury, $type, $optlist = array())
 	{
+#	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
+#		die("_pdf_add_annotation: invalid parent: " . $parent);
+
+	if(in_array($type, array("attachment", "link", "text", "widget")) === false)
+		die("_pdf_add_annotation: invalid type: " . $type);
+
+	$rect = sprintf("[%d %d %d %d]", $llx, $lly, $urx, $ury);
+
+	$annotation_id = _pdf_get_free_object_id($pdf);
+
+	if($type == "attachment")
+		{
+		$pdf["objects"][$annotation_id] = array
+			(
+			"id" => $annotation_id,
+			"version" => 0,
+			"dictionary" => array
+				(
+				"/Type" => "/Annot",
+				"/Rect" => $rect
+				)
+			);
+		}
+
+	if($type == "link")
+		{
+		$pdf["objects"][$annotation_id] = array
+			(
+			"id" => $annotation_id,
+			"version" => 0,
+			"dictionary" => array
+				(
+				"/Type" => "/Annot",
+				"/Rect" => $rect
+				)
+			);
+		}
+
+	if($type == "text")
+		{
+		$pdf["objects"][$annotation_id] = array
+			(
+			"id" => $annotation_id,
+			"version" => 0,
+			"dictionary" => array
+				(
+				"/Type" => "/Annot",
+				"/Rect" => $rect
+				)
+			);
+		}
+
+	$annotation = sprintf("%d 0 R", $whatever_id);
+
+	# apply ...
+#	if(isset($pdf["objects"][$parent_id]["dictionary"]["/Annots"]))
+#		$data = $pdf["objects"][$parent_id]["dictionary"]["/Annots"];
+#	else
+#		$data = "[]";
+
+#	$data = substr($data, 1);
+#	list($annots, $data) = _pdf_parse_array($data);
+#	$data = substr($data, 1);
+
+#	$annots[] = $annotation;
+
+#	$pdf["objects"][$parent_id]["dictionary"]["/Annots"] = sprintf("[%s]", _pdf_glue_array($annots));
+
+	return($annotation);
 	}
 
 ################################################################################
@@ -1913,9 +1989,11 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = array())
 		$plte_stream = "";
 		$data_stream = "";
 
+		# hexdec(bin2hex($a))
+
 		do
 			{
-			$chunk_length = _pdf_read_int($f);
+			$chunk_length = _pdf_read_lng($f);
 			$chunk_type = _pdf_read_str($f, 4);
 			$chunk_data = "";
 
@@ -1925,13 +2003,13 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = array())
 				$data_stream .= _pdf_read_str($f, $chunk_length);
 			elseif($chunk_type == "IHDR")
 				{
-				$width = _pdf_read_int($f);
-				$height = _pdf_read_int($f);
-				$bits_per_component = ord(_pdf_read_str($f, 1));
-				$color_type = ord(_pdf_read_str($f, 1));
-				$compression_method = ord(_pdf_read_str($f, 1));
-				$filter_method = ord(_pdf_read_str($f, 1));
-				$interlacing = ord(_pdf_read_str($f, 1));
+				$width = _pdf_read_lng($f);
+				$height = _pdf_read_lng($f);
+				$bits_per_component = _pdf_read_chr($f);
+				$color_type = _pdf_read_chr($f);
+				$compression_method = _pdf_read_chr($f);
+				$filter_method = _pdf_read_chr($f);
+				$interlacing = _pdf_read_chr($f);
 
 				if($bits_per_component > 0x08)
 					die("pdf_load_image: 16-bit depth not supported: " . $filename);
@@ -1967,7 +2045,7 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = array())
 			else
 				$chunk_data = _pdf_read_str($f, $chunk_length);
 
-			$chunk_crc = _pdf_read_str($f, 4);
+			$chunk_crc = _pdf_read_lng($f);
 			}
 		while($chunk_length);
 
@@ -2906,6 +2984,12 @@ function pdf_set_parameter(& $pdf, $key, $value)
 
 function pdf_set_text_pos(& $pdf, $x, $y)
 	{
+	# used by pdf_show_boxed:
+	#  BT
+	#  pdf_set_text_pos
+	#  pdf_show | pdf_continue_text
+	#  ET
+
 	$pdf["stream"][] = sprintf("%.1f %.1f Td", $x, $y);
 	}
 
@@ -3268,8 +3352,16 @@ function pdf_shfill(& $pdf, $shading)
 
 function pdf_show(& $pdf, $text)
 	{
+	# used by pdf_show_boxed:
+	#  BT
+	#  pdf_set_text_pos
+	#  pdf_show | pdf_continue_text
+	#  ET
+
 	if(! $text)
 		return;
+
+	$text = iconv("UTF-8", "ISO-8859-1", $text);
 
 	$text = str_replace(array("\\", "(", ")"), array("\\\\", "\\(", "\\)"), $text);
 
@@ -3373,7 +3465,7 @@ function pdf_show_xy(& $pdf, $text, $x, $y)
 
 	$pdf["stream"][] = "BT";
 	$pdf["stream"][] = sprintf("%.1f %.1f Td", $x, $y); # pdf_set_text_pos
-	$pdf["stream"][] = sprintf("(%s) Tj", $text);
+	$pdf["stream"][] = sprintf("(%s) Tj", $text); # pdf_show
 	$pdf["stream"][] = "ET";
 	}
 
@@ -3513,7 +3605,14 @@ function pdf_utf32_to_utf16(& $pdf, $utf32string, $ordering)
 # ...
 ################################################################################
 
-function _pdf_read_int($handle)
+function _pdf_read_chr($handle)
+	{
+	$retval = _pdf_read_str($handle, 1);
+
+	return(ord($retval));
+	}
+
+function _pdf_read_lng($handle)
 	{
 	$retval = unpack("Ni", _pdf_read_str($handle, 4));
 
@@ -3540,95 +3639,17 @@ function _pdf_read_str($handle, $length)
 	}
 
 ################################################################################
-# _pdf_add_annotation ( array $pdf , string $parent , string $rect , string $uri ) : string
-################################################################################
-
-function _pdf_add_annotation(& $pdf, $parent, $rect, $type, $optlist)
-	{
-	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
-		die("_pdf_add_annotation: invalid parent: " . $parent);
-
-	if(sscanf($rect, "[%f %f %f %f]", $x, $y, $w, $h) != 4)
-		die("_pdf_add_annotation: invalid rect:" . $rect);
-
-	if(in_array($type, array("attachment", "link", "text", "widget")) === false)
-		die("_pdf_add_annotation: invalid type: " . $type);
-
-	$whatever_id = _pdf_get_free_object_id($pdf);
-
-	if($type == "attachment")
-		{
-		$pdf["objects"][$whatever_id] = array
-			(
-			"id" => $whatever_id,
-			"version" => 0,
-			"dictionary" => array
-				(
-				"/Type" => "/Annot",
-				"/Rect" => $rect
-				)
-			);
-		}
-
-	if($type == "link")
-		{
-		$pdf["objects"][$whatever_id] = array
-			(
-			"id" => $whatever_id,
-			"version" => 0,
-			"dictionary" => array
-				(
-				"/Type" => "/Annot",
-				"/Rect" => $rect
-				)
-			);
-		}
-
-	if($type == "text")
-		{
-		$pdf["objects"][$whatever_id] = array
-			(
-			"id" => $whatever_id,
-			"version" => 0,
-			"dictionary" => array
-				(
-				"/Type" => "/Annot",
-				"/Rect" => $rect
-				)
-			);
-		}
-
-	$whatever = sprintf("%d 0 R", $whatever_id);
-
-	# apply ...
-	if(isset($pdf["objects"][$parent_id]["dictionary"]["/Annots"]))
-		$data = $pdf["objects"][$parent_id]["dictionary"]["/Annots"];
-	else
-		$data = "[]";
-
-	$data = substr($data, 1);
-	list($annots, $data) = _pdf_parse_array($data);
-	$data = substr($data, 1);
-
-	$annots[] = $whatever;
-
-	$pdf["objects"][$parent_id]["dictionary"]["/Annots"] = sprintf("[%s]", _pdf_glue_array($annots));
-
-	return($annot);
-	}
-
-################################################################################
-# _pdf_add_font_definiton ( array $pdf , ... ) : string
+# _pdf_add_font_definiton ( array $pdf , string $encoding , string $differences , ... ) : string
 # pending
 ################################################################################
 
-function _pdf_add_font_definition(& $pdf)
+function _pdf_add_font_definition(& $pdf, $encoding = "builtin", $differences = "")
 	{
-	$encoding = _pdf_add_font_encoding($pdf);
+	$encoding = _pdf_add_font_encoding($pdf, $encoding, $differences);
 
 	$stream = _pdf_add_page_stream($pdf, "");
 
-	$descriptor = _pdf_add_font_descriptor($pdf, "test", "");
+	$descriptor = _pdf_add_font_descriptor($pdf, "test"); # no file
 
 	$whatever_id = _pdf_get_free_object_id($pdf);
 
@@ -3733,7 +3754,7 @@ function _pdf_add_form(& $pdf, $resources, $bbox, $stream)
 	{
 	# check resources for beeing dictionary or pointer to such
 
-	if(sscanf($bbox, "[%f %f %f %f]", $x, $y, $w, $h) != 4)
+	if(sscanf($bbox, "[%d %d %d %d]", $x, $y, $w, $h) != 4)
 		die("_pdf_add_form: invalid bbox:" . $bbox);
 
 	$whatever_id = _pdf_get_free_object_id($pdf);
@@ -3759,6 +3780,7 @@ function _pdf_add_form(& $pdf, $resources, $bbox, $stream)
 
 ################################################################################
 # _pdf_add_pages ( array $pdf , string $parent ) : string
+# this should be an option of add_page to create sub pages
 ################################################################################
 
 function _pdf_add_pages(& $pdf, $parent)
