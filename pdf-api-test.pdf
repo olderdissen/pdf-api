@@ -27,194 +27,33 @@ endobj
 << /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>
 endobj
 10 0 obj
-<< /Length 0 >>
+<< /Length 536 /Filter [/ASCIIHexDecode /FlateDecode] >>
 stream
-%	70 70 469 702 re S
-%	70 70 453 702 re S
-
-	q 0 0 1 RG 70 742 m 539 742 l 70 70 m 539 70 l S Q
-
-	q 0.254 0 0 0.254 510 756 cm /logo Do Q
-
-	BT
-		/schrift_fett 10 Tf
-
-		70 756 Td (HOW TO CREATE PDF-FILES BY HAND) Tj
-	ET
-
-	BT
-		/schrift_normal 8 Tf
-
-		70 56 Td (Copyright © 1998 - 2019 by Markus Olderdissen. Alle Rechte vorbehalten. Keine unerlaubte Vervielfältigung.) Tj
-	ET
-
-	12 TL
+78da654ecb4ec240145db75f713624baa0b485025d16286244aa65a27165fab87de8d0ea744ac227f95f7e8843c16062ee4deec979e5f6b48909b5a3b1ab8e0d41d8eabd5fd2195e485dfb84a9c64278731427231b3b3843b7431ca7c8993115b1c5e32964d8cea88b9e906329a73346b2c380d7798d45dd39674cd7b4419314a2cce46b4652423959a6a4ee1f156129ae56c133588079e87bccc7c362d95fdeaefd2d662f58799bc535d89baef9ec5f61558b5dc431bd349e0be7f5c741947921f105cb75a7e8c3362d17f101f791786f1b043c2591964d4395018f734248492109fb5ac454445c1e853b2a2b425b91e0511b2bf589c4be249e7d7359e66d951b7f7eb36cb0f50faab06226
 endstream
 endobj
 11 0 obj
-<< /Length 0 >>
+<< /Length 1376 /Filter [/ASCIIHexDecode /FlateDecode] >>
 stream
-BT
-		/schrift_normal 10 Tf
-
-		70 720 Td (in this article i will describe how to create pdf-file by hand with a regular text-editor. i will show different) Tj T* (very easy concepts, depending on which operating system is used.) Tj
-
-		/schrift_fett 10 Tf
-
-		T* T* (format) Tj
-
-		/schrift_normal 10 Tf
-
-		14 -28 Td (the format of pdf-file can be explained quick. a clean pdf-file contains:) Tj
-		14 -28 Td (- header \(%PDF-1.0\)) Tj T* [(- objects \(0 0 obj ... end)0(obj\))] TJ T* (- xref \(xref 0 1 0000000000 65535 f\)) Tj T* (- trailer \(trailer << ... >>\)) Tj T* (- startxref \(startxref 0\)) Tj T* (- end of file \(%%EOF\)) Tj
-
-		/schrift_fett 10 Tf
-
-		-28 -28 Td (example) Tj
-
-		/schrift_normal 10 Tf
-
-		14 -28 Td (a non-working minimal file looks like this:) Tj
-
-		/schrift_block 10 Tf
-
-		14 -28 Td (%PDF-1.0) Tj T* (0 0 obj) Tj T* [(end)0(obj)] TJ T* (xref) Tj T* (0 1) Tj T* (0000000000 65535 f) Tj T* (trailer) Tj T* (<< >>) Tj T* (startxref) Tj T* (0) Tj T* (%%EOF) Tj
-
-		/schrift_fett 10 Tf
-
-		-28 -28 Td (content) Tj
-
-		/schrift_normal 10 Tf
-
-		14 -28 Td (various document-viewers in linux are able to view pdf-files without xref and startxref. this is where) Tj T* (pdf-files can be created by hand. adobe pdf-reference shows how to create a minimalistic pdf-file.) Tj
-
-		/schrift_block 8 Tf
-
-		14 -28 Td (%PDF-1.7) Tj T* T* (1 0 obj) Tj
-		14 -14 Td (<< /Type /Catalog /Pages 2 0 R >>) Tj
-		-14 -14 Td [(end)0(obj)] TJ T* T* (2 0 obj) Tj
-		14 -14 Td (<< /Type /Pages /Kids [3 0 R 3 0 R] /Count 2 >>) Tj
-		-14 -14 Td [(end)0(obj)] TJ T* T* (3 0 obj) Tj
-		14 -14 Td (<< /Type /Page /MediaBox [0 0 243 153] /Parent 2 0 R /Resources 4 0 R /Contents 5 0 R >>) Tj
-		-14 -14 Td [(end)0(obj)] TJ
-	ET
+78da9554db4e1b31107d265f312f48a1eade125210427980c243abaa08ed1ba0cab167b3261b7b6b7b49f2f78cf7cab58528d9d83bc77339333e67e9686f2fb23c3732737f94366b564012439a8dc87014c3d1843602c65281cba505669ce40582848d2c0a1068b9910b845c6fc069e00699432845166492608b1de44c0902bb1c18185c560533e070eb0214d2691376aeac77216496a141e50e20bd87f40b8c1fd0ec0099dd01d78a63e9ec578a5aa212522d412bd8e492e7a04b34ccf95776671dae8172ad2c8ad03b1a3d2d3243e7861229848f92f9cadd2bec4b4292430826c735212e47684e81ce868239534074e0b62c985428e06f25f92aa4da8935b20d40ad1c21ec491df499eb007264020ddc8ef7afbe5f064918df1e7484dc90592fee913b4bf61862bf83300c81283988c7b423f01da43feac202d81acc0859ffc59040dc7fe0db6c369d41363827b8338cd2f3b1bbd5e969ed7e3e7f86b38e46a1f53dace36718cac89353d74bb5ec5ffcbe6cecff688827a12302b76c5d16f899b630505a051b6d567e16d652498fac3328b45e5928e40aeb513e79e5765168be7ad36bd786beb696f7a1293df903f59e9027079261fdaa03bda9e5bcdf13f7f379bfeb791e5cf5ab9add4f70ebe7afbd671fe5f68119a92b0b42f36a4d678307891b3416481c0aa9aa2da903025b10d72405ded88fbbad154057ae19472f097d3161a32cf4dde474f7fb8a86b3eda56ac44574a242974ae8452336e4c6cb06c75a46ec0b3962dd20484bead52715be3301c7ef0ec051979ccf2f1966a005d3cf83a96951ba2b11a273e658a197105db125d531a113d76d437d3b86336f0d908f31f97f8cc675f4530a0b37d33a42fdbca3f0ba528ea27e26e2f4631121fa45facdcef4166efc65981c4e21994defbcd5eb775b6b748d565786538687cd8bf366ee2ccc3e4cc668ef227d044a2ce5c2
 endstream
 endobj
 12 0 obj
-<< /Length 0 >>
+<< /Length 1598 /Filter [/ASCIIHexDecode /FlateDecode] >>
 stream
-BT
-		/schrift_block 8 Tf
-
-		98 720 Td (4 0 obj) Tj
-		14 -14 Td (<< /ProcSet [/PDF /Text] /Font << /schrift_normal 6 0 R >> >>) Tj
-		-14 -14 Td [(end)0(obj)] TJ T* T* (5 0 obj) Tj
-		14 -14 Td (<< /Length 0 >>) Tj
-		-14 -14 Td (stream) Tj
-		14 -14 Td (BT) Tj
-		14 -14 Td (70 70 Td) Tj T* (\(hello\) Tj) Tj T* (T*) Tj T* (\(world\) Tj) Tj T* (10 20 Td) Tj T* (\(i like it\) Tj) Tj
-		-14 -14 Td (ET) Tj
-		-14 -14 Td (endstream) Tj T* [(end)0(obj)] TJ T* T* (6 0 obj) Tj
-		14 -14 Td (<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>) Tj
-		-14 -14 Td [(end)0(obj)] TJ T* T* (trailer) Tj
-		14 -14 Td (<< /Root 1 0 R >>) Tj
-
-		/schrift_normal 10 Tf
-
-		-28 -28 Td (line-breaks can be inserted for human readability. comments can also be inserted but need to be) Tj T* (started with % sign. in this example a single page is shown twice.) Tj
-
-		/schrift_fett 10 Tf
-
-		-14 -28 Td (binary data) Tj
-
-		/schrift_normal 10 Tf
-
-		14 -28 Td (binary data can be inserted in hex-encoded form. in this case /Filter /ASCIIHexDecode need to be) Tj T* (inserted in dictionary of object too. binary data need double size in hex-encoded form.) Tj
-
-		/schrift_fett 10 Tf
-
-		-14 -28 Td (live preview) Tj
-
-		/schrift_normal 10 Tf
-
-		14 -28 Td (if this pdf-file is kept open in document-viewer, chances are high, that the document-viewer) Tj T* (recognizes any file modification and reloads the entire pdf-file. in this case, the document-viewer) Tj T* (can be used for a live-preview of what is typed in any regular text-editor.) Tj
-
-		/schrift_fett 10 Tf
-		-14 -28 Td (strategy) Tj
-
-		/schrift_normal 10 Tf
-
-		14 -28 Td (most document-viewers can handle corrupt files because they use a different strategy to read the) Tj T* (pdf-file. under normal circumstances, a document is read from end of file to find startxref to) Tj T* (find xref to find objects.) Tj
-
-		/schrift_fett 10 Tf
-
-		-14 -28 Td (editor) Tj
-
-		/schrift_normal 10 Tf
-
-		14 -28 Td (any simple text-editor can be used to edit pdf-files, as long as they do not contain binary data.) Tj
-	ET
+78da9594df4fdb3010c79fe1afb897490511521003262124182098f68020d21e004d8e7d494c1dbbb21ddaeeafdf5d124aa11d53a5544aefcef7e3735fe73cdbdcd84883acbc2ee2efdc38398263c88a4d327f3b86a3fd21640a06073004973f6f41f64c8ebd0348e8c78e9313486fbd93f718e121bdbdb88234c3697c82f4cad908ec7e4d6e9daf8581434a7507a7a7f4f4e992b77c0f03b46a6b38e05a4f90fd806c9b9fc1d7cfeaff445bc68a2256651c84e851d4cb27cfb365dbd1108e7860f6b4751f07151ae31ed9303766db0bfe89f346bdf7ef0d61ff43160d468f10749c477ee8f2325b6124166fdd73a67fe139fc0c4f361b63bf8ef4bec963fb978d7b909e8b809de71acd0b462d05a497563aa56d09e92f6dcf6cd073c33a2b8b5e68837e754f77ce45d8eb95d0862ccab0570a71ec8498ec1f03fff8b4d116939ca08c0248612127aa36a08fa8a0701eaaa6262bf995c8b5d171b60bd2d535dad8c50b13dcbb437913c122bd44b6cf7716a268dd134dd2fa02419776970e41ac74009c8a7a6c1004d96d492f635152ca00a172138a996889bb4b631518e3c2508ca41f2ad756f8192811c57f61ac3eb6c4825aad709a20afae4353bff52f69ed24096d227a48cfeebfdfdc5ce3f4023976158cc5ac4acba85d5bd815ac3a9491c2dd2e2cb6d32651aec9094ed07f70653f6b1032fa85287b7cd1385907912eba89c7aa480ad2232f6984e3086e8cb61dc7c986d5917066f43b202b612506101ea1d265b54309044d58e1c7d8391e4fe04a4b53d2293b83b64e4d37a6a0ebc4acc8aa4892c60915da44944353fad7a6de2f66e7d35afd9e9bd0eb5d00a3497a34bc9209b74bb9f8a2b71be39e3c968d111e227d9c13543a3aff29fef7f4e92b242296b375c8d72ec48f53745790002b22249df70d6d8209049a490a1a8a679ff1743418012cd0d36978adcfb2e4abcd5173226f141bab48cf7d4f527baa4dd798b7b9c3e9fa5e984d9ba4f0aea6552886d6ee8cb2179afeb7777fea91b4e3e6655a4f6fecc23aed877564dc915f07232f2fe8f66bb3b03b589401f5c3d6b99c78da00c6d1075b840ea872842512721b052962e1a676dd6f5c667f01b2796f88
 endstream
 endobj
 13 0 obj
-<< /Length 0 >>
+<< /Length 1658 /Filter [/ASCIIHexDecode /FlateDecode] >>
 stream
-BT
-		/schrift_fett 10 Tf
-
-		70 720 Td (header) Tj
-
-		/schrift_normal 10 Tf
-
-		14 -28 Td (contains information which standard is being used. valid version number range from 1.0 to 1.7.) Tj
-
-		/schrift_fett 10 Tf
-
-		-14 -28 Td (object) Tj
-
-		/schrift_normal 10 Tf
-
-		14 -28 Td (documents contains multiple objects of different types. an object contains an optional dictionary,) Tj T* (an optional stream or a value.) Tj T* T* (further instructions on how to create pdf-files can be found in adobe pdf-reference.) Tj
-
-		/schrift_fett 10 Tf
-
-		-14 -28 Td (xref) Tj
-
-		/schrift_normal 10 Tf
-
-		14 -28 Td (contains information where each single object in document starts. xref contains two different) Tj T* (things.) Tj
-		14 -28 Td (- start-id and counter) Tj T* (- pointer where object start, its generation number and a marker if the object is used) Tj
-		-14 -28 Td (first element comes first and gives information about how many elements of second type follows) Tj T* (and which objects they belong to.) Tj T* T* (xref can be created manually by counting the size of each object. this can be done by saving) Tj T* (each object into a separate file and get its filesize. adobe pdf-reference can help.) Tj T* T* (a manually created pdf-file can be viewed by adobe pdf-viewer on android without xref. inside) Tj T* (adobe pdf-viewer there is an option to draw something inside the document or apply some text.) Tj T* (this option can be used to let the document-viewer create a correct xref, trailer and startxref.) Tj
-
-		/schrift_fett 10 Tf
-		-14 -28 Td (trailer) Tj
-
-		/schrift_normal 10 Tf
-
-		14 -28 Td (contains information where object with /Type /Catalog is saved and how many objects are) Tj T* (saved in document.) Tj T* T* (trailer should be available to give document-viewers a chance to find object with /Type /Catalog) Tj T* (since it can be placed anywhere inside the document like any other object.) Tj
-
-		/schrift_fett 10 Tf
-
-		-14 -28 Td (dictionary) Tj
-
-		/schrift_normal 10 Tf
-
-		14 -28 Td (contains information about the current object or document. a dictionary is optional in object but) Tj T* (needed in trailer. a dictionary contains key-value-pairs, where the key starts with / in any case.) Tj
-
-		/schrift_fett 10 Tf
-
-		-14 -28 Td (startxref) Tj
-
-		/schrift_normal 10 Tf
-
-		14 -28 Td (contains information about where xref starts.) Tj
-	ET
+78daad95cb6edc300c45d7c95770991663e78102e9ba45ff60f6056dd16325b26448f24ca65f5f52921f93a605826695892c52979787d2b7fdf5d5d56d687bafbbf8b3a318e1fe0ef6dd352f3fdec1e303ffa3e0a62754e43fc1fee97abbdf3a3fa05923eebf40f5f03545b4ce46d43680b69dec8ada5938f5baed2144b40abd021da0216d0f300552351cd1680547f241f6da6968c883477b20e8bc1be0bebe83e8f8cf63fd87924be5d546886b9ea88def91ae5c3b0d646380a5886132518f8620670be03a50baebc8f33e88e791420d68cbe7354e9646299d8f52ba4dbffc79276a60ff196eb6df43f48403380f28564c54cfdb646737f9d8b31f9c35fa29656215167a7712535a8e8d04a3eaaa4e1b62e99cba61e3dc64d9680ba85c93bf7b4ab25b7a8f8b2f1cf501ede783815018e0b62f768abed974a1c34776534e5c8d8c27b71abed8177b4e13721d17c757394dc53c316b9c66b231f39be22a189d969522a9c848313bd0dcdf0359f259750151f2200ce89fa50b1d703716f921115c646c6debb40f11c8502aad75037726af49ba833ed2a543d8b829a69e0e68cf7360c22d109ba1126bdc5563dc296c305265b6663e59dd99fb6f1c4f577417246563331e191b25a74d680c879cb35932955261d0bf484e4f4dcbc96bfea017c094b32451018f1cb328daece7021950e40246f402a9009aeba798cc4ec4f241f55b94a6837a32e34511b84a9e6b98d99f951d359d7899b5ad59d39a97b9e1f3bd633c4e3af6e2b9b852cb746945abafaf0363c2456f065b864f793c41e0e6261e4b9264df42b54cf538b25ad906915e62bda538ccd98a76c149321b76689b67d651c61db959de8bc7227f07d1231b90594d30a7aafe35e697b896f80f1af4d27e71186ef7c2eded778c68dc411c6460284fe782fb0c2ffab50579dbe682b8c0602e38700f8d12e7f0c82bd830066c9f0cd86bef82b8d6a390c53b3acd02fe2e7495a12540c7b941a3c136c93fe75adfeab9d1cfc239d7956eee323defb874d717e3bf3b922f1691d74e3e3d5aa568067371969d598f84054a3e472f4f5b33add7af2552b939a50faf322c4a9ee95ca527ad1a916fbf5d0144e4f0a772e517ffd363c5a6b518def5422dbc7f90575962ba2ccb9394eff71ffbdfff8e0874
 endstream
 endobj
 14 0 obj
-<< /Type /XObject /Subtype /Form /FormType 1 /Resources << /ProcSet [/PDF] >> /BBox [0 0 114 114] /Length 0 >>
+<< /Type /XObject /Subtype /Form /FormType 1 /Resources << /ProcSet [/PDF] >> /BBox [0 0 114 114] /Length 134 /Filter [/ASCIIHexDecode /FlateDecode] >>
 stream
-0.75 g 0 114 m 113 114 l 0 1 l f 0.5 g 1 0 m 114 113 l 114 39 l 75 0 l f 0 g 77 0 m 114 37 l 114 0 l f
+78da33d03337554857305030343451c80592c660560e480448a62918e881e40d81fc5cb00c48450e98656c096400751b40d40155999bc395199b4355816501222514d0
 endstream
 endobj
 xref
@@ -230,12 +69,12 @@ xref
 0000000712 00000 n
 0000000814 00000 n
 0000000909 00000 n
-0000001340 00000 n
-0000003095 00000 n
-0000005203 00000 n
-0000007609 00000 n
+0000001536 00000 n
+0000003004 00000 n
+0000004694 00000 n
+0000006444 00000 n
 trailer
 << /Root 1 0 R /Size 15 >>
 startxref
-7856
+6764
 %%EOF
