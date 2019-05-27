@@ -6,9 +6,9 @@ all data is stored inside an array for easy access.
 each element is accessible, changeable and removable at any time.
 
 supported filters
-* /ASCIIHexDecode (bin2hex, hex2bin)
+* /ASCIIHexDecode (processed by **bin2hex** and **hex2bin**)
 * /ASCII85Decode
-* /FlateDecode (gzcompress, gzuncompress)
+* /FlateDecode (processed by **gzcompress** and **gzuncompress**)
 * /LZWDecode
 
 supported image formats
