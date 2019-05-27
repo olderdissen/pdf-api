@@ -24,10 +24,6 @@ define("FONTDESCRIPTOR_FLAG_FORCEBOLD", 1 << 19);
 
 function pdf_activate_item(& $pdf, $id)
 	{
-	if(isset($pdf["objects"][$id]) === false)
-		die("pdf_activate_item: item do not exist.");
-
-	$pdf["active-item"] = $id;
 	}
 
 ################################################################################
@@ -384,11 +380,10 @@ function pdf_begin_document(& $pdf, $filename, $optlist = array())
 	$pages = _pdf_add_pages($pdf, $catalog);
 
 	$pdf["catalog"] = $catalog;
+	$pdf["filename"] = $filename;
+	$pdf["loaded-resources"] = array("/ProcSet" => array("/PDF", "/Text"));
 	$pdf["outlines"] = $outlines;
 	$pdf["pages"] = $pages;
-	$pdf["filename"] = $filename;
-
-	$pdf["loaded-resources"] = array();
 	}
 
 ################################################################################
@@ -471,12 +466,12 @@ function pdf_begin_page(& $pdf, $width, $height)
 
 function pdf_begin_page_ext(& $pdf, $width, $height, $optlist = array())
 	{
-	$pdf["width"] = $width;
 	$pdf["height"] = $height;
 	$pdf["stream"] = array();
+	$pdf["width"] = $width;
 
 	# reset storage of used resources
-	$pdf["used-resources"] = array();
+	$pdf["used-resources"] = array("/ProcSet" => array("/PDF", "/Text"));
 	}
 
 ################################################################################
@@ -497,9 +492,9 @@ function pdf_begin_pattern(& $pdf, $width, $height, $xstep, $ystep, $painttype)
 
 function pdf_begin_template_ext(& $pdf, $width, $height, $optlist = array())
 	{
-	$pdf["width"] = $width;
 	$pdf["height"] = $height;
 	$pdf["stream"] = array();
+	$pdf["width"] = $width;
 
 	# reset storage of used resources
 	$pdf["used-resources"] = array();
@@ -931,17 +926,17 @@ function pdf_end_document(& $pdf, $optlist = array())
 	$info = sprintf("%d 0 R", $info_id);
 
 	# remove widths on core fonts
-	if(isset($pdf["loaded-resources"]["fonts"]))
-		foreach($pdf["loaded-resources"]["fonts"] as $index_id => $object)
+	if(isset($pdf["loaded-resources"]["/Font"]))
+		foreach($pdf["loaded-resources"]["/Font"] as $index => $object)
 			if(sscanf($object, "%d %d R", $object_id, $object_version) == 2)
 				if($pdf["objects"][$object_id]["dictionary"]["/Subtype"] == "/Type1")
 					foreach(array("/FirstChar", "/LastChar", "/Widths") as $key)
 						unset($pdf["objects"][$object_id]["dictionary"][$key]);
 			
-	# apply additional settings to created object
+	# apply additional settings to info object
 	if(isset($pdf["info"]))
 		foreach($pdf["info"] as $key => $value)
-			$pdf["objects"][$info_id]["dictionary"]["/" . ucfirst($key)] = sprintf("(%s)", $value);
+			$pdf["objects"][$info_id]["dictionary"][$key] = $value;
 
 	# apply location of info
 	$pdf["objects"][0]["dictionary"]["/Info"] = $info;
@@ -1020,32 +1015,14 @@ function pdf_end_page(& $pdf)
 
 function pdf_end_page_ext(& $pdf, $optlist = array())
 	{
-	# this is default if something went wrong
-	$resources = array("/ProcSet" => array("/PDF", "/Text"));
-
-	# translate used data
-	if(isset($pdf["used-resources"]["procset"]))
-		foreach($pdf["used-resources"]["procset"] as $object)
-			$resources["/ProcSet"][] = $object;
-
-	if(isset($pdf["used-resources"]["fonts"]))
-		foreach($pdf["used-resources"]["fonts"] as $index_id => $object)
-			$resources["/Font"]["/F" . $index_id] = $object;
-
-	if(isset($pdf["used-resources"]["images"]))
-		foreach($pdf["used-resources"]["images"] as $index_id => $object)
-			$resources["/XObject"]["/X" . $index_id] = $object;
-
 	# glue resources
 	foreach(array("/ProcSet") as $type)
-		if(isset($resources[$type]))
-			$resources[$type] = sprintf("[%s]", _pdf_glue_array($resources[$type]));
+		if(isset($pdf["used-resources"][$type]))
+			$pdf["used-resources"][$type] = sprintf("[%s]", _pdf_glue_array($pdf["used-resources"][$type]));
 
 	foreach(array("/Font", "/XObject") as $type)
-		if(isset($resources[$type]))
-			$resources[$type] = sprintf("<< %s >>", _pdf_glue_dictionary($resources[$type]));
-
-	# todo: check /ImageB /ImageC /ImageI for "obsolete" /ProcSet
+		if(isset($pdf["used-resources"][$type]))
+			$pdf["used-resources"][$type] = sprintf("<< %s >>", _pdf_glue_dictionary($pdf["used-resources"][$type]));
 
 	$contents = _pdf_add_stream($pdf, implode(" ", $pdf["stream"]));
 
@@ -1060,7 +1037,7 @@ function pdf_end_page_ext(& $pdf, $optlist = array())
 			(
 			"/Type" => "/Page",
 			"/Parent" => $pdf["pages"],
-			"/Resources" => sprintf("<< %s >>", _pdf_glue_dictionary($resources)),
+			"/Resources" => sprintf("<< %s >>", _pdf_glue_dictionary($pdf["used-resources"])),
 			"/MediaBox" => sprintf("[%d %d %d %d]", 0, 0 , $pdf["width"], $pdf["height"]),
 			"/Contents" => $contents
 			)
@@ -1211,21 +1188,21 @@ function pdf_findfont(& $pdf, $fontname, $encoding = "builtin", $embed = 0)
 	if(in_array($encoding, array("builtin", "winansi", "macroman", "macexpert")) === false)
 		die("pdf_findfont: invalid encoding.");
 
-	$font_id = 0;
+	$font = "/F0";
 
-	if(isset($pdf["loaded-resources"]["fonts"]))
-		foreach($pdf["loaded-resources"]["fonts"] as $index_id => $object)
+	if(isset($pdf["loaded-resources"]["/Font"]))
+		foreach($pdf["loaded-resources"]["/Font"] as $index => $object)
 			if(sscanf($object, "%d %d R", $object_id, $object_version) == 2)
 				if($pdf["objects"][$object_id]["dictionary"]["/BaseFont"] == "/" . $fontname)
-					$font_id = $index_id;
+					$font = $index;
 
-	if($font_id == 0)
+	if($font == "/F0")
 		if($embed == 1)
 			return(pdf_load_font($pdf, $fontname, $encoding, array("embed" => $embed)));
 		else
 			die("pdf_findfont: font not found.");
 
-	return("/F" . $font_id);
+	return($font);
 	}
 
 ################################################################################
@@ -1237,21 +1214,26 @@ function pdf_findfont(& $pdf, $fontname, $encoding = "builtin", $embed = 0)
 
 function pdf_fit_image(& $pdf, $image, $x, $y, $optlist = array())
 	{
-	if(sscanf($image, "/X%d", $index_id) != 1)
+	if(sscanf($image, "/X%d", $whatever) != 1)
 		die("pdf_fit_image: invalid image."); # default format in pdf-api.php
 
-	if(isset($pdf["loaded-resources"]["images"]) === false)
+	if(isset($pdf["loaded-resources"]["/XObject"][$image]) === false)
 		die("pdf_fit_image: no images loaded.");
 
 	# remember loaded resource as used resource
-	$object = $pdf["loaded-resources"]["images"][$index_id];
-	$pdf["used-resources"]["images"][$index_id] = $object;
+	$object = $pdf["loaded-resources"]["/XObject"][$image];
+	$pdf["used-resources"]["/XObject"][$image] = $object;
 
 	if(sscanf($object, "%d %d R", $object_id, $object_version) != 2)
 		die("pdf_fit_image: invalid image.");
 
+	# get dimensions of image
 	$w = $pdf["objects"][$object_id]["dictionary"]["/Width"];
 	$h = $pdf["objects"][$object_id]["dictionary"]["/Height"];
+
+	if($pdf["objects"][$object_id]["dictionary"]["/ColorSpace"] == "/Indexed")
+		if(in_array("/ImageI", $pdf["used-resources"]["/ProcSet"]) === false)
+			$pdf["used-resources"]["/ProcSet"][] = "/ImageI";
 
 	pdf_save($pdf);
 	$pdf["stream"][] = sprintf("%.1f %.1f %.1f %.1f %.1f %.1f cm", $w * $optlist["scale"], 0, 0, $h * $optlist["scale"], $x, $y);
@@ -1428,7 +1410,38 @@ function pdf_get_minorversion()
 
 function pdf_get_parameter(& $pdf, $key, $modifier)
 	{
-	return($pdf[$key]);
+	switch($key)
+		{
+		case("fontname"):
+			# check if font-alias is valid
+			if(sscanf($modifier, "/F%d", $whatever) != 1)
+				die("pdf_get_value: invalid font: " . $modifier);
+
+			# check if font-alias is loaded
+			if(isset($pdf["loaded-resources"]["/Font"][$modifier]) === false)
+				die("pdf_get_value: font not loaded: " . $modifier);
+
+			# get object of font
+			$object = $pdf["loaded-resources"]["/Font"][$modifier];
+
+			# check if font-resource is valid
+			if(sscanf($object, "%d %d R", $object_id, $object_version) != 2)
+				die("pdf_get_value: invalid resource: " . $object);
+
+			# check if font-resource is valid
+			if(isset($pdf["objects"][$object_id]["dictionary"]["/BaseFont"]) === false)
+				die("pdf_get_value: invalid resource: " . $object);
+
+			$basefont = $pdf["objects"][$object_id]["dictionary"]["/BaseFont"];
+
+			# check if font-name is valid
+			if(sscanf($basefont, "/%s", $whatever) != 1)
+				die("pdf_get_value: invalid name: " . $whatever);
+
+			return($whatever);
+		default:
+			die("pdf_get_parameter: invalid key: " . $key);
+		}
 	}
 
 ################################################################################
@@ -1470,48 +1483,115 @@ function pdf_get_value(& $pdf, $key, $modifier)
 	switch($key)
 		{
 		case("font"):
-			return($pdf[$key]);
-		case("fontname"):
-			if(sscanf($modifier, "/F%d", $index_id) != 1)
-				die("pdf_get_value: invalid modifier: " . $modifier);
+			# check if font is set
+			if(isset($pdf["font"]) === false)
+				die("pdf_get_value: font not set.");
 
-			$object = $pdf["loaded-resources"]["fonts"][$index_id];
+			# get font-alias
+			$font = $pdf["font"];
 
-			if(sscanf($object, "%d %d R", $object_id, $object_version) != 2)
-				die("pdf_get_value: invalid resource: " . $object);
+			# check if font-alias is valid
+			if(sscanf($font, "/F%d", $whatever) != 1)
+				die("pdf_get_value: invalid font:" . $font);
 
-			$b = $pdf["objects"][$object_id]["dictionary"]["/BaseFont"];
-
-			if(sscanf($b, "/%s", $b_name) != 1)
-				die("pdf_get_value: invalid name: " . $b);
-
-			return($b_name);
+			# /Fx instead of x
+			return($font);
 		case("fontsize"):
-			return($pdf[$key]);
+			# check if fontsize is set
+			if(isset($pdf["fontsize"]) === false)
+				die("pdf_get_value: fontsize not set.");
+
+			# get fontsize
+			$fontsize = $pdf["fontsize"];
+
+			# check if fontsize is valid
+			if(is_numeric($fontsize) === false)
+				die("pdf_get_value: invalid fontsize: " . $fontsize);
+
+			return($fontsize);
 		case("imageheight"):
-			if(sscanf($modifier, "/X%d", $index_id) != 1)
-				die("pdf_get_value: invalid modifier: " . $modifier);
+			# check if image-alias is valid
+			if(sscanf($modifier, "/X%d", $whatever) != 1)
+				die("pdf_get_value: invalid image: " . $modifier);
 
-			$object = $pdf["loaded-resources"]["images"][$index_id];
+			# check if image-alias is loaded
+			if(isset($pdf["loaded-resources"]["/XObject"][$modifier]) === false)
+				die("pdf_get_value: image not loaded.");
 
+			# get object of image
+			$object = $pdf["loaded-resources"]["/XObject"][$modifier];
+
+			# check if image-resource is valid
 			if(sscanf($object, "%d %d R", $object_id, $object_version) != 2)
 				die("pdf_get_value: invalid resource: " . $object);
 
-			return($pdf["objects"][$object_id]["dictionary"]["/Height"]);
+			# check if image-resource is valid
+			if(isset($pdf["objects"][$object_id]["dictionary"]["/Height"]) === false)
+				die("pdf_get_value: invalid resource: " . $object);
+
+			# get imageheight
+			$height = $pdf["objects"][$object_id]["dictionary"]["/Height"];
+
+			if(is_numeric($height) === false)
+				die("pdf_get_value: invalid value.");
+
+			return($height);
 		case("imagewidth"):
-			if(sscanf($modifier, "/X%d", $index_id) != 1)
-				die("pdf_get_value: invalid modifier: " . $modifier);
+			# check if image-alias is valid
+			if(sscanf($modifier, "/X%d", $whatever) != 1)
+				die("pdf_get_value: invalid image: " . $modifier);
 
-			$object = $pdf["loaded-resources"]["images"][$index_id];
+			# check if image is loaded
+			if(isset($pdf["loaded-resources"]["/XObject"][$modifier]) === false)
+				die("pdf_get_value: image not loaded.");
 
+			# get object of image
+			$object = $pdf["loaded-resources"]["/XObject"][$modifier];
+
+			# check if image-resource is valid
 			if(sscanf($object, "%d %d R", $object_id, $object_version) != 2)
-				die("pdf_get_value: invalid rseource: " . $object);
+				die("pdf_get_value: invalid resource: " . $object);
 
-			return($pdf["objects"][$object_id]["dictionary"]["/Width"]);
+			# check if image-resource is valid
+			if(isset($pdf["objects"][$object_id]["dictionary"]["/Width"]) === false)
+				die("pdf_get_value: invalid resource: " . $object);
+
+			# get imagewidth
+			$width = $pdf["objects"][$object_id]["dictionary"]["/Width"];
+
+			# check if imagewidth is valid
+			if(is_numeric($width) === false)
+				die("pdf_get_value: invalid value.");
+
+			return($width);
 		case("major"):
-			return($pdf["major"]);
+			# check if major-version is set
+			if(isset($pdf["major"]) === false)
+				die("pdf_get_value: version not found.");
+
+			# get major-version
+			$major = $pdf["major"];
+
+			# check if major version is valid
+			if(is_numeric($major) === false)
+				die("pdf_get_value: invalid version.");
+
+			return($major);
 		case("minor"):
-			return($pdf["minor"]);
+			# check if minor-version is set
+			if(isset($pdf["minor"]) === false)
+				die("pdf_get_value: version not found.");
+
+			# get minor-version
+			$minor = $pdf["minor"];
+
+			# check if minor-version is valid
+			if(is_numeric($minor) === false)
+				die("pdf_get_value: invalid version.");
+
+			return($minor);
+		default:
+			die("pdf_get_value: invalid key: " . $key);
 		}
 	}
 
@@ -1649,12 +1729,12 @@ function pdf_load_font(& $pdf, $fontname, $encoding = "builtin", $optlist = arra
 		$pdf["objects"][$font_id]["dictionary"]["/LastChar"] = 0xFF;
 		$pdf["objects"][$font_id]["dictionary"]["/Widths"] = sprintf("[%s]", _pdf_glue_array(array_slice($object["widths"], 0x20, 0xE0)));
 
-		$index_id = _pdf_get_free_font_id($pdf);
+		$index = _pdf_get_free_font_id($pdf);
 
-		$pdf["loaded-resources"]["fonts"][$index_id] = $font;
-		$pdf["used-resources"]["fonts"][$index_id] = $font;
+		$pdf["loaded-resources"]["/Font"][$index] = $font;
+		$pdf["used-resources"]["/Font"][$index] = $font;
 
-		return("/F" . $index_id);
+		return($index);
 		}
 
 	################################################################################
@@ -1721,12 +1801,12 @@ function pdf_load_font(& $pdf, $fontname, $encoding = "builtin", $optlist = arra
 	$pdf["objects"][$font_id]["dictionary"]["/LastChar"] = 0xFF;
 	$pdf["objects"][$font_id]["dictionary"]["/Widths"] = sprintf("[%s]", _pdf_glue_array($widths));
 
-	$index_id = _pdf_get_free_font_id($pdf);
+	$index = _pdf_get_free_font_id($pdf);
 
-	$pdf["loaded-resources"]["fonts"][$index_id] = $font;
-	$pdf["used-resources"]["fonts"][$index_id] = $font;
+	$pdf["loaded-resources"]["/Font"][$index] = $font;
+	$pdf["used-resources"]["/Font"][$index] = $font;
 
-	return("/F" . $index_id);
+	return($index);
 	}
 
 ################################################################################
@@ -1826,7 +1906,7 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = array())
 		if(($f = fopen($filename, "rb")) === false)
 			die("pdf_load_image: invalid file: " . $filename);
 
-		if(_readstream($f, 8) != "\x89PNG\x0D\x0A\x1A\x0A")
+		if(_pdf_read_str($f, 8) != "\x89PNG\x0D\x0A\x1A\x0A")
 			die("pdf_load_image: invalid file: " . $filename);
 
 		$trns_stream = array();
@@ -1835,23 +1915,23 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = array())
 
 		do
 			{
-			$chunk_length = _readint($f);
-			$chunk_type = _readstream($f, 4);
+			$chunk_length = _pdf_read_int($f);
+			$chunk_type = _pdf_read_str($f, 4);
 			$chunk_data = "";
 
 			if($chunk_type == "PLTE")
-				$plte_stream .= _readstream($f, $chunk_length);
+				$plte_stream .= _pdf_read_str($f, $chunk_length);
 			elseif($chunk_type == "IDAT")
-				$data_stream .= _readstream($f, $chunk_length);
+				$data_stream .= _pdf_read_str($f, $chunk_length);
 			elseif($chunk_type == "IHDR")
 				{
-				$width = _readint($f);
-				$height = _readint($f);
-				$bits_per_component = ord(_readstream($f, 1));
-				$color_type = ord(_readstream($f, 1));
-				$compression_method = ord(_readstream($f, 1));
-				$filter_method = ord(_readstream($f, 1));
-				$interlacing = ord(_readstream($f, 1));
+				$width = _pdf_read_int($f);
+				$height = _pdf_read_int($f);
+				$bits_per_component = ord(_pdf_read_str($f, 1));
+				$color_type = ord(_pdf_read_str($f, 1));
+				$compression_method = ord(_pdf_read_str($f, 1));
+				$filter_method = ord(_pdf_read_str($f, 1));
+				$interlacing = ord(_pdf_read_str($f, 1));
 
 				if($bits_per_component > 0x08)
 					die("pdf_load_image: 16-bit depth not supported: " . $filename);
@@ -1868,28 +1948,26 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = array())
 			elseif($chunk_type == "IEND")
 				break;
 			elseif($chunk_type == "bKGD")
-				$chunk_data = _readstream($f, $chunk_length);
+				$chunk_data = _pdf_read_str($f, $chunk_length);
 			elseif($chunk_type == "pHYs")
-				$chunk_data = _readstream($f, $chunk_length);
+				$chunk_data = _pdf_read_str($f, $chunk_length);
 			elseif($chunk_type == "tEXt")
-				$chunk_data = _readstream($f, $chunk_length);
+				$chunk_data = _pdf_read_str($f, $chunk_length);
 			elseif($chunk_type == "tIMe")
-				$chunk_data = _readstream($f, $chunk_length);
+				$chunk_data = _pdf_read_str($f, $chunk_length);
 			elseif($chunk_type == "tRNS")
 				{
-				$chunk_data = _readstream($f, $chunk_length);
+				$chunk_data = _pdf_read_str($f, $chunk_length);
 
-				if($color_type == 0)
-					$trns_stream[] = array(ord($chunk_data[1]));
-				elseif($color_type == 2)
-					$trns_stream[] = array(ord($chunk_data[1]), ord($chunk_data[3]), ord($chunk_data[5]));
-				elseif($pos = strpos($chunk_data, chr(0)))
-					$trns_stream[] = array($pos);
+				if($color_type & 0x02)
+					$trns_stream[] = array(ord($chunk_data[0]));
+				else
+					$trns_stream[] = array(ord($chunk_data[1]), ord($chunk_data[3]), ord($chunk_data[5])); # 135 or 012
 				}
 			else
-				$chunk_data = _readstream($f, $chunk_length);
+				$chunk_data = _pdf_read_str($f, $chunk_length);
 
-			$chunk_crc = _readstream($f, 4);
+			$chunk_crc = _pdf_read_str($f, 4);
 			}
 		while($chunk_length);
 
@@ -1905,20 +1983,16 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = array())
 			$color_stream = "";
 			$alpha_stream = "";
 
-			if($color_type == 4)
-				list($width_index, $width_char) = array(2 * $width, 1);
-			else
-				list($width_index, $width_char) = array(4 * $width, 3);
+			$colors = ($color_type & 0x02 ? 3 : 1);
 
-			for($height_index = 0; $height_index < $height; $height_index = $height_index + 1)
+			for($m = 0; $m < $height; $m = $m + 1)
 				{
-				$temp_index = $height_index * ($width_index + 1);
+				$x = $width * ($colors + 1);
+				$y = $m * ($x + 1);
+				$z = substr($data_stream, $y + 1, $x);
 
-				$alpha_stream .= $data_stream[$temp_index];
-				$alpha_stream .= preg_replace("/.{" . $width_char . "}(.)/s", "$1", substr($data_stream, $temp_index + 1, $width_index));
-
-				$color_stream .= $data_stream[$temp_index];
-				$color_stream .= preg_replace("/(.{" . $width_char . "})./s", "$1", substr($data_stream, $temp_index + 1, $width_index));
+				$alpha_stream .= $data_stream[$y] . preg_replace("/.{" . $colors . "}(.)/s", "$1", $z);
+				$color_stream .= $data_stream[$y] . preg_replace("/(.{" . $colors . "})./s", "$1", $z);
 				}
 
 			$alpha_stream = gzcompress($alpha_stream, 9); # full power
@@ -1943,14 +2017,14 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = array())
 					# The source format for an image shall be described by four parameters:
 					"/Width" => $width,
 					"/Height" => $height,
-					"/ColorSpace" => "/DeviceGray",
-					"/BitsPerComponent" => 8,
+					"/ColorSpace" => "/DeviceGray", # ???
+					"/BitsPerComponent" => $bits_per_component,
 
 					"/DecodeParms" => array
 						(
 						"/Predictor" => 15,
-						"/Colors" => 1,
-						"/BitsPerComponent" => 8,
+						"/Colors" => 0, # ???
+						"/BitsPerComponent" => $bits_per_component,
 						"/Columns" => $width
 						),
 
@@ -1981,13 +2055,13 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = array())
 				# The source format for an image shall be described by four parameters:
 				"/Width" => $width,
 				"/Height" => $height,
-				"/ColorSpace" => ($color_type & 0x01 ? "/Indexed" : ($color_type & 0x02 ? "/DeviceRGB" : "/DeviceGray")),
+				"/ColorSpace" => ($color_type & 0x02 ? "/DeviceRGB" : "/DeviceGray"),
 				"/BitsPerComponent" => $bits_per_component,
 
 				"/DecodeParms" => array
 					(
 					"/Predictor" => 15,
-					"/Colors" => ($color_type & 0x02 ? 3 : 1),
+					"/Colors" => ($color_type & 0x01 ? 1 : ($color_type & 0x02 ? 3 : 1)),
 					"/BitsPerComponent" => $bits_per_component,
 					"/Columns" => $width
 					),
@@ -1999,7 +2073,7 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = array())
 			);
 
 		# RGB with palette
-		if(($color_type & 0x01) && ($color_type & 0x03))
+		if($color_type & 0x01)
 			$pdf["objects"][$image_id]["dictionary"]["/ColorSpace"] = sprintf("[/Indexed /DeviceRGB %d %s]", strlen($plte_stream) / 3 - 1, $p);
 
 		# alpha channel
@@ -2012,7 +2086,7 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = array())
 			$mask = array();
 
 			foreach($trns_stream as $t)
-				$mask[] = implode(" ", array($t, $t));
+				$mask[] = implode(" ", array($t[0], $t[0])); # this is 1? check for 3!
 
 			$pdf["objects"][$image_id]["dictionary"]["/Mask"] = sprintf("[%s]", _pdf_glue_array($mask));
 			}
@@ -2033,11 +2107,11 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = array())
 		return($index);
 		}
 
-	$index_id = _pdf_get_free_xobject_id($pdf);
+	$index = _pdf_get_free_xobject_id($pdf);
 
-	$pdf["loaded-resources"]["images"][$index_id] = $image;
+	$pdf["loaded-resources"]["/XObject"][$index] = $image;
 
-	return("/X" . $index_id);
+	return($index);
 	}
 
 ################################################################################
@@ -2071,7 +2145,7 @@ function pdf_moveto(& $pdf, $x, $y)
 
 function pdf_new()
 	{
-	# define standard font
+	# define standard font (compression can save 10 kb)
 	$fonts = array
 		(
 		array
@@ -2326,14 +2400,25 @@ function pdf_new()
 			)
 		);
 
-	
+	# finally our "pseudo-class"
 	$retval = array
 		(
 		"apiname" => sprintf("%s %d.%d.%d (PHP/%s)", basename(__FILE__), 1, 0, 0, PHP_OS),
 		"builtin-fonts" => $fonts,
+		"catalog" => "0 0 R",
+		"filename" => "",
+		"font" => "/F0",
+		"fontsize" => 0,
+		"height" => 0,
+		"loaded-resources" => array(),
 		"major" => 1,
 		"minor" => 3,
-		"objects" => array(array("id" => 0, "version" => 65535, "dictionary" => array("/Size" => 0)))
+		"objects" => array(array("id" => 0, "version" => 65535, "dictionary" => array("/Size" => 0))),
+		"outlines" => "0 0 R",
+		"pages" => "0 0 R",
+		"stream" => array(),
+		"used-resources" => array(),
+		"width" => 0
 		);
 
 	return($retval);
@@ -2707,19 +2792,20 @@ function pdf_set_info(& $pdf, $key, $value)
 	{
 	$table = array
 		(
-		"author",
-		"creator",
-		"keywords",
-		"subject",
-		"title"
+		"Author",
+		"Creator",
+		"Keywords",
+		"Subject",
+		"Title"
 		);
 
-	if(in_array(strtolower($key), $table) === false)
+	# check if option can be set
+	if(in_array($key, $table) === false)
 		die("pdf_set_info: invalid key: " . $key);
 
 	$value = iconv("UTF-8", "ISO-8859-1", $value);
 
-	$pdf["info"][$key] = $value;
+	$pdf["info"]["/" . $key] = sprintf("(%s)", $value);
 	}
 
 ################################################################################
@@ -2729,7 +2815,7 @@ function pdf_set_info(& $pdf, $key, $value)
 
 function pdf_set_info_author(& $pdf, $value)
 	{
-	pdf_set_info($pdf, "author", $value);
+	pdf_set_info($pdf, "Author", $value);
 	}
 
 ################################################################################
@@ -2739,7 +2825,7 @@ function pdf_set_info_author(& $pdf, $value)
 
 function pdf_set_info_creator(& $pdf, $value)
 	{
-	pdf_set_info($pdf, "creator", $value);
+	pdf_set_info($pdf, "Creator", $value);
 	}
 
 ################################################################################
@@ -2749,7 +2835,7 @@ function pdf_set_info_creator(& $pdf, $value)
 
 function pdf_set_info_keywords(& $pdf, $value)
 	{
-	pdf_set_info($pdf, "keywords", $value);
+	pdf_set_info($pdf, "Keywords", $value);
 	}
 
 ################################################################################
@@ -2759,7 +2845,7 @@ function pdf_set_info_keywords(& $pdf, $value)
 
 function pdf_set_info_subject(& $pdf, $value)
 	{
-	pdf_set_info($pdf, "subject", $value);
+	pdf_set_info($pdf, "Subject", $value);
 	}
 
 ################################################################################
@@ -2769,7 +2855,7 @@ function pdf_set_info_subject(& $pdf, $value)
 
 function pdf_set_info_title(& $pdf, $value)
 	{
-	pdf_set_info($pdf, "title", $value);
+	pdf_set_info($pdf, "Title", $value);
 	}
 
 ################################################################################
@@ -2867,10 +2953,10 @@ function pdf_set_value(& $pdf, $key, $value)
 		);
 
 	if(isset($table[$key]) === false)
-		die("pdf_set_value: invalid key.");
+		die("pdf_set_value: invalid key: " . $key);
 
 	if(is_numeric($value) === false)
-		die("pdf_set_value: invalid value.");
+		die("pdf_set_value: invalid value: " . $value);
 
 	$pdf["stream"][] = sprintf("%.1f %s", $value, $table[$key]);
 	}
@@ -2958,19 +3044,19 @@ function pdf_setflat(& $pdf, $flatness)
 function pdf_setfont(& $pdf, $font, $fontsize)
 	{
 	# workaround to allow fontname (Helvetica) instead of its alias (/Fx)
-	if(sscanf($font, "/F%d", $index_id) != 1)
+	if(sscanf($font, "/F%d", $whatever) != 1)
 		$font = pdf_findfont($pdf, $font, "winansi", 1);
 
 	# one step above the alias was checked
-	if(sscanf($font, "/F%d", $index_id) != 1)
+	if(sscanf($font, "/F%d", $iwhatever) != 1)
 		die("pdf_setfont: invalid font.");
 
 	# check if font is loaded
-	if(isset($pdf["loaded-resources"]["fonts"][$index_id]) === false)
+	if(isset($pdf["loaded-resources"]["/Font"][$font]) === false)
 		die("pdf_setfont: font not loaded.");
 
 	# remember loaded font as used font
-	$pdf["used-resources"]["fonts"][$index_id] = $pdf["loaded-resources"]["fonts"][$index_id];
+	$pdf["used-resources"]["/Font"][$font] = $pdf["loaded-resources"]["/Font"][$font];
 	
 	# used by pdf_stringwidth
 	$pdf["font"] = $font;
@@ -3317,7 +3403,7 @@ function pdf_stringwidth(& $pdf, $text, $font, $fontsize)
 	if(! $text)
 		return(0);
 
-	if(sscanf($font, "/F%d", $index_id) != 1)
+	if(sscanf($font, "/F%d", $whatever) != 1)
 		die("pdf_setfont: invalid font.");
 
 	if($fontsize == 0)
@@ -3325,7 +3411,7 @@ function pdf_stringwidth(& $pdf, $text, $font, $fontsize)
 
 	$text = iconv("UTF-8", "ISO-8859-1", $text);
 
-	if(sscanf($pdf["loaded-resources"]["fonts"][$index_id], "%d %d R", $object_id, $object_version) != 2)
+	if(sscanf($pdf["loaded-resources"]["/Font"][$font], "%d %d R", $object_id, $object_version) != 2)
 		die("pdf_setfont: invalid font.");
 
 	$a = $pdf["objects"][$object_id]["dictionary"]["/Widths"];
@@ -3427,28 +3513,28 @@ function pdf_utf32_to_utf16(& $pdf, $utf32string, $ordering)
 # ...
 ################################################################################
 
-function _readint($handle)
+function _pdf_read_int($handle)
 	{
-	$retval = unpack("Ni", _readstream($handle, 4));
+	$retval = unpack("Ni", _pdf_read_str($handle, 4));
 
 	return($retval["i"]);
 	}
 
-function _readstream($handle, $length)
+function _pdf_read_str($handle, $length)
 	{
 	$retval = "";
 
 	while(($length > 0) && (feof($handle) === false))
 		{
 		if(($chunk = fread($handle, $length)) === false)
-			die("_readstream: error while reading stream.");
+			die("_pdf_read_str: error while reading stream.");
 
 		$length -= strlen($chunk);
 		$retval .= $chunk;
 		}
 
 	if($length)
-		die("_readstream: unexpected end of stream.");
+		die("_pdf_read_str: unexpected end of stream.");
 
 	return($retval);
 	}
@@ -4142,11 +4228,11 @@ function _pdf_filter_rle_encode($data)
 
 function _pdf_get_free_font_id(& $pdf, $index_id = 1)
 	{
-	if(isset($pdf["loaded-resources"]["fonts"]))
-		while(isset($pdf["loaded-resources"]["fonts"][$index_id]))
+	if(isset($pdf["loaded-resources"]["/Font"]))
+		while(isset($pdf["loaded-resources"]["/Font"]["/F" . $index_id]))
 			$index_id ++;
 
-	return($index_id);
+	return("/F" . $index_id);
 	}
 
 ################################################################################
@@ -4168,11 +4254,11 @@ function _pdf_get_free_object_id(& $pdf, $object_id = 1)
 
 function _pdf_get_free_xobject_id(& $pdf, $index_id = 1)
 	{
-	if(isset($pdf["loaded-resources"]["images"]))
-		while(isset($pdf["loaded-resources"]["images"][$index_id]))
+	if(isset($pdf["loaded-resources"]["/XObject"]))
+		while(isset($pdf["loaded-resources"]["/XObject"]["/X" . $index_id]))
 			$index_id ++;
 
-	return($index_id);
+	return("/X" . $index_id);
 	}
 
 ################################################################################
