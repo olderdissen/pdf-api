@@ -24,6 +24,13 @@ define("FONTDESCRIPTOR_FLAG_FORCEBOLD", 1 << 19);
 
 function pdf_activate_item(& $pdf, $id)
 	{
+	if(sscanf($id, "%d %d R", $id_id, $id_version) != 2)
+		die("pdf_activate_item: invalid id: " . $id);
+
+	if(isset($pdf["objects"][$id_id]) === false)
+		die("pdf_activate_item: id not found: " . $id);
+
+	$pdf["active"] = $id;
 	}
 
 ################################################################################
@@ -100,11 +107,22 @@ function pdf_add_outline(& $pdf, $text, $parent, $open)
 	{
 	# allow empty parent
 	if(! $parent)
-		$parent = $pdf["outlines"];
+		{
+		if(isset($pdf["objects"][0]["dictionary"]["/Root"]) === false)
+			die("pdf_end_page_ext: root not found.");
+
+		if(sscanf($pdf["objects"][0]["dictionary"]["/Root"], "%d %d R", $catalog_id, $catalog_version) != 2)
+			die("pdf_end_page_ext: invalid root.");
+
+		if(isset($pdf["objects"][$catalog_id]["dictionary"]["/Outlines"]) === false)
+			die("pdf_end_page_ext: outlines not found.");
+
+		$parent = $pdf["objects"][$catalog_id]["dictionary"]["/Outlines"];
+		}
 
 	# check parent
 	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
-		die("_pdf_add_outline: invalid parent: " . $parent);
+		die("_pdf_add_outline: invalid outlines: " . $parent);
 
 	# check open
 	if(sscanf($open, "%d %d R", $open_id, $open_version) != 2)
@@ -344,20 +362,10 @@ function pdf_begin_document(& $pdf, $filename, $optlist = array())
 			(
 			"/Type" => "/Catalog",
 			"/PageLayout" => "/SinglePage",
-			"/PageMode" => "/UseOutlines"
-			)
-		);
-
-	$outlines_id = _pdf_get_free_object_id($pdf);
-
-	$pdf["objects"][$outlines_id] = array
-		(
-		"id" => $outlines_id,
-		"version" => 0,
-		"dictionary" => array
-			(
-			"/Type" => "/Outlines",
-			"/Count" => 0
+			"/PageMode" => "/UseOutlines",
+			"/Metadata" => "0 0 R",
+			"/Outlines" => "0 0 R",
+			"/Pages" => "0 0 R"
 			)
 		);
 
@@ -378,26 +386,48 @@ function pdf_begin_document(& $pdf, $filename, $optlist = array())
 		"stream" => $stream
 		);
 
-	$catalog = sprintf("%d 0 R", $catalog_id);
-	$outlines = sprintf("%d 0 R", $outlines_id);
-	$metadata = sprintf("%d 0 R", $metadata_id);
+	$outlines_id = _pdf_get_free_object_id($pdf);
 
-	# apply location of outlines to catalog
-	$pdf["objects"][$catalog_id]["dictionary"]["/Outlines"] = $outlines;
+	$pdf["objects"][$outlines_id] = array
+		(
+		"id" => $outlines_id,
+		"version" => 0,
+		"dictionary" => array
+			(
+			"/Type" => "/Outlines",
+			"/Count" => 0
+			)
+		);
+
+	$pages_id = _pdf_get_free_object_id($pdf);
+
+	$pdf["objects"][$pages_id] = array
+		(
+		"id" => $pages_id,
+		"version" => 0,
+		"dictionary" => array
+			(
+			"/Type" => "/Pages",
+			"/Kids" => "[]",
+			"/Count" => 0
+			)
+		);
 
 	# apply location of metadata
-	$pdf["objects"][$catalog_id]["dictionary"]["/Metadata"] = $metadata;
+	$pdf["objects"][$catalog_id]["dictionary"]["/Metadata"] = sprintf("%d 0 R", $metadata_id);
+
+	# apply location of outlines to catalog
+	$pdf["objects"][$catalog_id]["dictionary"]["/Outlines"] = sprintf("%d 0 R", $outlines_id);
+
+	# apply location of pages to catalog
+	$pdf["objects"][$catalog_id]["dictionary"]["/Pages"] = sprintf("%d 0 R", $pages_id);
 
 	# apply location of catalog
-	$pdf["objects"][0]["dictionary"]["/Root"] = $catalog;
+	$pdf["objects"][0]["dictionary"]["/Root"] = sprintf("%d 0 R", $catalog_id);
 
-	$pages = _pdf_add_pages($pdf, $catalog);
-
-	$pdf["catalog"] = $catalog;
+	# add additional help
 	$pdf["filename"] = $filename;
 	$pdf["loaded-resources"] = array("/ProcSet" => array("/PDF", "/Text"));
-	$pdf["outlines"] = $outlines;
-	$pdf["pages"] = $pages;
 	}
 
 ################################################################################
@@ -478,10 +508,74 @@ function pdf_begin_page(& $pdf, $width, $height)
 # 	11" x 17"		792 x 1224
 ################################################################################
 
-function pdf_begin_page_ext(& $pdf, $width, $height, $optlist = array())
+function pdf_begin_page_ext(& $pdf, $width, $height, $optlist = "")
 	{
+/*
+	$pages_id = _pdf_get_free_object_id($pdf);
+
+	$pdf["objects"][$pages_id] = array
+		(
+		"id" => $pages_id,
+		"version" => 0,
+		"dictionary" => array
+			(
+			"/Type" => "/Pages",
+			"/Kids" => "[]",
+			"/Count" => 0
+			)
+		);
+
+	$pages = sprintf("%d 0 R", $pages_id);
+
+	# apply info about this object to parent
+	if($pdf["objects"][$parent_id]["dictionary"]["/Type"] == "/Pages")
+		{
+		if(isset($pdf["objects"][$parent_id]["dictionary"]["/Count"]))
+			$count = $pdf["objects"][$parent_id]["dictionary"]["/Count"];
+		else
+			$count = 0;
+
+		if(isset($pdf["objects"][$parent_id]["dictionary"]["/Kids"]))
+			$data = $pdf["objects"][$parent_id]["dictionary"]["/Kids"];
+		else
+			$data = "[]";
+
+		$data = substr($data, 1);
+		list($kids, $data) = _pdf_parse_array($data);
+		$data = substr($data, 1);
+
+		$kids[] = $pages;
+
+		$pdf["objects"][$parent_id]["dictionary"]["/Kids"] = sprintf("[%s]", _pdf_glue_array($kids));
+		$pdf["objects"][$parent_id]["dictionary"]["/Count"] = ($count < 0 ? $count - 1 : $count + 1);
+
+		$pdf["objects"][$pages_id]["dictionary"]["/Parent"] = $parent;
+		}
+	elseif($pdf["objects"][$parent_id]["dictionary"]["/Type"] == "/Catalog")
+		$pdf["objects"][$parent_id]["dictionary"]["/Pages"] = $pages;
+	else
+		die("pdf_add_page: invalid type of parent.");
+
+*/
+	# check parent
+	if(! $optlist)
+		{
+		if(isset($pdf["objects"][0]["dictionary"]["/Root"]) === false)
+			die("pdf_end_page_ext: root not found.");
+
+		if(sscanf($pdf["objects"][0]["dictionary"]["/Root"], "%d %d R", $catalog_id, $catalog_version) != 2)
+			die("pdf_end_page_ext: invalid root.");
+
+		if(isset($pdf["objects"][$catalog_id]["dictionary"]["/Pages"]) === false)
+			die("pdf_end_page_ext: pages not found.");
+
+		$pages = $pdf["objects"][$catalog_id]["dictionary"]["/Pages"];
+		}
+	else
+		$pages = $optlist;
+
 	# get parent id
-	if(sscanf($pdf["pages"], "%d %d R", $pages_id, $pages_version) != 2)
+	if(sscanf($pages, "%d %d R", $pages_id, $pages_version) != 2)
 		die("pdf_end_page_ext: invalid parent.");
 
 	# apply page
@@ -494,14 +588,14 @@ function pdf_begin_page_ext(& $pdf, $width, $height, $optlist = array())
 		"dictionary" => array
 			(
 			"/Type" => "/Page",
-			"/Parent" => $pdf["pages"],
+			"/Parent" => $pages,
 			"/Resources" => array("/ProcSet" => array("/PDF", "/Text")),
 			"/MediaBox" => sprintf("[%d %d %d %d]", 0, 0 , $width, $height),
 			"/Contents" => "0 0 R"
 			)
 		);
 
-	$pdf["page"] = sprintf("%d 0 R", $page_id);
+	$pdf["active"] = sprintf("%d 0 R", $page_id);
 
 	# get count
 	if(isset($pdf["objects"][$pages_id]["dictionary"]["/Count"]))
@@ -521,12 +615,12 @@ function pdf_begin_page_ext(& $pdf, $width, $height, $optlist = array())
 	$data = substr($data, 1);
 
 	# apply page to kids
-	$kids[] = $pdf["page"];
+	$kids[] = $pdf["active"];
 
 	$pdf["objects"][$pages_id]["dictionary"]["/Kids"] = sprintf("[%s]", _pdf_glue_array($kids));
 	$pdf["objects"][$pages_id]["dictionary"]["/Count"] = $count + 1;
 
-	return($pdf["page"]);
+	return($pdf["active"]);
 	}
 
 ################################################################################
@@ -1050,8 +1144,6 @@ function pdf_end_document(& $pdf, $optlist = array())
 			)
 		);
 
-	$info = sprintf("%d 0 R", $info_id);
-
 	# remove widths on core fonts
 	if(isset($pdf["loaded-resources"]["/Font"]))
 		foreach($pdf["loaded-resources"]["/Font"] as $index => $object)
@@ -1066,7 +1158,7 @@ function pdf_end_document(& $pdf, $optlist = array())
 			$pdf["objects"][$info_id]["dictionary"][$key] = $value;
 
 	# apply location of info
-	$pdf["objects"][0]["dictionary"]["/Info"] = $info;
+	$pdf["objects"][0]["dictionary"]["/Info"] = sprintf("%d 0 R", $info_id);
 	
 	# apply some filter
 	_pdf_filter_change($pdf, "/FlateDecode");
@@ -1142,7 +1234,7 @@ function pdf_end_page(& $pdf)
 
 function pdf_end_page_ext(& $pdf, $optlist = array())
 	{
-	if(sscanf($pdf["page"], "%d %d R", $page_id, $page_version) != 2)
+	if(sscanf($pdf["active"], "%d %d R", $page_id, $page_version) != 2)
 		die("pdf_end_page_ext: invalid page.");
 
 	# glue resources
@@ -1159,9 +1251,9 @@ function pdf_end_page_ext(& $pdf, $optlist = array())
 		$pdf["objects"][$page_id]["dictionary"]["/Group"] = "<< /Type /Group /S /Transparency /CS /DeviceRGB >>";
 
 	# apply emply content
-	$pdf["objects"][$page_id]["dictionary"]["/Contents"] = _pdf_add_stream($pdf, implode(" ", $pdf["stream"]));
+	$pdf["objects"][$page_id]["dictionary"]["/Contents"] = _pdf_add_stream($pdf, implode("\n", $pdf["stream"]));
 
-	return($pdf["page"]);
+	return($pdf["active"]);
 	}
 
 ################################################################################
@@ -1271,7 +1363,7 @@ function pdf_findfont(& $pdf, $fontname, $encoding = "builtin", $embed = 0)
 	if(in_array($encoding, array("builtin", "winansi", "macroman", "macexpert")) === false)
 		die("pdf_findfont: invalid encoding.");
 
-	$font = "/F0";
+	$font = "";
 
 	if(isset($pdf["loaded-resources"]["/Font"]))
 		foreach($pdf["loaded-resources"]["/Font"] as $index => $object)
@@ -1279,9 +1371,9 @@ function pdf_findfont(& $pdf, $fontname, $encoding = "builtin", $embed = 0)
 				if($pdf["objects"][$object_id]["dictionary"]["/BaseFont"] == "/" . $fontname)
 					$font = $index;
 
-	if($font == "/F0")
-		if($embed == 1)
-			return(pdf_load_font($pdf, $fontname, $encoding, array("embed" => $embed)));
+	if(! $font)
+		if($embed)
+			return(pdf_load_font($pdf, $fontname, $encoding, $embed));
 		else
 			die("pdf_findfont: font not found.");
 
@@ -1310,7 +1402,7 @@ function pdf_fit_image(& $pdf, $image, $x, $y, $optlist = array())
 		die("pdf_fit_image: invalid image.");
 
 	# check pointer
-	if(sscanf($pdf["page"], "%d %d R", $page_id, $page_version) != 2)
+	if(sscanf($pdf["active"], "%d %d R", $page_id, $page_version) != 2)
 		die("pdf_fit_image: invalid page.");
 
 	# remember image as used resource
@@ -1508,24 +1600,19 @@ function pdf_get_parameter(& $pdf, $key, $modifier)
 
 			# check if font-alias is loaded
 			if(isset($pdf["loaded-resources"]["/Font"][$modifier]) === false)
-				die("pdf_get_value: font not loaded: " . $modifier);
-
-			# get object of font
-			$object = $pdf["loaded-resources"]["/Font"][$modifier];
+				die("pdf_get_value: font not found: " . $modifier);
 
 			# check if font-resource is valid
-			if(sscanf($object, "%d %d R", $object_id, $object_version) != 2)
-				die("pdf_get_value: invalid resource: " . $object);
+			if(sscanf($pdf["loaded-resources"]["/Font"][$modifier], "%d %d R", $object_id, $object_version) != 2)
+				die("pdf_get_value: invalid resource.");
 
 			# check if font-resource is valid
 			if(isset($pdf["objects"][$object_id]["dictionary"]["/BaseFont"]) === false)
-				die("pdf_get_value: invalid resource: " . $object);
-
-			$basefont = $pdf["objects"][$object_id]["dictionary"]["/BaseFont"];
+				die("pdf_get_value: invalid resource.");
 
 			# check if font-name is valid
-			if(sscanf($basefont, "/%s", $whatever) != 1)
-				die("pdf_get_value: invalid name: " . $whatever);
+			if(sscanf($pdf["objects"][$object_id]["dictionary"]["/BaseFont"], "/%s", $whatever) != 1)
+				die("pdf_get_value: invalid name.");
 
 			return($whatever);
 		default:
@@ -1542,9 +1629,6 @@ function pdf_get_parameter(& $pdf, $key, $modifier)
 
 function pdf_get_pdi_parameter(& $pdf, $key, $doc, $page, $reserved)
 	{
-	$path = "";
-
-	return(pdf_pcos_get_string($pdf, $doc, $path));
 	}
 
 ################################################################################
@@ -1556,9 +1640,6 @@ function pdf_get_pdi_parameter(& $pdf, $key, $doc, $page, $reserved)
 
 function pdf_get_pdi_value(& $pdf, $key, $doc, $page, $reserved)
 	{
-	$path = "";
-
-	return(pdf_pcos_get_number($pdf, $doc, $path));
 	}
 
 ################################################################################
@@ -1607,16 +1688,13 @@ function pdf_get_value(& $pdf, $key, $modifier)
 			if(isset($pdf["loaded-resources"]["/XObject"][$modifier]) === false)
 				die("pdf_get_value: image not loaded.");
 
-			# get object of image
-			$object = $pdf["loaded-resources"]["/XObject"][$modifier];
-
 			# check if image-resource is valid
-			if(sscanf($object, "%d %d R", $object_id, $object_version) != 2)
-				die("pdf_get_value: invalid resource: " . $object);
+			if(sscanf($pdf["loaded-resources"]["/XObject"][$modifier], "%d %d R", $object_id, $object_version) != 2)
+				die("pdf_get_value: invalid resource.");
 
 			# check if image-resource is valid
 			if(isset($pdf["objects"][$object_id]["dictionary"]["/Height"]) === false)
-				die("pdf_get_value: invalid resource: " . $object);
+				die("pdf_get_value: invalid resource.");
 
 			# get imageheight
 			$height = $pdf["objects"][$object_id]["dictionary"]["/Height"];
@@ -1634,11 +1712,8 @@ function pdf_get_value(& $pdf, $key, $modifier)
 			if(isset($pdf["loaded-resources"]["/XObject"][$modifier]) === false)
 				die("pdf_get_value: image not loaded.");
 
-			# get object of image
-			$object = $pdf["loaded-resources"]["/XObject"][$modifier];
-
 			# check if image-resource is valid
-			if(sscanf($object, "%d %d R", $object_id, $object_version) != 2)
+			if(sscanf($pdf["loaded-resources"]["/XObject"][$modifier], "%d %d R", $object_id, $object_version) != 2)
 				die("pdf_get_value: invalid resource: " . $object);
 
 			# check if image-resource is valid
@@ -1774,7 +1849,7 @@ function pdf_load_3ddata(& $pdf, $filename, $optlist = array())
 # Searches for a font and prepares it for later use.
 ################################################################################
 
-function pdf_load_font(& $pdf, $fontname, $encoding = "builtin", $optlist = array("embed" => 1))
+function pdf_load_font(& $pdf, $fontname, $encoding = "builtin", $optlist = "")
 	{
 #	printf("pdf_load_font: %s\n" , $fontname);
 
@@ -1800,8 +1875,6 @@ function pdf_load_font(& $pdf, $fontname, $encoding = "builtin", $optlist = arra
 				)
 			);
 
-		$font = sprintf("%d 0 R", $font_id);
-
 		# valid encodings
 		$encodings = array("winansi" => "/WinAnsiEncoding", "macroman" => "/MacRomanEncoding", "macexpert" => "/MacExpertEncoding");
 
@@ -1820,7 +1893,7 @@ function pdf_load_font(& $pdf, $fontname, $encoding = "builtin", $optlist = arra
 
 		$index = _pdf_get_free_font_id($pdf);
 
-		$pdf["loaded-resources"]["/Font"][$index] = $font;
+		$pdf["loaded-resources"]["/Font"][$index] = sprintf("%d 0 R", $font_id);
 
 		return($index);
 		}
@@ -1837,9 +1910,7 @@ function pdf_load_font(& $pdf, $fontname, $encoding = "builtin", $optlist = arra
 	################################################################################
 
 	# apply file with additional /Length1
-	if(isset($optlist["embed"]) === false)
-		$file = _pdf_add_stream($pdf, file_get_contents($filename), array("/Length1" => filesize($filename)));
-	elseif($optlist["embed"] == 1)
+	if($optlist)
 		$file = _pdf_add_stream($pdf, file_get_contents($filename), array("/Length1" => filesize($filename)));
 	else
 		$file = "";
@@ -1866,8 +1937,6 @@ function pdf_load_font(& $pdf, $fontname, $encoding = "builtin", $optlist = arra
 			)
 		);
 
-	$font = sprintf("%d 0 R", $font_id);
-
 	# valid encodings
 	$encodings = array("winansi" => "/WinAnsiEncoding", "macroman" => "/MacRomanEncoding", "macexpert" => "/MacExpertEncoding");
 
@@ -1891,7 +1960,7 @@ function pdf_load_font(& $pdf, $fontname, $encoding = "builtin", $optlist = arra
 
 	$index = _pdf_get_free_font_id($pdf);
 
-	$pdf["loaded-resources"]["/Font"][$index] = $font;
+	$pdf["loaded-resources"]["/Font"][$index] = sprintf("%d 0 R", $font_id);
 
 	return($index);
 	}
@@ -2492,9 +2561,9 @@ function pdf_new()
 	# finally our "pseudo-class"
 	$retval = array
 		(
+		"active" => "0 0 R",
 		"apiname" => sprintf("%s %d.%d.%d (PHP/%s)", basename(__FILE__), 1, 0, 0, PHP_OS),
 		"builtin-fonts" => $fonts,
-		"catalog" => "0 0 R",
 		"filename" => "",
 		"font" => "/F0",
 		"fontsize" => 0,
@@ -2502,9 +2571,6 @@ function pdf_new()
 		"major" => 1,
 		"minor" => 3,
 		"objects" => array(array("id" => 0, "version" => 65535, "dictionary" => array("/Size" => 0))),
-		"outlines" => "0 0 R",
-		"page" => "0 0 R",
-		"pages" => "0 0 R",
 		"stream" => array(),
 		);
 
@@ -2744,10 +2810,10 @@ function pdf_resume_page(& $pdf, $optlist = array())
 	if(count($pdf["stream"]))
 		die("pdf_resume_page: page can not be resumed while page is open.");
 
-	if(isset($optlist["page"]) === false)
+	if(isset($optlist["active"]) === false)
 		die("pdf_resume_page: page must be set as option.");
 
-	if(sscanf($optlist["page"], "%d %d R", $page_id, $page_version) != 2)
+	if(sscanf($optlist["active"], "%d %d R", $page_id, $page_version) != 2)
 		die("pdf_resume_page: invalid page.");
 
 	if(isset($pdf["objects"][$page_id]["dictionary"]["/Contents"]) === false)
@@ -2857,7 +2923,7 @@ function pdf_set_char_spacing(& $pdf, $space)
 function pdf_set_duration(& $pdf, $duration)
 	{
 	# check pointer
-	if(sscanf($pdf["page"], "%d %d R", $page_id, $page_version) != 2)
+	if(sscanf($pdf["active"], "%d %d R", $page_id, $page_version) != 2)
 		die("pdf_set_duration: invalid page.");
 
 	# set duration
@@ -3169,7 +3235,7 @@ function pdf_setfont(& $pdf, $font, $fontsize)
 		die("pdf_fit_image: invalid image.");
 
 	# check pointer
-	if(sscanf($pdf["page"], "%d %d R", $page_id, $page_version) != 2)
+	if(sscanf($pdf["active"], "%d %d R", $page_id, $page_version) != 2)
 		die("pdf_fit_image: invalid page.");
 
 	# remember font as used resource
@@ -3412,12 +3478,10 @@ function pdf_show_boxed(& $pdf, $text, $left, $top, $width, $height, $mode, $fea
 	if(! $text)
 		return(0);
 
-	################################################################################
+	# some character may produce problems
+	$text = str_replace(array("  ", "\r\n"), array(" ", "\n"), $text);
 
-	$text = str_replace("  ", " ", $text);
-
-	################################################################################
-
+	# get some needed settings
 	$fontsize = pdf_get_value($pdf, "fontsize", 0);
 	$font = pdf_get_value($pdf, "font", 0);
 
@@ -3573,10 +3637,10 @@ function pdf_stroke(& $pdf)
 
 function pdf_suspend_page(& $pdf, $optlist = array())
 	{
-	if(isset($optlist["page"]) === false)
+	if(isset($optlist["active"]) === false)
 		die("pdf_suspend_page: page must be set as option.");
 
-	if(sscanf($optlist["page"], "%d %d R", $page_id, $page_version) != 2)
+	if(sscanf($optlist["active"], "%d %d R", $page_id, $page_version) != 2)
 		die("pdf_suspend_page: invalid page.");
 
 	if(isset($pdf["objects"][$page_id]["dictionary"]["/Contents"]) === false)
@@ -3591,7 +3655,7 @@ function pdf_suspend_page(& $pdf, $optlist = array())
 		die("pdf_resume_page: stream not found.");
 
 	# save stream
-	$pdf["objects"][$page_id]["stream"] = implode(" ", $pdf["stream"]);
+	$pdf["objects"][$page_id]["stream"] = implode("\n", $pdf["stream"]);
 
 	# be prepared
 	$pdf["stream"] = array();
@@ -3822,64 +3886,6 @@ function _pdf_add_form(& $pdf, $resources, $bbox, $stream)
 		);
 
 	return(sprintf("%d 0 R", $whatever_id));
-	}
-
-################################################################################
-# _pdf_add_pages ( array $pdf , string $parent ) : string
-# this should be an option of add_page to create sub pages
-################################################################################
-
-function _pdf_add_pages(& $pdf, $parent)
-	{
-	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
-		die("_pdf_add_page: invalid parent: " . $parent);
-
-	$whatever_id = _pdf_get_free_object_id($pdf);
-
-	$pdf["objects"][$whatever_id] = array
-		(
-		"id" => $whatever_id,
-		"version" => 0,
-		"dictionary" => array
-			(
-			"/Type" => "/Pages",
-			"/Kids" => "[]",
-			"/Count" => 0
-			)
-		);
-
-	$whatever = sprintf("%d 0 R", $whatever_id);
-
-	# apply info about this object to parent
-	if($pdf["objects"][$parent_id]["dictionary"]["/Type"] == "/Pages")
-		{
-		if(isset($pdf["objects"][$parent_id]["dictionary"]["/Count"]))
-			$count = $pdf["objects"][$parent_id]["dictionary"]["/Count"];
-		else
-			$count = 0;
-
-		if(isset($pdf["objects"][$parent_id]["dictionary"]["/Kids"]))
-			$data = $pdf["objects"][$parent_id]["dictionary"]["/Kids"];
-		else
-			$data = "[]";
-
-		$data = substr($data, 1);
-		list($kids, $data) = _pdf_parse_array($data);
-		$data = substr($data, 1);
-
-		$kids[] = $whatever;
-
-		$pdf["objects"][$parent_id]["dictionary"]["/Kids"] = sprintf("[%s]", _pdf_glue_array($kids));
-		$pdf["objects"][$parent_id]["dictionary"]["/Count"] = ($count < 0 ? $count - 1 : $count + 1);
-
-		$pdf["objects"][$whatever_id]["dictionary"]["/Parent"] = $parent;
-		}
-	elseif($pdf["objects"][$parent_id]["dictionary"]["/Type"] == "/Catalog")
-		$pdf["objects"][$parent_id]["dictionary"]["/Pages"] = $whatever;
-	else
-		die("_pdf_add_pages: invalid type of parent.");
-
-	return($whatever);
 	}
 
 ################################################################################

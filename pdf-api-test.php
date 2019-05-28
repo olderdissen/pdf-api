@@ -12,17 +12,13 @@ _pdf_test();
 
 function _pdf_main()
 	{
-	$data = file_get_contents("pdf-api-test.pdf");
+	$pdf["stream"] = file_get_contents("pdf-api-test.pdf");
 
-	$pdf["objects"] = _pdf_parse_document($data);
-
-#		_pdf_add_font($pdf, "Verdana");
+	$pdf["objects"] = _pdf_parse_document($pdf["stream"]);
 
 #		_pdf_filter_change($pdf);
-#		_pdf_filter_change($pdf, "/FlateDecode");
+		_pdf_filter_change($pdf, "/FlateDecode");
 #		_pdf_filter_change($pdf, "/ASCIIHexDecode /FlateDecode");
-
-#		print_r($pdf); exit;
 
 	$data = _pdf_glue_document($pdf["objects"]);
 
