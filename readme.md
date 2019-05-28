@@ -31,9 +31,9 @@ whenever a resource is loaded, it is applied to the internal list of loaded reso
 whenver a resource is used by a page, it is applied to **/Resources** of the page.
 this makes it possible to let users have real-time access to all key, values and elements at any time.
 this prevent multiple loadings of identical fonts.
-the list of loaded resources can be read from "loaded-resources" of the pdf-array created with **pdf_new()** at any time.
+the list of loaded resources can be read from "resources" of the pdf-array created with **pdf_new()** at any time.
 
-    print_r($mypdf["loaded-resources"]);
+    print_r($mypdf["resources"]);
 
 ## example ##
 
