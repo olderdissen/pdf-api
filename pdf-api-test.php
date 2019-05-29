@@ -7,8 +7,8 @@
 
 include_once("pdf-api.php");
 
-#_pdf_main();
-_pdf_test();
+_pdf_main();
+#_pdf_test();
 
 function _pdf_main()
 	{
@@ -20,7 +20,9 @@ function _pdf_main()
 		_pdf_filter_change($pdf, "/FlateDecode");
 #		_pdf_filter_change($pdf, "/ASCIIHexDecode /FlateDecode");
 
-	$data = _pdf_glue_document($pdf["objects"]);
+	$pdf["stream"] = _pdf_glue_document($pdf["objects"]);
+	
+	$data = pdf_get_buffer($pdf);
 
 	header("Content-Type: application/pdf");
 	header("Content-Disposition: inline; filename=parse-test.pdf");
@@ -36,11 +38,11 @@ function _pdf_test()
 	pdf_begin_document($pdf, "");
 
 		# returns /Fx where x is integer
-		# $font = pdf_load_font($pdf, "Verdana", "winansi");
+		$font = pdf_load_font($pdf, "Verdana", "winansi");
 		$font = pdf_load_font($pdf, "Courier", "winansi");
 
 		# returns /Fx where x is integer but returns error on unloaded font.
-		# $font = pdf_findfont($pdf, "Verdana");
+		$font = pdf_findfont($pdf, "Verdana");
 
 		# returns /Xx where x is integer
 		$image = pdf_load_image($pdf, "png", "pdf-api-test.png");

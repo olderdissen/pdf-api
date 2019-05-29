@@ -127,6 +127,7 @@ a regular page got a size of 595 x 842 pixel which is 210 x 297 millimeter.
 in this case 1 pixel is equal to (0.1 : 72 x 2.54) 0.35 millimeter.
 from this point of view, there is no need for 6 digits precision, under normal circumstances.
 if more precission is needed **sprintf("%.1f", ...)** needs to be replaced with **sprintf("%.f", ...)** inside this script.
+this script is able to parse pdf files but stream content for pages can not be parsed.
 
 ## references ##
 

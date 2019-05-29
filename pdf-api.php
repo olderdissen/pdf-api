@@ -624,6 +624,8 @@ function pdf_begin_page_ext(& $pdf, $width, $height, $optlist = "")
 	$pdf["objects"][$pages_id]["dictionary"]["/Kids"] = sprintf("[%s]", _pdf_glue_array($kids));
 	$pdf["objects"][$pages_id]["dictionary"]["/Count"] = $count + 1;
 
+	$pdf["stream"] = array();
+
 	return($pdf["active"]);
 	}
 
@@ -1152,15 +1154,19 @@ function pdf_end_document(& $pdf, $optlist = array())
 	if(isset($pdf["resources"]["/Font"]))
 		foreach($pdf["resources"]["/Font"] as $index => $object)
 			{
+			# check resource pointer
 			if(sscanf($object, "%d %d R", $object_id, $object_version) != 2)
 				die("pdf_end_document: invalid object.");
 
+			# check if subtype exist
 			if(isset($pdf["objects"][$object_id]["dictionary"]["/Subtype"]) === false)
 				die("pdf_end_document: subtype not found.");
 
+			# check if widths exist
 			if(isset($pdf["objects"][$object_id]["dictionary"]["/Widths"]) === false)
 				die("pdf_end_document: widths not found.");
 
+			# remove withs on type1 fonts and glue withs on all other fonts
 			if($pdf["objects"][$object_id]["dictionary"]["/Subtype"] != "/Type1")
 				$pdf["objects"][$object_id]["dictionary"]["/Widths"] = sprintf("[%s]", _pdf_glue_array($pdf["objects"][$object_id]["dictionary"]["/Widths"]));
 			else
@@ -1179,7 +1185,7 @@ function pdf_end_document(& $pdf, $optlist = array())
 	$pdf["objects"][0]["dictionary"]["/Info"] = sprintf("%d 0 R", $info_id);
 	
 	# apply some filter
-	_pdf_filter_change($pdf, "/FlateDecode");
+#	_pdf_filter_change($pdf, "/FlateDecode");
 
 	# glue all objects
 	$pdf["stream"] = _pdf_glue_document($pdf["objects"]);
@@ -2803,20 +2809,23 @@ function pdf_resume_page(& $pdf, $optlist = array())
 	if(count($pdf["stream"]))
 		die("pdf_resume_page: page can not be resumed while page is open.");
 
+	# check if active is set
 	if(isset($optlist["active"]) === false)
 		die("pdf_resume_page: page must be set as option.");
 
+	# check if pointer to active is valid
 	if(sscanf($optlist["active"], "%d %d R", $page_id, $page_version) != 2)
-		die("pdf_resume_page: invalid page.");
+		die("pdf_resume_page: invalid pointer.");
 
+	# check if contents is set
 	if(isset($pdf["objects"][$page_id]["dictionary"]["/Contents"]) === false)
 		die("pdf_resume_page: contents not found.");
 
-	$contents = $pdf["objects"][$page_id]["dictionary"]["/Contents"];
+	# check if pointer to contents is valid
+	if(sscanf($pdf["objects"][$page_id]["dictionary"]["/Contents"], "%d %d R", $contents_id, $contents_version) != 2)
+		die("pdf_resume_page: invalid pointer.");
 
-	if(sscanf($contents, "%d %d R", $contents_id, $contents_version) != 2)
-		die("pdf_resume_page: invalid contents.");
-
+	# check if stream is set
 	if(isset($pdf["objects"][$contents_id]["stream"]) === false)
 		die("pdf_resume_page: stream not found.");
 
@@ -3219,17 +3228,17 @@ function pdf_setfont(& $pdf, $font, $fontsize)
 	if(sscanf($font, "/F%d", $iwhatever) != 1)
 		die("pdf_setfont: invalid font.");
 
-	# check existence
+	# check if font is loaded
 	if(isset($pdf["resources"]["/Font"][$font]) === false)
-		die("pdf_setfont: font not loaded.");
+		die("pdf_setfont: font not found.");
 
-	# check pointer
+	# check if pointer of loaded font is valid
 	if(sscanf($pdf["resources"]["/Font"][$font], "%d %d R", $object_id, $object_version) != 2)
-		die("pdf_fit_image: invalid image.");
+		die("pdf_fit_image: invalid pointer.");
 
-	# check pointer
+	# check if pointer of page is valid
 	if(sscanf($pdf["active"], "%d %d R", $page_id, $page_version) != 2)
-		die("pdf_fit_image: invalid page.");
+		die("pdf_fit_image: invalid pointer.");
 
 	# remember font as used resource
 	$pdf["objects"][$page_id]["dictionary"]["/Resources"]["/Font"][$font] = $pdf["resources"]["/Font"][$font];
@@ -3481,13 +3490,13 @@ function pdf_show_boxed(& $pdf, $text, $left, $top, $width, $height, $mode, $fea
 	if($height - $fontsize < 0)
 		return(strlen($text));
 
-	list($line, $text) = (strpos($text, "\n") ? explode("\n", $text, 2) : array($text, ""));
+	list($line, $text) = (strpos($text, "\n") === false ? array($text, "") : explode("\n", $text, 2));
 
 	$words = "";
 
 	while(strlen($line) > 0)
 		{
-		list($word, $line) = (strpos($line, " ") ? explode(" ", $line, 2) : array($line, ""));
+		list($word, $line) = (strpos($line, " ") === false ? array($line, "") : explode(" ", $line, 2));
 
 		$test = ($words ? $words . " " : "") . $word;
 
@@ -3585,25 +3594,32 @@ function pdf_stringwidth(& $pdf, $text, $font, $fontsize)
 	if(! $text)
 		return(0);
 
+	# check if font is valid
 	if(sscanf($font, "/F%d", $whatever) != 1)
-		die("pdf_setfont: invalid font.");
+		die("pdf_stringwidth: invalid font.");
 
+	# check if fontsize is valid
 	if($fontsize == 0)
-		die("pdf_setfont: invalid fontsize.");
+		die("pdf_stringwidth: invalid fontsize.");
 
+	# check if font is loaded
+	if(isset($pdf["resources"]["/Font"][$font]) === false)
+		die("pdf_stringwidth: font not found.");
+
+	# check if pointer is valid
+	if(sscanf($pdf["resources"]["/Font"][$font], "%d %d R", $object_id, $object_version) != 2)
+		die("pdf_stringwidth: invalid pointer.");
+
+	# convert string
 	$text = iconv("UTF-8", "ISO-8859-1", $text);
 
-	if(sscanf($pdf["resources"]["/Font"][$font], "%d %d R", $object_id, $object_version) != 2)
-		die("pdf_setfont: invalid font.");
+	# widths are not glued during process.
+	$widths = $pdf["objects"][$object_id]["dictionary"]["/Widths"];
 
-	$a = $pdf["objects"][$object_id]["dictionary"]["/Widths"];
-
-	$a = substr($a, 1);
-	list($widths, $a) = _pdf_parse_array($a);
-	$a = substr($a, 1);
-
+	# set counter
 	$width = 0;
 
+	# count width of chars
 	foreach(str_split($text) as $char)
 		$width += $widths[ord($char) - 0x20];
 
@@ -3639,9 +3655,7 @@ function pdf_suspend_page(& $pdf, $optlist = array())
 	if(isset($pdf["objects"][$page_id]["dictionary"]["/Contents"]) === false)
 		die("pdf_resume_page: contents not found.");
 
-	$contents = $pdf["objects"][$page_id]["dictionary"]["/Contents"];
-
-	if(sscanf($contents, "%d %d R", $contents_id, $contents_version) != 2)
+	if(sscanf($pdf["objects"][$page_id]["dictionary"]["/Contents"], "%d %d R", $contents_id, $contents_version) != 2)
 		die("pdf_resume_page: invalid contents.");
 
 	if(isset($pdf["objects"][$contents_id]["stream"]) === false)
