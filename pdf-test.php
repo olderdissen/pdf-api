@@ -13,8 +13,69 @@ define("MYSQL_NAME", "documents");
 
 include("pdf-api.php");
 
+#$a = "\x00\x00\x00\x01";
+
+#print(hexdec(bin2hex($a)));
+
 #_pdf_konto();
-_main();
+#_main();
+
+list($left, $top, $width, $height, $text) = array(72, 842, 451, 698, "Lorem ipsum dolor sit amet, consectetur adipisici elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi consequat. Quis aute iure reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.");
+
+#$text = file_get_contents("readme.md");
+
+$a = strlen($text);
+
+while($a > 0)
+	{
+	print("stream\nBT\n");
+	$a = show_boxed(substr($text, 0 - $a), $left, $top, $width, $height);
+	print("ET\nendstream\n");
+	}
+
+function stringwidth($words, $fontsize)
+	{
+	return(strlen($words) * $fontsize);
+	}
+
+function show_boxed($text, $left, $top, $width, $height)
+	{
+	$fontsize = 10;
+
+	while(strlen($text) > 0)
+		{
+		if($height < $fontsize)
+			break;
+
+		list($line, $text) = (strpos($text, "\n") === false ? array($text, "") : explode("\n", $text, 2));
+
+		$words = "";
+
+		while(strlen($line) > 0)
+			{
+			list($word, $line) = (strpos($line, " ") === false ? array($line, "") : explode(" ", $line, 2));
+
+			$test = $words . " " . $word;
+
+			if(stringwidth($test, $fontsize) > $width)
+				{
+				$line = $word . " " . $line;
+				$text = $line . "\n" . $text;
+
+				break;
+				}
+
+			$words = $test;
+			}
+
+		printf("%d %d Td (%s) Tj\n", $left, $top, ($words));
+
+		$top -= $fontsize;
+		$height -= $fontsize;
+		}
+
+	return(strlen($text));
+	}
 
 exit;
 
@@ -65,7 +126,7 @@ exit;
 
 function _main()
 	{
-#	$data = file_get_contents("/home/nomatrix/externe_platte/daten/pdf/n26/kontoauszÃ¼ge/statement-2018-04.pdf");
+#	$data = file_get_contents("/home/nomatrix/externe_platte/daten/pdf/n26/kontoauszüge/statement-2018-04.pdf");
 #	$data = file_get_contents("/home/nomatrix/externe_platte/daten/pdf/arcor/web-bill/olderdissen.markus/rechnungen/Rechnung_3547279983.pdf");
 #	$data = file_get_contents("002052527027.doc_11_04_19_09_45_26.pdf");
 	$data = file_get_contents("brief.pdf");
@@ -208,9 +269,6 @@ function _pdf_konto()
 
 			array_reverse($text);
 
-			foreach($text as $a => $b)
-				$text[$a] = ($b ? "(" . $b . ") Tj " : "");
-
 			pdf_begin_page($pdf, $w, $h);
 #				pdf_save($pdf);
 #					pdf_fit_image($pdf, "/X1", 0, 0, 1);
@@ -227,7 +285,11 @@ function _pdf_konto()
 					pdf_set_horizontal_scaling($pdf, 100);
 					$pdf["stream"][] = "BT";
 					pdf_set_text_pos($pdf, 48, $h - 24);
-					$pdf["stream"][] = implode("T* ", $text);
+					foreach($text as $a => $b)
+						if($a == 0)
+							pdf_show($pdf, $b);
+						else
+							pdf_continue_text($pdf, $b);
 					$pdf["stream"][] = "ET";
 				pdf_restore($pdf);
 			$page = pdf_end_page($pdf);
@@ -244,11 +306,11 @@ function _pdf_konto()
 			pdf_add_outline($pdf, $subject, $outline[$year], $page);
 			}
 
-		pdf_set_info($pdf, "author", "Volksbank Bielefeld eG");
-		pdf_set_info($pdf, "creator", basename(__FILE__));
-		pdf_set_info($pdf, "keywords", "48060036, 0515433210");
-		pdf_set_info($pdf, "subject", "KontoauszÃ¼ge");
-		pdf_set_info($pdf, "title", "KontoauszÃ¼ge");
+		pdf_set_info($pdf, "Author", "Volksbank Bielefeld eG");
+		pdf_set_info($pdf, "Creator", basename(__FILE__));
+		pdf_set_info($pdf, "Keywords", "48060036, 0515433210");
+		pdf_set_info($pdf, "Subject", "Kontoauszüge");
+		pdf_set_info($pdf, "Title", "Kontoauszüge");
 
 	pdf_end_document($pdf);
 

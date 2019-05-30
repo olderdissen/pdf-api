@@ -1893,9 +1893,9 @@ function pdf_load_font(& $pdf, $fontname, $encoding = "builtin", $optlist = "")
 
 		
 		# apply widths ... this need to be written here, for easier access to object where we get data from
-		$pdf["objects"][$font_id]["dictionary"]["/FirstChar"] = 0x20;
+		$pdf["objects"][$font_id]["dictionary"]["/FirstChar"] = 0x00;
 		$pdf["objects"][$font_id]["dictionary"]["/LastChar"] = 0xFF;
-		$pdf["objects"][$font_id]["dictionary"]["/Widths"] = array_slice($object["widths"], 0x20, 0xE0);
+		$pdf["objects"][$font_id]["dictionary"]["/Widths"] = $object["widths"];
 
 		$index = _pdf_get_free_font_id($pdf);
 
@@ -1908,7 +1908,7 @@ function pdf_load_font(& $pdf, $fontname, $encoding = "builtin", $optlist = "")
 
 #	$filename = "/home/nomatrix/externe_platte/daten/ttf/" . strtolower($fontname[0]) . "/" . $fontname . ".ttf";
 #	$filename = "/usr/share/fonts/truetype/freefont/" . $fontname . ".ttf";
-	$filename = "pdf-lib/" . $fontname . ".ttf";
+	$filename = "./" . $fontname . ".ttf";
 
 	if(file_exists($filename) === false)
 		return(pdf_load_font($pdf, "Courier", $encoding, $optlist));
@@ -1956,11 +1956,11 @@ function pdf_load_font(& $pdf, $fontname, $encoding = "builtin", $optlist = "")
 	# apply widths
 	$widths = array();
 
-	foreach(range(0x20, 0xFF) as $char)
+	foreach(range(0x00, 0xFF) as $char)
 		$widths[chr($char)] = (($info = imagettfbbox(720, 0, $filename, chr($char))) ? $info[2] : 1000);
 
 	# apply widths
-	$pdf["objects"][$font_id]["dictionary"]["/FirstChar"] = 0x20;
+	$pdf["objects"][$font_id]["dictionary"]["/FirstChar"] = 0x00;
 	$pdf["objects"][$font_id]["dictionary"]["/LastChar"] = 0xFF;
 	$pdf["objects"][$font_id]["dictionary"]["/Widths"] = $widths;
 
@@ -2002,7 +2002,7 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = array())
 		if(function_exists("imagepng") === false)
 			die("pdf_load_image: no png support.");
 
-		if(($temp = tempnam(__DIR__, "gif")) === false)
+		if(($temp = tempnam(__DIR__, "xxx")) === false)
 			die("pdf_load_image: unable to create a temporary file.");
 
 		if(imagepng($info, $temp) === false)
@@ -2259,13 +2259,14 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = array())
 		}
 	else
 		{
-		if(($temp = tempnam(__DIR__, "jpg")) === false)
+		if(($temp = tempnam(__DIR__, "xxx")) === false)
 			die("pdf_load_image: unable to create a temporary file.");
 
-		system("convert " . $filename . " -quality 15 " . $temp);
+		exec("convert \"" . $filename . "\" -quality 25 \"" . $temp . ".jpg\"");
 
-		$index = pdf_load_image($pdf, "jpg", $temp);
+		$index = pdf_load_image($pdf, "jpg", $temp . ".jpg");
 
+		unlink($temp . ".jpg");
 		unlink($temp);
 
 		return($index);
@@ -3621,7 +3622,7 @@ function pdf_stringwidth(& $pdf, $text, $font, $fontsize)
 
 	# count width of chars
 	foreach(str_split($text) as $char)
-		$width += $widths[ord($char) - 0x20];
+		$width += $widths[ord($char)];
 
 	return($width / 1000 * $fontsize);
 	}
