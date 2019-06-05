@@ -1185,7 +1185,7 @@ function pdf_end_document(& $pdf, $optlist = array())
 	$pdf["objects"][0]["dictionary"]["/Info"] = sprintf("%d 0 R", $info_id);
 	
 	# apply some filter
-#	_pdf_filter_change($pdf, "/FlateDecode");
+	_pdf_filter_change($pdf, "/FlateDecode");
 
 	# glue all objects
 	$pdf["stream"] = _pdf_glue_document($pdf["objects"]);
