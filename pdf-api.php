@@ -819,7 +819,7 @@ function pdf_continue_text(& $pdf, $text)
 	if(! $text)
 		return;
 
-	$text = iconv("UTF-8", "ISO-8859-1", $text);
+	$text = utf8_decode($text);
 
 	$text = str_replace(array("\\", "(", ")"), array("\\\\", "\\(", "\\)"), $text);
 
@@ -1185,7 +1185,7 @@ function pdf_end_document(& $pdf, $optlist = array())
 	$pdf["objects"][0]["dictionary"]["/Info"] = sprintf("%d 0 R", $info_id);
 	
 	# apply some filter
-	_pdf_filter_change($pdf, "/FlateDecode");
+#	_pdf_filter_change($pdf, "/FlateDecode");
 
 	# glue all objects
 	$pdf["stream"] = _pdf_glue_document($pdf["objects"]);
@@ -2975,7 +2975,7 @@ function pdf_set_info(& $pdf, $key, $value)
 	if(in_array($key, $table) === false)
 		die("pdf_set_info: invalid key: " . $key);
 
-	$value = iconv("UTF-8", "ISO-8859-1", $value);
+	$value = utf8_decode($value);
 
 	$pdf["info"]["/" . $key] = sprintf("(%s)", $value);
 	}
@@ -3463,7 +3463,7 @@ function pdf_show(& $pdf, $text)
 	if(! $text)
 		return;
 
-	$text = iconv("UTF-8", "ISO-8859-1", $text);
+	$text = utf8_decode($text);
 
 	$text = str_replace(array("\\", "(", ")"), array("\\\\", "\\(", "\\)"), $text);
 
@@ -3477,6 +3477,95 @@ function pdf_show(& $pdf, $text)
 ################################################################################
 
 function pdf_show_boxed(& $pdf, $text, $left, $top, $width, $height, $mode, $feature = array())
+	{
+	$text = utf8_decode($text);
+
+	# get some needed settings
+	$fontsize = pdf_get_value($pdf, "fontsize", 0);
+	$font = pdf_get_value($pdf, "font", 0);
+
+	$i = 0;
+	$x = 0;
+
+	$pdf["stream"][] = "BT";
+#	$pdf["stream"][] = sprintf("%d TL", $fontsize);
+
+	while(strlen($text) > 0)
+		{
+		if($height < $fontsize)
+			break;
+
+		list($line, $text) = (strpos($text, "\n") === false ? array($text, "") : explode("\n", $text, 2));
+
+		$words = "";
+
+		while(strlen($line) > 0)
+			{
+			list($word, $line) = (strpos($line, " ") === false ? array($line, "") : explode(" ", $line, 2));
+
+			if(strlen($words) > 0)
+				$test = (strlen($word) > 0 ? $words . " " . $word : $words);
+			else
+				$test = (strlen($word) > 0 ? $word : "");
+
+			if(pdf_stringwidth($pdf, $test, $font, $fontsize) > $width)
+				{
+				if(strlen($word) > 0)
+					$line = $word . " " . $line;
+
+				if(strlen($line) > 0)
+					$text = $line . "\n" . $text;
+
+				break;
+				}
+
+			$words = $test;
+			}
+
+		$spacing = $width - pdf_stringwidth($pdf, $words, $font, $fontsize);
+
+		if(($mode == "justify") || ($mode == "fulljustify"))
+			{
+#			if(($mode == "justify") && ($spacing > ($width / 2)))
+#				$spacing = $width / 2;
+
+			pdf_set_word_spacing($pdf, $spacing / (count(explode(" ", $words)) - 1));
+
+			$spacing = 0;
+			}
+		else
+			{
+			# "justify", "fulljustify", "right", "left", "center"
+
+			$modes = array("center" => 2, "right" => 1);
+
+			$spacing = (array_key_exists($mode, $modes) ? $spacing / $modes[$mode] : 0);
+			}
+
+		if($i == 0)
+			$pdf["stream"][] = sprintf("%.1f %.1f Td", $spacing + $left, $top);
+		elseif($spacing != $x)
+			$pdf["stream"][] = sprintf("%.1f %.1f Td", $spacing - $x, 0 - $fontsize);
+		else
+			$pdf["stream"][] = "T*";
+
+		$words = str_replace(array("\\", "(", ")"), array("\\\\", "\\(", "\\)"), $words);
+
+		$pdf["stream"][] = sprintf("(%s) Tj", $words);
+
+		$i ++;
+		$x = $spacing;
+
+		$top -= $fontsize;
+		$height -= $fontsize;
+		}
+
+	$pdf["stream"][] = "ET";
+
+	return(strlen($text));
+	}
+
+function _pdf_show_boxed(& $pdf, $text, $left, $top, $width, $height, $mode, $feature = array())
 	{
 	if(! $text)
 		return(0);
@@ -3559,7 +3648,7 @@ function pdf_show_xy(& $pdf, $text, $x, $y)
 	if(! $text)
 		return;
 
-	$text = iconv("UTF-8", "ISO-8859-1", $text);
+	$text = utf8_decode($text);
 
 	$text = str_replace(array("\\", "(", ")"), array("\\\\", "\\(", "\\)"), $text);
 
@@ -3612,7 +3701,7 @@ function pdf_stringwidth(& $pdf, $text, $font, $fontsize)
 		die("pdf_stringwidth: invalid pointer.");
 
 	# convert string
-	$text = iconv("UTF-8", "ISO-8859-1", $text);
+	$text = utf8_decode($text);
 
 	# widths are not glued during process.
 	$widths = $pdf["objects"][$object_id]["dictionary"]["/Widths"];
