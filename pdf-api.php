@@ -25,10 +25,10 @@ define("FONTDESCRIPTOR_FLAG_FORCEBOLD", 1 << 19);
 function pdf_activate_item(& $pdf, $id)
 	{
 	if(sscanf($id, "%d %d R", $id_id, $id_version) != 2)
-		die("pdf_activate_item: invalid id: " . $id);
+		die(__FUNCTION__ . ": invalid id: " . $id);
 
 	if(isset($pdf["objects"][$id_id]) === false)
-		die("pdf_activate_item: id not found: " . $id);
+		die(__FUNCTION__ . ": id not found: " . $id);
 
 	$pdf["active"] = $id;
 	}
@@ -38,7 +38,7 @@ function pdf_activate_item(& $pdf, $id)
 # This function is deprecated, use PDF_create_annotation() with type=Text instead.
 ################################################################################
 
-function pdf_add_annotation(& $pdf, $llx, $lly, $urx, $ury, $title, $content = array())
+function pdf_add_annotation(& $pdf)
 	{
 	}
 
@@ -47,7 +47,7 @@ function pdf_add_annotation(& $pdf, $llx, $lly, $urx, $ury, $title, $content = a
 # This function is deprecated since PDFlib version 6, use PDF_create_bookmark() instead.
 ################################################################################
 
-function pdf_add_bookmark(& $pdf, $text, $parent, $open = array())
+function pdf_add_bookmark(& $pdf)
 	{
 	}
 
@@ -109,24 +109,24 @@ function pdf_add_outline(& $pdf, $text, $parent, $open)
 	if(! $parent)
 		{
 		if(isset($pdf["objects"][0]["dictionary"]["/Root"]) === false)
-			die("pdf_end_page_ext: root not found.");
+			die(__FUNCTION__ . ": root not found.");
 
 		if(sscanf($pdf["objects"][0]["dictionary"]["/Root"], "%d %d R", $catalog_id, $catalog_version) != 2)
 			die("pdf_end_page_ext: invalid root.");
 
 		if(isset($pdf["objects"][$catalog_id]["dictionary"]["/Outlines"]) === false)
-			die("pdf_end_page_ext: outlines not found.");
+			die(__FUNCTION__ . ": outlines not found.");
 
 		$parent = $pdf["objects"][$catalog_id]["dictionary"]["/Outlines"];
 		}
 
 	# check parent
 	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
-		die("_pdf_add_outline: invalid outlines: " . $parent);
+		die(__FUNCTION__ . ": invalid outlines: " . $parent);
 
 	# check open
-	if(sscanf($open, "%d %d R", $open_id, $open_version) != 2)
-		die("_pdf_add_outline: invalid open: " . $open);
+#	if(sscanf($open, "%d %d R", $open_id, $open_version) != 2)
+#		die(__FUNCTION__ . ": invalid open: " . $open);
 
 	$outline_id = _pdf_get_free_object_id($pdf);
 
@@ -137,12 +137,12 @@ function pdf_add_outline(& $pdf, $text, $parent, $open)
 		"dictionary" => array
 			(
 			"/Title" => sprintf("(%s)", $text),
-			"/Parent" => $parent,
-			"/Dest" => sprintf("[%s /Fit]", $open)
+			"/Parent" => $parent
 			)
 		);
 
-	$outline = sprintf("%d 0 R", $outline_id);
+	if($open)
+		$pdf["objects"][$outline_id]["dictionary"]["/Dest"] = sprintf("[%s /Fit]", $open);
 
 	# get counter
 	if(isset($pdf["objects"][$parent_id]["dictionary"]["/Count"]))
@@ -152,7 +152,7 @@ function pdf_add_outline(& $pdf, $text, $parent, $open)
 
 	# this is the first outline ... maybe
 	if(isset($pdf["objects"][$parent_id]["dictionary"]["/First"]) === false)
-		$pdf["objects"][$parent_id]["dictionary"]["/First"] = $outline;
+		$pdf["objects"][$parent_id]["dictionary"]["/First"] = sprintf("%d 0 R", $outline_id);
 
 	# modify pointer to last outline
 	if(isset($pdf["objects"][$parent_id]["dictionary"]["/Last"]))
@@ -162,22 +162,22 @@ function pdf_add_outline(& $pdf, $text, $parent, $open)
 
 		# check pointer
 		if(sscanf($last, "%d %d R", $last_id, $last_version) != 2)
-			die("pdf_add_outline: invalid outline: " . $last);
+			die(__FUNCTION__ . ": invalid outline: " . $last);
 
 		# this outline is the next one for the previoous outline
-		$pdf["objects"][$last_id]["dictionary"]["/Next"] = $outline;
+		$pdf["objects"][$last_id]["dictionary"]["/Next"] = sprintf("%d 0 R", $outline_id);
 
 		# the last outline is the previous now
 		$pdf["objects"][$outline_id]["dictionary"]["/Prev"] = $last;
 		}
 
 	# this outline is the last one
-	$pdf["objects"][$parent_id]["dictionary"]["/Last"] = $outline;
+	$pdf["objects"][$parent_id]["dictionary"]["/Last"] = sprintf("%d 0 R", $outline_id);
 
 	# update counter
-	$pdf["objects"][$parent_id]["dictionary"]["/Count"] = ($count < 0 ? $count - 1 : $count + 1);
+	$pdf["objects"][$parent_id]["dictionary"]["/Count"] = ($count > 0 ? $count + 1 : $count - 1);
 
-	return($outline);
+	return(sprintf("%d 0 R", $outline_id));
 	}
 
 ################################################################################
@@ -427,7 +427,7 @@ function pdf_begin_document(& $pdf, $filename, $optlist = array())
 
 	# add additional help
 	$pdf["filename"] = $filename;
-	$pdf["resources"] = array("/ProcSet" => array("/PDF", "/Text"));
+	$pdf["resources"] = array();
 	}
 
 ################################################################################
@@ -508,24 +508,24 @@ function pdf_begin_page(& $pdf, $width, $height)
 # 	11" x 17"		792 x 1224
 ################################################################################
 
-function pdf_begin_page_ext(& $pdf, $width, $height, $optlist = "")
+function pdf_begin_page_ext(& $pdf, $width, $height, $optlist = array())
 	{
 	# check parent
-	if(! $optlist)
+	if(isset($optlist["parent"]))
+		$pages = $optlist["parent"];
+	else
 		{
 		if(isset($pdf["objects"][0]["dictionary"]["/Root"]) === false)
-			die("pdf_end_page_ext: root not found.");
+			die(__FUNCTION__ . ": root not found.");
 
 		if(sscanf($pdf["objects"][0]["dictionary"]["/Root"], "%d %d R", $catalog_id, $catalog_version) != 2)
-			die("pdf_end_page_ext: invalid root.");
+			die(__FUNCTION__ . ": invalid root.");
 
 		if(isset($pdf["objects"][$catalog_id]["dictionary"]["/Pages"]) === false)
-			die("pdf_end_page_ext: pages not found.");
+			die(__FUNCTION__ . ": pages not found.");
 
 		$pages = $pdf["objects"][$catalog_id]["dictionary"]["/Pages"];
 		}
-	else
-		$pages = $optlist;
 
 
 /*
@@ -565,14 +565,14 @@ function pdf_begin_page_ext(& $pdf, $width, $height, $optlist = "")
 		$kids[] = $pages;
 
 		$pdf["objects"][$parent_id]["dictionary"]["/Kids"] = sprintf("[%s]", _pdf_glue_array($kids));
-		$pdf["objects"][$parent_id]["dictionary"]["/Count"] = ($count < 0 ? $count - 1 : $count + 1);
+		$pdf["objects"][$parent_id]["dictionary"]["/Count"] = ($count > 0 ? $count + 1 : $count - 1);
 
 		$pdf["objects"][$pages_id]["dictionary"]["/Parent"] = $parent;
 		}
 	elseif($pdf["objects"][$parent_id]["dictionary"]["/Type"] == "/Catalog")
 		$pdf["objects"][$parent_id]["dictionary"]["/Pages"] = $pages;
 	else
-		die("pdf_add_page: invalid type of parent.");
+		die(__FUNCTION__ . ": invalid type of parent.");
 
 */
 
@@ -580,7 +580,7 @@ function pdf_begin_page_ext(& $pdf, $width, $height, $optlist = "")
 
 	# get parent id
 	if(sscanf($pages, "%d %d R", $pages_id, $pages_version) != 2)
-		die("pdf_end_page_ext: invalid parent.");
+		die(__FUNCTION__ . ": invalid parent.");
 
 	# apply page
 	$page_id = _pdf_get_free_object_id($pdf);
@@ -599,7 +599,9 @@ function pdf_begin_page_ext(& $pdf, $width, $height, $optlist = "")
 			)
 		);
 
-	$pdf["active"] = sprintf("%d 0 R", $page_id);
+	# apply duration
+	if(isset($optlist["duration"]))
+		$pdf["objects"][$page_id]["dictionary"]["/Dur"] = $optlist["duration"];
 
 	# get count
 	if(isset($pdf["objects"][$pages_id]["dictionary"]["/Count"]))
@@ -619,14 +621,19 @@ function pdf_begin_page_ext(& $pdf, $width, $height, $optlist = "")
 	$data = substr($data, 1);
 
 	# apply page to kids
-	$kids[] = $pdf["active"];
+	$kids[] = sprintf("%d 0 R", $page_id);
 
+	# apply kids
 	$pdf["objects"][$pages_id]["dictionary"]["/Kids"] = sprintf("[%s]", _pdf_glue_array($kids));
+
+	# increase counter
 	$pdf["objects"][$pages_id]["dictionary"]["/Count"] = $count + 1;
 
+	# update internals
+	$pdf["active"] = sprintf("%d 0 R", $page_id);
 	$pdf["stream"] = array();
 
-	return($pdf["active"]);
+	return(sprintf("%d 0 R", $page_id));
 	}
 
 ################################################################################
@@ -796,7 +803,7 @@ function pdf_closepath_stroke(& $pdf)
 
 function pdf_concat(& $pdf, $a, $b, $c, $d, $e, $f)
 	{
-	$pdf["stream"][] = sprintf("%.1f %.1f %.1f %.1f %.1f %.1f cm", $a, $b, $c, $d, $e, $f);
+	$pdf["stream"][] = sprintf("%f %f %f %f %f %f cm", $a, $b, $c, $d, $e, $f);
 	}
 
 ################################################################################
@@ -816,10 +823,8 @@ function pdf_continue_text(& $pdf, $text)
 
 	$pdf["stream"][] = "T*";
 
-	if(! $text)
+	if(strlen($text) == 0)
 		return;
-
-	$text = utf8_decode($text);
 
 	$text = str_replace(array("\\", "(", ")"), array("\\\\", "\\(", "\\)"), $text);
 
@@ -845,12 +850,12 @@ function pdf_create_3dview(& $pdf, $username, $optlist = array())
 
 function pdf_create_action(& $pdf, $type, $optlist = array())
 	{
-	if(in_array($type, array("goto", "gotor", "launch", "uri")) === false)
-		die("_pdf_add_action: invalid type: " . $type);
+	if(in_array($type, array("GoTo", "GoToR", "Launch", "uri")) === false)
+		die(__FUNCTION__ . ": invalid type: " . $type);
 
 	$action_id = _pdf_get_free_object_id($pdf);
 
-	if($type == "goto")
+	if($type == "GoTo")
 		{
 		$pdf["objects"][$action_id] = array
 			(
@@ -859,13 +864,15 @@ function pdf_create_action(& $pdf, $type, $optlist = array())
 			"dictionary" => array
 				(
 				"/Type" => "/Action",
-				"/S" => "/GoTo",
-				"/D" => sprintf("[%s /Fit]", $optlist["dest"])
+				"/S" => "/GoTo"
 				)
 			);
+
+		if(isset($optlist["dest"]))
+			$pdf["objects"][$action_id]["dictionary"]["/D"] = sprintf("[%s /Fit]", $optlist["dest"]);
 		}
 
-	if($type == "gotor")
+	if($type == "GoToR")
 		{
 		$pdf["objects"][$action_id] = array
 			(
@@ -874,14 +881,18 @@ function pdf_create_action(& $pdf, $type, $optlist = array())
 			"dictionary" => array
 				(
 				"/Type" => "/Action",
-				"/S" => "/GoToR",
-				"/F" => sprintf("(%s)", $optlist["filename"]),
-				"/D" => sprintf("[%s /Fit]", $optlist["dest"])
+				"/S" => "/GoToR"
 				)
 			);
+
+		if(isset($optlist["filename"]))
+			$pdf["objects"][$action_id]["dictionary"]["/F"] = sprintf("(%s)", $optlist["filename"]);
+
+		if(isset($optlist["dest"]))
+			$pdf["objects"][$action_id]["dictionary"]["/D"] = sprintf("[%s /Fit]", $optlist["dest"]);
 		}
 
-	if($type == "launch")
+	if($type == "Launch")
 		{
 		$pdf["objects"][$action_id] = array
 			(
@@ -890,10 +901,12 @@ function pdf_create_action(& $pdf, $type, $optlist = array())
 			"dictionary" => array
 				(
 				"/Type" => "/Action",
-				"/S" => "/Launch",
-				"/F" => sprintf("(%s)", $optlist["filename"])
+				"/S" => "/Launch"
 				)
 			);
+
+		if(isset($optlist["filename"]))
+			$pdf["objects"][$action_id]["dictionary"]["/F"] = sprintf("(%s)", $optlist["filename"]);
 		}
 
 	if($type == "uri")
@@ -905,10 +918,12 @@ function pdf_create_action(& $pdf, $type, $optlist = array())
 			"dictionary" => array
 				(
 				"/Type" => "/Action",
-				"/S" => "/URI",
-				"/URI" => sprintf("(%s)", $optlist["uri"])
+				"/S" => "/URI"
 				)
 			);
+
+		if(isset($optlist["uri"]))
+			$pdf["objects"][$action_id]["dictionary"]["/URI"] = sprintf("(%s)", $optlist["uri"]);
 		}
 
 	return(sprintf("%d 0 R", $action_id));
@@ -923,16 +938,14 @@ function pdf_create_action(& $pdf, $type, $optlist = array())
 function pdf_create_annotation(& $pdf, $llx, $lly, $urx, $ury, $type, $optlist = array())
 	{
 #	if(sscanf($parent, "%d %d R", $parent_id, $parent_version) != 2)
-#		die("_pdf_add_annotation: invalid parent: " . $parent);
+#		die(__FUNCTION__ . ": invalid parent: " . $parent);
 
-	if(in_array($type, array("attachment", "link", "text", "widget")) === false)
-		die("_pdf_add_annotation: invalid type: " . $type);
-
-	$rect = sprintf("[%d %d %d %d]", $llx, $lly, $urx, $ury);
+	if(in_array($type, array("Attachment", "Link", "Text", "widget")) === false)
+		die(__FUNCTION__ . ": invalid type: " . $type);
 
 	$annotation_id = _pdf_get_free_object_id($pdf);
 
-	if($type == "attachment")
+	if($type == "Attachment")
 		{
 		$pdf["objects"][$annotation_id] = array
 			(
@@ -941,12 +954,13 @@ function pdf_create_annotation(& $pdf, $llx, $lly, $urx, $ury, $type, $optlist =
 			"dictionary" => array
 				(
 				"/Type" => "/Annot",
-				"/Rect" => $rect
+				"/Subtype" => "/Attachment",
+				"/Rect" => sprintf("[%d %d %d %d]", $llx, $lly, $urx, $ury)
 				)
 			);
 		}
 
-	if($type == "link")
+	if($type == "Link")
 		{
 		$pdf["objects"][$annotation_id] = array
 			(
@@ -955,12 +969,19 @@ function pdf_create_annotation(& $pdf, $llx, $lly, $urx, $ury, $type, $optlist =
 			"dictionary" => array
 				(
 				"/Type" => "/Annot",
-				"/Rect" => $rect
+				"/Subtype" => "/Link",
+				"/Rect" => sprintf("[%d %d %d %d]", $llx, $lly, $urx, $ury)
 				)
 			);
+
+		if(isset($optlist["action"]))
+			$pdf["objects"][$annotation_id]["dictionary"]["/A"] = $optlist["action"];
+
+		if(isset($optlist["dasharray"]))
+			$pdf["objects"][$annotation_id]["dictionary"]["/Border"] = $optlist["dasharray"];
 		}
 
-	if($type == "text")
+	if($type == "Text")
 		{
 		$pdf["objects"][$annotation_id] = array
 			(
@@ -969,28 +990,36 @@ function pdf_create_annotation(& $pdf, $llx, $lly, $urx, $ury, $type, $optlist =
 			"dictionary" => array
 				(
 				"/Type" => "/Annot",
-				"/Rect" => $rect
+				"/Subtype" => "/Text",
+				"/Rect" => sprintf("[%d %d %d %d]", $llx, $lly, $urx, $ury)
 				)
 			);
+
+		if(isset($optlist["title"]))
+			$pdf["objects"][$annotation_id]["dictionary"]["/Contents"] = sprintf("(%s)", $optlist["title"]);
 		}
 
-	$annotation = sprintf("%d 0 R", $whatever_id);
+	if(sscanf($pdf["active"], "%d %d R", $page_id, $page_version) != 2)
+		die(__FUNCTION__ . ": invalid page.");
 
-	# apply ...
-#	if(isset($pdf["objects"][$parent_id]["dictionary"]["/Annots"]))
-#		$data = $pdf["objects"][$parent_id]["dictionary"]["/Annots"];
-#	else
-#		$data = "[]";
+	# get annotations
+	if(isset($pdf["objects"][$page_id]["dictionary"]["/Annots"]))
+		$data = $pdf["objects"][$page_id]["dictionary"]["/Annots"];
+	else
+		$data = "[]";
 
-#	$data = substr($data, 1);
-#	list($annots, $data) = _pdf_parse_array($data);
-#	$data = substr($data, 1);
+	# parse annotation
+	$data = substr($data, 1);
+	list($annots, $data) = _pdf_parse_array($data);
+	$data = substr($data, 1);
 
-#	$annots[] = $annotation;
+	# apply annotation to annotations
+	$annots[] = sprintf("%d 0 R", $annotation_id);
 
-#	$pdf["objects"][$parent_id]["dictionary"]["/Annots"] = sprintf("[%s]", _pdf_glue_array($annots));
+	# apply annotations
+	$pdf["objects"][$page_id]["dictionary"]["/Annots"] = sprintf("[%s]", _pdf_glue_array($annots));
 
-	return($annotation);
+	return(sprintf("%d 0 R", $annotation_id));
 	}
 
 ################################################################################
@@ -1062,7 +1091,7 @@ function pdf_create_textflow(& $pdf, $text, $optlist = array())
 
 function pdf_curveto(& $pdf, $x1, $y1, $x2, $y2, $x3, $y3)
 	{
-	$pdf["stream"][] = sprintf("%.1f %.1f %.1f %.1f %.1f %.1f c", $x1, $y1, $x2, $y2, $x3, $y3);
+	$pdf["stream"][] = sprintf("%f %f %f %f %f %f c", $x1, $y1, $x2, $y2, $x3, $y3);
 	}
 
 ################################################################################
@@ -1156,15 +1185,15 @@ function pdf_end_document(& $pdf, $optlist = array())
 			{
 			# check resource pointer
 			if(sscanf($object, "%d %d R", $object_id, $object_version) != 2)
-				die("pdf_end_document: invalid object.");
+				die(__FUNCTION__ . ": invalid object: " . $object);
 
 			# check if subtype exist
 			if(isset($pdf["objects"][$object_id]["dictionary"]["/Subtype"]) === false)
-				die("pdf_end_document: subtype not found.");
+				die(__FUNCTION__ . ": subtype not found.");
 
 			# check if widths exist
 			if(isset($pdf["objects"][$object_id]["dictionary"]["/Widths"]) === false)
-				die("pdf_end_document: widths not found.");
+				die(__FUNCTION__ . ": widths not found.");
 
 			# remove withs on type1 fonts and glue withs on all other fonts
 			if($pdf["objects"][$object_id]["dictionary"]["/Subtype"] != "/Type1")
@@ -1185,7 +1214,7 @@ function pdf_end_document(& $pdf, $optlist = array())
 	$pdf["objects"][0]["dictionary"]["/Info"] = sprintf("%d 0 R", $info_id);
 	
 	# apply some filter
-#	_pdf_filter_change($pdf, "/FlateDecode");
+	_pdf_filter_change($pdf, "/FlateDecode");
 
 	# glue all objects
 	$pdf["stream"] = _pdf_glue_document($pdf["objects"]);
@@ -1259,7 +1288,7 @@ function pdf_end_page(& $pdf)
 function pdf_end_page_ext(& $pdf, $optlist = array())
 	{
 	if(sscanf($pdf["active"], "%d %d R", $page_id, $page_version) != 2)
-		die("pdf_end_page_ext: invalid page.");
+		die(__FUNCTION__ . ": invalid page.");
 
 	# glue resources
 	foreach(array("/ProcSet") as $type)
@@ -1273,6 +1302,10 @@ function pdf_end_page_ext(& $pdf, $optlist = array())
 	# apply group
 	if($pdf["minor"] > 3)
 		$pdf["objects"][$page_id]["dictionary"]["/Group"] = "<< /Type /Group /S /Transparency /CS /DeviceRGB >>";
+
+	# apply duration
+	if(isset($optlist["duration"]))
+		$pdf["objects"][$page_id]["dictionary"]["/Dur"] = $optlist["duration"];
 
 	# apply emply content
 	$pdf["objects"][$page_id]["dictionary"]["/Contents"] = _pdf_add_stream($pdf, implode("\n", $pdf["stream"]));
@@ -1385,7 +1418,7 @@ function pdf_findfont(& $pdf, $fontname, $encoding = "builtin", $embed = 0)
 #	printf("pdf_findfont: %s\n", $fontname);
 
 	if(in_array($encoding, array("builtin", "winansi", "macroman", "macexpert")) === false)
-		die("pdf_findfont: invalid encoding.");
+		die(__FUNCTION__ . ": invalid encoding: " . $encoding);
 
 	$font = "";
 
@@ -1399,7 +1432,7 @@ function pdf_findfont(& $pdf, $fontname, $encoding = "builtin", $embed = 0)
 		if($embed)
 			return(pdf_load_font($pdf, $fontname, $encoding, $embed));
 		else
-			die("pdf_findfont: font not found.");
+			die(__FUNCTION__ . ": font not found:" . $fontname);
 
 	return($font);
 	}
@@ -1415,19 +1448,19 @@ function pdf_fit_image(& $pdf, $image, $x, $y, $optlist = array())
 	{
 	# check image
 	if(sscanf($image, "/X%d", $whatever) != 1)
-		die("pdf_fit_image: invalid image."); # default format in pdf-api.php
+		die(__FUNCTION__ . ": invalid image: " . $image);
 
 	# check existence
 	if(isset($pdf["resources"]["/XObject"][$image]) === false)
-		die("pdf_fit_image: no images loaded.");
+		die(__FUNCTION__ . ": no images loaded: " . $image);
 
 	# check pointer
 	if(sscanf($pdf["resources"]["/XObject"][$image], "%d %d R", $object_id, $object_version) != 2)
-		die("pdf_fit_image: invalid image.");
+		die(__FUNCTION__ . ": invalid image: " . $image);
 
 	# check pointer
 	if(sscanf($pdf["active"], "%d %d R", $page_id, $page_version) != 2)
-		die("pdf_fit_image: invalid page.");
+		die(__FUNCTION__ . ": invalid page.");
 
 	# remember image as used resource
 	$pdf["objects"][$page_id]["dictionary"]["/Resources"]["/XObject"][$image] = $pdf["resources"]["/XObject"][$image];
@@ -1436,14 +1469,26 @@ function pdf_fit_image(& $pdf, $image, $x, $y, $optlist = array())
 	$w = $pdf["objects"][$object_id]["dictionary"]["/Width"];
 	$h = $pdf["objects"][$object_id]["dictionary"]["/Height"];
 
-	if($pdf["objects"][$object_id]["dictionary"]["/ColorSpace"] == "/Indexed")
+	# update pracset
+	if(sscanf($pdf["objects"][$object_id]["dictionary"]["/ColorSpace"], "[%s %s %d %s]", $a, $b, $c, $d) != 4)
+		list($a, $b, $c, $d) = array("", $pdf["objects"][$object_id]["dictionary"]["/ColorSpace"], "", "");
+
+	if($b == "/DeviceGray")
+		if(in_array("/ImageB", $pdf["objects"][$page_id]["dictionary"]["/Resources"]["/ProcSet"]) === false)
+			$pdf["objects"][$page_id]["dictionary"]["/Resources"]["/ProcSet"][] = "/ImageB";
+
+	if($b == "/DeviceRGB")
+		if(in_array("/ImageC", $pdf["objects"][$page_id]["dictionary"]["/Resources"]["/ProcSet"]) === false)
+			$pdf["objects"][$page_id]["dictionary"]["/Resources"]["/ProcSet"][] = "/ImageC";
+
+	if($a == "/Indexed")
 		if(in_array("/ImageI", $pdf["objects"][$page_id]["dictionary"]["/Resources"]["/ProcSet"]) === false)
 			$pdf["objects"][$page_id]["dictionary"]["/Resources"]["/ProcSet"][] = "/ImageI";
 
-	pdf_save($pdf);
-	$pdf["stream"][] = sprintf("%.1f %.1f %.1f %.1f %.1f %.1f cm", $w * $optlist["scale"], 0, 0, $h * $optlist["scale"], $x, $y);
+	$pdf["stream"][] = "q";
+	$pdf["stream"][] = sprintf("%f %f %f %f %f %f cm", $w * $optlist["scale"], 0, 0, $h * $optlist["scale"], $x, $y);
 	$pdf["stream"][] = sprintf("%s Do", $image); # Invoke named XObject
-	pdf_restore($pdf);
+	$pdf["stream"][] = "Q";
 	}
 
 ################################################################################
@@ -1620,27 +1665,27 @@ function pdf_get_parameter(& $pdf, $key, $modifier)
 		case("fontname"):
 			# check if font-alias is valid
 			if(sscanf($modifier, "/F%d", $whatever) != 1)
-				die("pdf_get_parameter: invalid font: " . $modifier);
+				die(__FUNCTION__ . ": invalid font: " . $modifier);
 
 			# check if font-alias is loaded
 			if(isset($pdf["resources"]["/Font"][$modifier]) === false)
-				die("pdf_get_parameter: font not found: " . $modifier);
+				die(__FUNCTION__ . ": font not found: " . $modifier);
 
 			# check if font-resource is valid
 			if(sscanf($pdf["resources"]["/Font"][$modifier], "%d %d R", $object_id, $object_version) != 2)
-				die("pdf_get_parameter: invalid font: " . $modifier);
+				die(__FUNCTION__ . ": invalid font: " . $modifier);
 
 			# check if font-resource is valid
 			if(isset($pdf["objects"][$object_id]["dictionary"]["/BaseFont"]) === false)
-				die("pdf_get_parameter: invalid font: " . $modifier);
+				die(__FUNCTION__ . ": invalid font: " . $modifier);
 
 			# check if font-name is valid
 			if(sscanf($pdf["objects"][$object_id]["dictionary"]["/BaseFont"], "/%s", $whatever) != 1)
-				die("pdf_get_parameter: invalid font: " . $modifier);
+				die(__FUNCTION__ . ": invalid font: " . $modifier);
 
 			return($whatever);
 		default:
-			die("pdf_get_parameter: invalid key: " . $key);
+			die(__FUNCTION__ . ": invalid key: " . $key);
 		}
 	}
 
@@ -1679,89 +1724,89 @@ function pdf_get_value(& $pdf, $key, $modifier)
 		case("font"):
 			# check if font is set
 			if(isset($pdf["font"]) === false)
-				die("pdf_get_value: font not set.");
+				die(__FUNCTION__ . ": font not set.");
 
 			# check if font-alias is valid
 			if(sscanf($pdf["font"], "/F%d", $whatever) != 1)
-				die("pdf_get_value: invalid font.");
+				die(__FUNCTION__ . ": invalid font.");
 
 			# /Fx instead of x
 			return($pdf["font"]);
 		case("fontsize"):
 			# check if fontsize is set
 			if(isset($pdf["fontsize"]) === false)
-				die("pdf_get_value: fontsize not set.");
+				die(__FUNCTION__ . ": fontsize not set.");
 
 			# check if fontsize is valid
 			if(is_numeric($pdf["fontsize"]) === false)
-				die("pdf_get_value: invalid fontsize.");
+				die(__FUNCTION__ . ": invalid fontsize.");
 
 			return($pdf["fontsize"]);
 		case("imageheight"):
 			# check if image-alias is valid
 			if(sscanf($modifier, "/X%d", $whatever) != 1)
-				die("pdf_get_value: invalid image: " . $modifier);
+				die(__FUNCTION__ . ": invalid image: " . $modifier);
 
 			# check if image-alias is loaded
 			if(isset($pdf["resources"]["/XObject"][$modifier]) === false)
-				die("pdf_get_value: image not found: " . $modifier);
+				die(__FUNCTION__ . ": image not found: " . $modifier);
 
 			# check if image-resource is valid
 			if(sscanf($pdf["resources"]["/XObject"][$modifier], "%d %d R", $object_id, $object_version) != 2)
-				die("pdf_get_value: invalid image: " . $modifier);
+				die(__FUNCTION__ . ": invalid image: " . $modifier);
 
 			# check if image-resource is valid
 			if(isset($pdf["objects"][$object_id]["dictionary"]["/Height"]) === false)
-				die("pdf_get_value: invalid image: " . $modifier);
+				die(__FUNCTION__ . ": invalid image: " . $modifier);
 
 			if(is_numeric($pdf["objects"][$object_id]["dictionary"]["/Height"]) === false)
-				die("pdf_get_value: invalid image: ". $modifier);
+				die(__FUNCTION__ . ": invalid image: ". $modifier);
 
 			return($pdf["objects"][$object_id]["dictionary"]["/Height"]);
 		case("imagewidth"):
 			# check if image-alias is valid
 			if(sscanf($modifier, "/X%d", $whatever) != 1)
-				die("pdf_get_value: invalid image: " . $modifier);
+				die(__FUNCTION__ . ": invalid image: " . $modifier);
 
 			# check if image is loaded
 			if(isset($pdf["resources"]["/XObject"][$modifier]) === false)
-				die("pdf_get_value: image not found: " . $modifier);
+				die(__FUNCTION__ . ": image not found: " . $modifier);
 
 			# check if image-resource is valid
 			if(sscanf($pdf["resources"]["/XObject"][$modifier], "%d %d R", $object_id, $object_version) != 2)
-				die("pdf_get_value: invalid image: " . $modifier);
+				die(__FUNCTION__ . ": invalid image: " . $modifier);
 
 			# check if image-resource is valid
 			if(isset($pdf["objects"][$object_id]["dictionary"]["/Width"]) === false)
-				die("pdf_get_value: invalid image: " . $modifier);
+				die(__FUNCTION__ . ": invalid image: " . $modifier);
 
 			# check if imagewidth is valid
 			if(is_numeric($pdf["objects"][$object_id]["dictionary"]["/Width"]) === false)
-				die("pdf_get_value: invalid value: " . $modifier);
+				die(__FUNCTION__ . ": invalid value: " . $modifier);
 
 			return($pdf["objects"][$object_id]["dictionary"]["/Width"]);
 		case("major"):
 			# check if major-version is set
 			if(isset($pdf["major"]) === false)
-				die("pdf_get_value: version not found.");
+				die(__FUNCTION__ . ": version not found.");
 
 			# check if major version is valid
 			if(is_numeric($pdf["major"]) === false)
-				die("pdf_get_value: invalid version.");
+				die(__FUNCTION__ . ": invalid version.");
 
 			return($pdf["major"]);
 		case("minor"):
 			# check if minor-version is set
 			if(isset($pdf["minor"]) === false)
-				die("pdf_get_value: version not found.");
+				die(__FUNCTION__ . ": version not found.");
 
 			# check if minor-version is valid
 			if(is_numeric($pdf["minor"]) === false)
-				die("pdf_get_value: invalid version.");
+				die(__FUNCTION__ . ": invalid version.");
 
 			return($pdf["minor"]);
 		default:
-			die("pdf_get_value: invalid key: " . $key);
+			die(__FUNCTION__ . ": invalid key: " . $key);
 		}
 	}
 
@@ -1835,7 +1880,7 @@ function pdf_initgraphics(& $pdf)
 
 function pdf_lineto(& $pdf, $x, $y)
 	{
-	$pdf["stream"][] = sprintf("%.1f %.1f l", $x, $y);
+	$pdf["stream"][] = sprintf("%f %f l", $x, $y);
 	}
 
 ################################################################################
@@ -1860,7 +1905,7 @@ function pdf_load_font(& $pdf, $fontname, $encoding = "builtin", $optlist = "")
 #	printf("pdf_load_font: %s\n" , $fontname);
 
 	if(in_array($encoding, array("builtin", "winansi", "macroman", "macexpert")) === false)
-		die("_pdf_add_font: invalid encoding: " . $encoding);
+		die(__FUNCTION__ . ": invalid encoding: " . $encoding);
 
 	foreach($pdf["core"] as $object)
 		{
@@ -1893,9 +1938,8 @@ function pdf_load_font(& $pdf, $fontname, $encoding = "builtin", $optlist = "")
 
 		
 		# apply widths ... this need to be written here, for easier access to object where we get data from
-		$pdf["objects"][$font_id]["dictionary"]["/FirstChar"] = 0x00;
-		$pdf["objects"][$font_id]["dictionary"]["/LastChar"] = 0xFF;
-		$pdf["objects"][$font_id]["dictionary"]["/Widths"] = $object["widths"];
+		foreach(array("/FirstChar" => 0x00, "/LastChar" => 0xFF, "/Widths" => $object["widths"]) as $k => $v)
+			$pdf["objects"][$font_id]["dictionary"][$k] = $v;
 
 		$index = _pdf_get_free_font_id($pdf);
 
@@ -1908,7 +1952,7 @@ function pdf_load_font(& $pdf, $fontname, $encoding = "builtin", $optlist = "")
 
 #	$filename = "/home/nomatrix/externe_platte/daten/ttf/" . strtolower($fontname[0]) . "/" . $fontname . ".ttf";
 #	$filename = "/usr/share/fonts/truetype/freefont/" . $fontname . ".ttf";
-	$filename = "./" . $fontname . ".ttf";
+	$filename = __DIR__ . "/" . $fontname . ".ttf";
 
 	if(file_exists($filename) === false)
 		return(pdf_load_font($pdf, "Courier", $encoding, $optlist));
@@ -1957,12 +2001,11 @@ function pdf_load_font(& $pdf, $fontname, $encoding = "builtin", $optlist = "")
 	$widths = array();
 
 	foreach(range(0x00, 0xFF) as $char)
-		$widths[chr($char)] = (($info = imagettfbbox(720, 0, $filename, chr($char))) ? $info[2] : 1000);
+		$widths[$char] = (($info = imagettfbbox(720, 0, $filename, chr($char))) ? $info[2] : 1000);
 
 	# apply widths
-	$pdf["objects"][$font_id]["dictionary"]["/FirstChar"] = 0x00;
-	$pdf["objects"][$font_id]["dictionary"]["/LastChar"] = 0xFF;
-	$pdf["objects"][$font_id]["dictionary"]["/Widths"] = $widths;
+	foreach(array("/FirstChar" => 0x00, "/LastChar" => 0xFF, "/Widths" => $widths) as $k => $v)
+		$pdf["objects"][$font_id]["dictionary"][$k] = $v;
 
 	$index = _pdf_get_free_font_id($pdf);
 
@@ -1989,24 +2032,26 @@ function pdf_load_iccprofile(& $pdf, $profilename, $optlist = array())
 
 function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = array())
 	{
-	if($imagetype == "gif")
+	if(file_exists($filename) === false)
+		die(__FUNCTION__ . ": file not found: " . $filename);
+	elseif($imagetype == "gif")
 		{
 		if(function_exists("imagecreatefromgif") === false)
-			die("pdf_load_image: no gif support.");
+			die(__FUNCTION__ . ": no gif support.");
 
 		if(($info = imagecreatefromgif($filename)) === false)
-			die("pdf_load_image: invalid file: " . $filename);
+			die(__FUNCTION__ . ": invalid file: " . $filename);
 
 		imageinterlace($info, 0);
 
 		if(function_exists("imagepng") === false)
-			die("pdf_load_image: no png support.");
+			die(__FUNCTION__ . ": no png support.");
 
 		if(($temp = tempnam(__DIR__, "xxx")) === false)
-			die("pdf_load_image: unable to create a temporary file.");
+			die(__FUNCTION__ . ": unable to create a temporary file.");
 
 		if(imagepng($info, $temp) === false)
-			die("pdf_load_image: error while saving to temporary file.");
+			die(__FUNCTION__ . ": error while saving to temporary file.");
 
 		imagedestroy($info);
 
@@ -2021,10 +2066,10 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = array())
 	elseif($imagetype == "jpg")
 		{
 		if(($info = getimagesize($filename)) === false)
-			die("pdf_load_image: invalid file: " . $filename);
+			die(__FUNCTION__ . ": invalid file: " . $filename);
 
 		if($info[2] != 2)
-			die("pdf_load_image: invalid file: " . $filename);
+			die(__FUNCTION__ . ": invalid file: " . $filename);
 
 		if(isset($info["channels"]) === false)
 			$color_space = "/DeviceRGB";
@@ -2066,10 +2111,10 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = array())
 	elseif($imagetype == "png")
 		{
 		if(($f = fopen($filename, "rb")) === false)
-			die("pdf_load_image: invalid file: " . $filename);
+			die(__FUNCTION__ . ": invalid file: " . $filename);
 
 		if(_pdf_read_str($f, 8) != "\x89PNG\x0D\x0A\x1A\x0A")
-			die("pdf_load_image: invalid file: " . $filename);
+			die(__FUNCTION__ . ": invalid file: " . $filename);
 
 		$trns_stream = array();
 		$plte_stream = "";
@@ -2098,16 +2143,16 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = array())
 				$interlacing = _pdf_read_chr($f);
 
 				if($bits_per_component > 0x08)
-					die("pdf_load_image: 16-bit depth not supported: " . $filename);
+					die(__FUNCTION__ . ": 16-bit depth not supported: " . $filename);
 
 				if($compression_method != 0x00)
-					die("pdf_load_image: unknown compression method: " . $filename);
+					die(__FUNCTION__ . ": unknown compression method: " . $filename);
 
 				if($filter_method != 0x00)
-					die("pdf_load_image: unknown filter method: " . $filename);
+					die(__FUNCTION__ . ": unknown filter method: " . $filename);
 
 				if($interlacing != 0x00)
-					die("pdf_load_image: interlacing not supported: " . $filename);
+					die(__FUNCTION__ . ": interlacing not supported: " . $filename);
 				}
 			elseif($chunk_type == "IEND")
 				break;
@@ -2260,9 +2305,9 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = array())
 	else
 		{
 		if(($temp = tempnam(__DIR__, "xxx")) === false)
-			die("pdf_load_image: unable to create a temporary file.");
+			die(__FUNCTION__ . ": unable to create a temporary file.");
 
-		exec("convert \"" . $filename . "\" -quality 25 \"" . $temp . ".jpg\"");
+		exec("convert \"" . $filename . "\" -quality 50 \"" . $temp . ".jpg\"");
 
 		$index = pdf_load_image($pdf, "jpg", $temp . ".jpg");
 
@@ -2299,7 +2344,7 @@ function pdf_makespotcolor(& $pdf, $spotname)
 
 function pdf_moveto(& $pdf, $x, $y)
 	{
-	$pdf["stream"][] = sprintf("%.1f %.1f m", $x, $y);
+	$pdf["stream"][] = sprintf("%f %f m", $x, $y);
 	}
 
 ################################################################################
@@ -2784,7 +2829,7 @@ function pdf_process_pdi(& $pdf, $doc, $page, $optlist = array())
 
 function pdf_rect(& $pdf, $x, $y, $width, $height)
 	{
-	$pdf["stream"][] = sprintf("%.1f %.1f %.1f %.1f re", $x, $y, $width, $height);
+	$pdf["stream"][] = sprintf("%f %f %f %f re", $x, $y, $width, $height);
 	}
 
 ################################################################################
@@ -2808,27 +2853,27 @@ function pdf_restore(& $pdf)
 function pdf_resume_page(& $pdf, $optlist = array())
 	{
 	if(count($pdf["stream"]))
-		die("pdf_resume_page: page can not be resumed while page is open.");
+		die(__FUNCTION__ . ": page can not be resumed while page is open.");
 
 	# check if active is set
 	if(isset($optlist["active"]) === false)
-		die("pdf_resume_page: page must be set as option.");
+		die(__FUNCTION__ . ": page must be set as option.");
 
 	# check if pointer to active is valid
 	if(sscanf($optlist["active"], "%d %d R", $page_id, $page_version) != 2)
-		die("pdf_resume_page: invalid pointer.");
+		die(__FUNCTION__ . ": invalid pointer.");
 
 	# check if contents is set
 	if(isset($pdf["objects"][$page_id]["dictionary"]["/Contents"]) === false)
-		die("pdf_resume_page: contents not found.");
+		die(__FUNCTION__ . ": contents not found.");
 
 	# check if pointer to contents is valid
 	if(sscanf($pdf["objects"][$page_id]["dictionary"]["/Contents"], "%d %d R", $contents_id, $contents_version) != 2)
-		die("pdf_resume_page: invalid pointer.");
+		die(__FUNCTION__ . ": invalid pointer.");
 
 	# check if stream is set
 	if(isset($pdf["objects"][$contents_id]["stream"]) === false)
-		die("pdf_resume_page: stream not found.");
+		die(__FUNCTION__ . ": stream not found.");
 
 	$pdf["stream"] = $pdf["objects"][$contents_id]["stream"];
 	}
@@ -2927,7 +2972,7 @@ function pdf_set_duration(& $pdf, $duration)
 	{
 	# check pointer
 	if(sscanf($pdf["active"], "%d %d R", $page_id, $page_version) != 2)
-		die("pdf_set_duration: invalid page.");
+		die(__FUNCTION__ . ": invalid page.");
 
 	# set duration
 	$pdf["objects"][$page_id]["dictionary"]["/Dur"] = $duration;
@@ -2973,8 +3018,9 @@ function pdf_set_info(& $pdf, $key, $value)
 
 	# check if option can be set
 	if(in_array($key, $table) === false)
-		die("pdf_set_info: invalid key: " . $key);
+		die(__FUNCTION__ . ": invalid key: " . $key);
 
+	# convert to iso
 	$value = utf8_decode($value);
 
 	$pdf["info"]["/" . $key] = sprintf("(%s)", $value);
@@ -3062,7 +3108,7 @@ function pdf_set_leading(& $pdf, $distance)
 function pdf_set_parameter(& $pdf, $key, $value)
 	{
 	if(isset($pdf[$key]) === false)
-		die("pdf_set_parameter: invalid key.");
+		die(__FUNCTION__ . ": invalid key.");
 
 	$value = str_replace(array("\\", "(", ")"), array("\\\\", "\\(", "\\)"), $value);
 
@@ -3084,7 +3130,7 @@ function pdf_set_text_pos(& $pdf, $x, $y)
 	#  pdf_show | pdf_continue_text
 	#  ET
 
-	$pdf["stream"][] = sprintf("%.1f %.1f Td", $x, $y);
+	$pdf["stream"][] = sprintf("%f %f Td", $x, $y);
 	}
 
 ################################################################################
@@ -3130,13 +3176,15 @@ function pdf_set_value(& $pdf, $key, $value)
 		"wordspacing" => "Tw"
 		);
 
+	# check if option can be set
 	if(isset($table[$key]) === false)
-		die("pdf_set_value: invalid key: " . $key);
+		die(__FUNCTION__ . ": invalid key: " . $key);
 
+	# check if value is numeric
 	if(is_numeric($value) === false)
-		die("pdf_set_value: invalid value: " . $value);
+		die(__FUNCTION__ . ": invalid value: " . $value);
 
-	$pdf["stream"][] = sprintf("%.1f %s", $value, $table[$key]);
+	$pdf["stream"][] = sprintf("%f %s", $value, $table[$key]);
 	}
 
 ################################################################################
@@ -3159,22 +3207,22 @@ function pdf_set_word_spacing(& $pdf, $wordspacing)
 function pdf_setcolor(& $pdf, $fstype, $colorspace, $c1, $c2 = 0, $c3 = 0, $c4 = 0)
 	{
 	if(($fstype == "fill") && ($colorspace == "gray"))
-		return($pdf["stream"][] = sprintf("%.1f g", $c1));
+		return($pdf["stream"][] = sprintf("%f g", $c1));
 
 	if(($fstype == "fill") && ($colorspace == "rgb"))
-		return($pdf["stream"][] = sprintf("%.1f %.1f %.1f rg", $c1, $c2, $c3));
+		return($pdf["stream"][] = sprintf("%f %f %f rg", $c1, $c2, $c3));
 
 	if(($fstype == "fill") && ($colorspace == "cmyk"))
-		return($pdf["stream"][] = sprintf("%.1f %.1f %.1f %.1f k", $c1, $c2, $c3, $c4));
+		return($pdf["stream"][] = sprintf("%f %f %f %f k", $c1, $c2, $c3, $c4));
 
 	if(($fstype == "stroke") && ($colorspace == "gray"))
-		return($pdf["stream"][] = sprintf("%.1f G", $c1));
+		return($pdf["stream"][] = sprintf("%f G", $c1));
 
 	if( ($fstype == "stroke") &&($colorspace == "rgb"))
-		return($pdf["stream"][] = sprintf("%.1f %.1f %.1f RG", $c1, $c2, $c3));
+		return($pdf["stream"][] = sprintf("%f %f %f RG", $c1, $c2, $c3));
 
 	if(($fstype == "stroke") && ($colorspace == "cmyk"))
-		return($pdf["stream"][] = sprintf("%.1f %.1f %.1f %.1f K", $c1, $c2, $c3, $c4));
+		return($pdf["stream"][] = sprintf("%f %f %f %f K", $c1, $c2, $c3, $c4));
 	}
 
 ################################################################################
@@ -3186,7 +3234,7 @@ function pdf_setcolor(& $pdf, $fstype, $colorspace, $c1, $c2 = 0, $c3 = 0, $c4 =
 
 function pdf_setdash(& $pdf, $b, $w)
 	{
-	$pdf["stream"][] = sprintf("%.1f %.1f d", $b, $w);
+	$pdf["stream"][] = sprintf("%f %f d", $b, $w);
 	}
 
 ################################################################################
@@ -3209,7 +3257,7 @@ function pdf_setdashpattern(& $pdf, $optlist = array())
 
 function pdf_setflat(& $pdf, $flatness)
 	{
-	$pdf["stream"][] = sprintf("%.1f i", $flatness);
+	$pdf["stream"][] = sprintf("%f i", $flatness);
 	}
 
 ################################################################################
@@ -3227,29 +3275,29 @@ function pdf_setfont(& $pdf, $font, $fontsize)
 
 	# one step above the alias was checked
 	if(sscanf($font, "/F%d", $iwhatever) != 1)
-		die("pdf_setfont: invalid font.");
+		die(__FUNCTION__ . ": invalid font.");
 
 	# check if font is loaded
 	if(isset($pdf["resources"]["/Font"][$font]) === false)
-		die("pdf_setfont: font not found.");
+		die(__FUNCTION__ . ": font not found.");
 
 	# check if pointer of loaded font is valid
 	if(sscanf($pdf["resources"]["/Font"][$font], "%d %d R", $object_id, $object_version) != 2)
-		die("pdf_fit_image: invalid pointer.");
+		die(__FUNCTION__ . ": invalid pointer.");
 
 	# check if pointer of page is valid
 	if(sscanf($pdf["active"], "%d %d R", $page_id, $page_version) != 2)
-		die("pdf_fit_image: invalid pointer.");
+		die(__FUNCTION__ . ": invalid pointer.");
 
 	# remember font as used resource
 	$pdf["objects"][$page_id]["dictionary"]["/Resources"]["/Font"][$font] = $pdf["resources"]["/Font"][$font];
 	
-	# used by pdf_stringwidth
+	# update internals (used by pdf_stringwidth)
 	$pdf["font"] = $font;
 	$pdf["fontsize"] = $fontsize;
 
 	# finally
-	$pdf["stream"][] = sprintf("%s %.1f Tf", $font, $fontsize);
+	$pdf["stream"][] = sprintf("%s %f Tf", $font, $fontsize);
 	}
 
 ################################################################################
@@ -3336,7 +3384,7 @@ function pdf_setlinewidth(& $pdf, $width)
 
 function pdf_setmatrix(& $pdf, $a, $b, $c, $d, $e, $f)
 	{
-	$pdf["stream"][] = sprintf("%.1f %.1f %.1f %.1f %.1f %.1f Tm", $a, $b, $c, $d, $e, $f);
+	$pdf["stream"][] = sprintf("%f %f %f %f %f %f Tm", $a, $b, $c, $d, $e, $f);
 	}
 
 ################################################################################
@@ -3408,7 +3456,7 @@ function pdf_setrgbcolor_stroke(& $pdf, $red, $green, $blue)
 
 function pdf_settext_matrix(& $pdf, $a, $b, $c, $d, $e, $f)
 	{
-	$pdf["stream"][] = sprintf("%.1f %.1f %.1f %.1f %.1f %.1f Tm", $a, $b, $c, $d, $e, $f);
+	$pdf["stream"][] = sprintf("%f %f %f %f %f %f Tm", $a, $b, $c, $d, $e, $f);
 	}
 
 ################################################################################
@@ -3460,10 +3508,8 @@ function pdf_show(& $pdf, $text)
 	#  pdf_show | pdf_continue_text
 	#  ET
 
-	if(! $text)
+	if(strlen($text) == 0)
 		return;
-
-	$text = utf8_decode($text);
 
 	$text = str_replace(array("\\", "(", ")"), array("\\\\", "\\(", "\\)"), $text);
 
@@ -3478,17 +3524,22 @@ function pdf_show(& $pdf, $text)
 
 function pdf_show_boxed(& $pdf, $text, $left, $top, $width, $height, $mode, $feature = array())
 	{
-	$text = utf8_decode($text);
+	if(strlen($text) == 0)
+		return(0);
 
-	# get some needed settings
-	$fontsize = pdf_get_value($pdf, "fontsize", 0);
 	$font = pdf_get_value($pdf, "font", 0);
+	$fontsize = pdf_get_value($pdf, "fontsize", 0);
 
-	$i = 0;
-	$x = 0;
+	if(isset($feature["border"]))
+		pdf_rect($pdf, $left, $top, $width, $height);
 
-	$pdf["stream"][] = "BT";
-#	$pdf["stream"][] = sprintf("%d TL", $fontsize);
+	if(isset($feature["border"]))
+		pdf_stroke($pdf);
+
+	if(isset($feature["leading"]))
+		$leading = $feature["leading"];
+	else
+		$leading = $fontsize;
 
 	while(strlen($text) > 0)
 		{
@@ -3503,18 +3554,26 @@ function pdf_show_boxed(& $pdf, $text, $left, $top, $width, $height, $mode, $fea
 			{
 			list($word, $line) = (strpos($line, " ") === false ? array($line, "") : explode(" ", $line, 2));
 
-			if(strlen($words) > 0)
-				$test = (strlen($word) > 0 ? $words . " " . $word : $words);
+			if(strlen($word) == 0)
+				$test = $words;
+			elseif(strlen($words) == 0)
+				$test = $word;
 			else
-				$test = (strlen($word) > 0 ? $word : "");
+				$test = $words . " " . $word;
 
 			if(pdf_stringwidth($pdf, $test, $font, $fontsize) > $width)
 				{
 				if(strlen($word) > 0)
-					$line = $word . " " . $line;
+					if(strlen($line) > 0)
+						$line = $word . " " . $line;
+					else
+						$line = $word;
 
 				if(strlen($line) > 0)
-					$text = $line . "\n" . $text;
+					if(strlen($text) > 0)
+						$text = $line . "\n" . $text;
+					else
+						$text = $line;
 
 				break;
 				}
@@ -3526,114 +3585,24 @@ function pdf_show_boxed(& $pdf, $text, $left, $top, $width, $height, $mode, $fea
 
 		if(($mode == "justify") || ($mode == "fulljustify"))
 			{
-#			if(($mode == "justify") && ($spacing > ($width / 2)))
-#				$spacing = $width / 2;
-
 			pdf_set_word_spacing($pdf, $spacing / (count(explode(" ", $words)) - 1));
 
 			$spacing = 0;
 			}
 		else
 			{
-			# "justify", "fulljustify", "right", "left", "center"
-
 			$modes = array("center" => 2, "right" => 1);
 
 			$spacing = (array_key_exists($mode, $modes) ? $spacing / $modes[$mode] : 0);
 			}
 
-		if($i == 0)
-			$pdf["stream"][] = sprintf("%.1f %.1f Td", $spacing + $left, $top);
-		elseif($spacing != $x)
-			$pdf["stream"][] = sprintf("%.1f %.1f Td", $spacing - $x, 0 - $fontsize);
-		else
-			$pdf["stream"][] = "T*";
+		pdf_show_xy($pdf, $words, $left + $spacing, $top);
 
-		$words = str_replace(array("\\", "(", ")"), array("\\\\", "\\(", "\\)"), $words);
-
-		$pdf["stream"][] = sprintf("(%s) Tj", $words);
-
-		$i ++;
-		$x = $spacing;
-
-		$top -= $fontsize;
-		$height -= $fontsize;
+		$top -= $leading;
+		$height -= $leading;
 		}
-
-	$pdf["stream"][] = "ET";
 
 	return(strlen($text));
-	}
-
-function _pdf_show_boxed(& $pdf, $text, $left, $top, $width, $height, $mode, $feature = array())
-	{
-	if(! $text)
-		return(0);
-
-	# some character may produce problems
-	$text = str_replace(array("  ", "\r\n"), array(" ", "\n"), $text);
-
-	# get some needed settings
-	$fontsize = pdf_get_value($pdf, "fontsize", 0);
-	$font = pdf_get_value($pdf, "font", 0);
-
-	if($height - $fontsize < 0)
-		return(strlen($text));
-
-	list($line, $text) = (strpos($text, "\n") === false ? array($text, "") : explode("\n", $text, 2));
-
-	$words = "";
-
-	while(strlen($line) > 0)
-		{
-		list($word, $line) = (strpos($line, " ") === false ? array($line, "") : explode(" ", $line, 2));
-
-		$test = ($words ? $words . " " : "") . $word;
-
-		if($width - pdf_stringwidth($pdf, $test, $font, $fontsize) < 0)
-			{
-			$text = $word . ($line ? " " . $line : "") . ($text ? "\n" . $text : "");
-
-			break;
-			}
-
-		$words = $test;
-		}
-
-	if(! $words)
-		return(strlen($text));
-
-	################################################################################
-	# export to pdf_*_textflow
-	################################################################################
-
-	$spacing = $width - pdf_stringwidth($pdf, $words, $font, $fontsize);
-
-	if(($mode == "justify") || ($mode == "fulljustify"))
-		{
-#		if(($mode == "justify") && ($spacing > ($width / 2)))
-#			$spacing = $width / 2;
-
-		pdf_set_word_spacing($pdf, $spacing / (count(explode(" ", $words)) - 1));
-
-		$spacing = 0;
-		}
-	else
-		{
-		# "justify", "fulljustify", "right", "left", "center"
-
-		$modes = array("center" => 2, "right" => 1);
-
-		$spacing = (array_key_exists($mode, $modes) ? $spacing / $modes[$mode] : 0);
-		}
-
-	################################################################################
-	# export to pdf_*_textflow
-	################################################################################
-
-	pdf_show_xy($pdf, $words, $left + $spacing, $top);
-
-	return(pdf_show_boxed($pdf, $text, $left, $top - $fontsize, $width, $height - $fontsize, $mode, $feature));
 	}
 
 ################################################################################
@@ -3645,7 +3614,7 @@ function _pdf_show_boxed(& $pdf, $text, $left, $top, $width, $height, $mode, $fe
 
 function pdf_show_xy(& $pdf, $text, $x, $y)
 	{
-	if(! $text)
+	if(strlen($text) == 0)
 		return;
 
 	$text = utf8_decode($text);
@@ -3653,7 +3622,7 @@ function pdf_show_xy(& $pdf, $text, $x, $y)
 	$text = str_replace(array("\\", "(", ")"), array("\\\\", "\\(", "\\)"), $text);
 
 	$pdf["stream"][] = "BT";
-	$pdf["stream"][] = sprintf("%.1f %.1f Td", $x, $y); # pdf_set_text_pos
+	$pdf["stream"][] = sprintf("%f %f Td", $x, $y); # pdf_set_text_pos
 	$pdf["stream"][] = sprintf("(%s) Tj", $text); # pdf_show
 	$pdf["stream"][] = "ET";
 	}
@@ -3681,37 +3650,33 @@ function pdf_skew(& $pdf, $alpha, $beta)
 
 function pdf_stringwidth(& $pdf, $text, $font, $fontsize)
 	{
-	if(! $text)
+	if(strlen($text) == 0)
 		return(0);
 
 	# check if font is valid
 	if(sscanf($font, "/F%d", $whatever) != 1)
-		die("pdf_stringwidth: invalid font.");
+		die(__FUNCTION__ . ": invalid font: " . $font);
 
 	# check if fontsize is valid
 	if($fontsize == 0)
-		die("pdf_stringwidth: invalid fontsize.");
+		die(__FUNCTION__ . ": invalid fontsize: " . $fontsize);
 
 	# check if font is loaded
 	if(isset($pdf["resources"]["/Font"][$font]) === false)
-		die("pdf_stringwidth: font not found.");
+		die(__FUNCTION__ . ": font not found: " . $font);
 
 	# check if pointer is valid
 	if(sscanf($pdf["resources"]["/Font"][$font], "%d %d R", $object_id, $object_version) != 2)
-		die("pdf_stringwidth: invalid pointer.");
-
-	# convert string
-	$text = utf8_decode($text);
-
-	# widths are not glued during process.
-	$widths = $pdf["objects"][$object_id]["dictionary"]["/Widths"];
+		die(__FUNCTION__ . ": invalid pointer.");
 
 	# set counter
 	$width = 0;
 
+	$text = utf8_decode($text);
+
 	# count width of chars
 	foreach(str_split($text) as $char)
-		$width += $widths[ord($char)];
+		$width += $pdf["objects"][$object_id]["dictionary"]["/Widths"][ord($char)];
 
 	return($width / 1000 * $fontsize);
 	}
@@ -3737,19 +3702,19 @@ function pdf_stroke(& $pdf)
 function pdf_suspend_page(& $pdf, $optlist = array())
 	{
 	if(isset($optlist["active"]) === false)
-		die("pdf_suspend_page: page must be set as option.");
+		die(__FUNCTION__ . ": page must be set as option.");
 
 	if(sscanf($optlist["active"], "%d %d R", $page_id, $page_version) != 2)
-		die("pdf_suspend_page: invalid page.");
+		die(__FUNCTION__ . ": invalid page.");
 
 	if(isset($pdf["objects"][$page_id]["dictionary"]["/Contents"]) === false)
-		die("pdf_resume_page: contents not found.");
+		die(__FUNCTION__ . ": contents not found.");
 
 	if(sscanf($pdf["objects"][$page_id]["dictionary"]["/Contents"], "%d %d R", $contents_id, $contents_version) != 2)
-		die("pdf_resume_page: invalid contents.");
+		die(__FUNCTION__ . ": invalid contents.");
 
 	if(isset($pdf["objects"][$contents_id]["stream"]) === false)
-		die("pdf_resume_page: stream not found.");
+		die(__FUNCTION__ . ": stream not found.");
 
 	# save stream
 	$pdf["objects"][$page_id]["stream"] = implode("\n", $pdf["stream"]);
@@ -3833,14 +3798,14 @@ function _pdf_read_str($handle, $length)
 	while(($length > 0) && (feof($handle) === false))
 		{
 		if(($chunk = fread($handle, $length)) === false)
-			die("_pdf_read_str: error while reading stream.");
+			die(__FUNCTION__ . ": error while reading stream.");
 
 		$length -= strlen($chunk);
 		$retval .= $chunk;
 		}
 
 	if($length)
-		die("_pdf_read_str: unexpected end of stream.");
+		die(__FUNCTION__ . ": unexpected end of stream.");
 
 	return($retval);
 	}
@@ -3922,7 +3887,7 @@ function _pdf_add_font_descriptor(& $pdf, $fontname, $fontfile = "")
 function _pdf_add_font_encoding(& $pdf, $encoding = "builtin", $differences = "") # make differences an optlist
 	{
 	if(in_array($encoding, array("builtin", "winansi", "macroman", "macexpert")) === false)
-		die("_pdf_add_font_encoding: invalid encoding: " . $encoding);
+		die(__FUNCTION__ . ": invalid encoding: " . $encoding);
 
 	$whatever_id = _pdf_get_free_object_id($pdf);
 
@@ -3962,7 +3927,7 @@ function _pdf_add_form(& $pdf, $resources, $bbox, $stream)
 	# check resources for beeing dictionary or pointer to such
 
 	if(sscanf($bbox, "[%d %d %d %d]", $x, $y, $w, $h) != 4)
-		die("_pdf_add_form: invalid bbox:" . $bbox);
+		die(__FUNCTION__ . ": invalid bbox:" . $bbox);
 
 	$whatever_id = _pdf_get_free_object_id($pdf);
 
@@ -4369,7 +4334,7 @@ function _pdf_filter_parse($data = "")
 			$retval[] = sprintf("/%s", $name);
 			}
 		else
-			die("_pdf_filter_parse: you should never be here: data follows: " . $data);
+			die(__FUNCTION__ . ": you should never be here: data follows: " . $data);
 		}
 
 	return(array($retval, $data));
@@ -4439,7 +4404,7 @@ function _pdf_get_free_xobject_id(& $pdf, $index_id = 1)
 function _pdf_get_random_font_id(& $pdf, $fontname)
 	{
 	if(sscanf($fontname, "/%s", $fontname) != 1)
-		die("_pdf_get_random_font_id: invalid fontname.");
+		die(__FUNCTION__ . ": invalid fontname.");
 
 	$fontname = sprintf("/AAAAAA-%s", $fontname);
 
@@ -4615,15 +4580,13 @@ function _pdf_parse_array($data)
 	while(1)
 		{
 		if(strlen($data) == 0)
-			die("_pdf_parse_array: process runs out of data.");
+			die(__FUNCTION__ . ": process runs out of data.");
 		elseif(in_array($data[0], array("\t", "\n", "\r", " ")))
 			$data = substr($data, 1);
 		elseif($data[0] == "(")
 			{
 			$data = substr($data, 1);
-
 			list($value, $data) = _pdf_parse_string($data);
-
 			$data = substr($data, 1);
 
 			$retval[] = sprintf("(%s)", $value);
@@ -4631,7 +4594,6 @@ function _pdf_parse_array($data)
 		elseif($data[0] == "/")
 			{
 			$data = substr($data, 1);
-
 			list($value, $data) = _pdf_parse_name($data);
 
 			$retval[] = sprintf("/%s", $value);
@@ -4639,9 +4601,7 @@ function _pdf_parse_array($data)
 		elseif(substr($data, 0, 2) == "<<")
 			{
 			$data = substr($data, 2);
-
 			list($value, $data) = _pdf_parse_dictionary($data);
-
 			$data = substr($data, 2);
 
 			$retval[] = sprintf("<< %s >>", _pdf_glue_dictionary($value));
@@ -4649,9 +4609,7 @@ function _pdf_parse_array($data)
 		elseif($data[0] == "<")
 			{
 			$data = substr($data, 1);
-
 			list($value, $data) = _pdf_parse_hex($data);
-
 			$data = substr($data, 1);
 
 			$retval[] = sprintf("<%s>", $value);
@@ -4659,9 +4617,7 @@ function _pdf_parse_array($data)
 		elseif($data[0] == "[")
 			{
 			$data = substr($data, 1);
-
 			list($value, $data) = _pdf_parse_array($data);
-
 			$data = substr($data, 1);
 
 			$retval[] = sprintf("[%s]", _pdf_glue_array($value));
@@ -4757,11 +4713,11 @@ function _pdf_parse_dictionary($data)
 			while(1)
 				{
 				if(strlen($data) == 0)
-					die("_pdf_parse_dictionary: process runs out of data (key).");
+					die(__FUNCTION__ . ": process runs out of data (key).");
 				elseif(in_array($data[0], array("\t", "\n", "\r", " ")))
 					$data = substr($data, 1);
 				elseif(in_array($data[0], array("(", "<", "[", "f", "t")))
-					die("_pdf_parse_dictionary: no other char than / allowed for key. data follows: " . $data);
+					die(__FUNCTION__ . ": no other char than / allowed for key. data follows: " . $data);
 				elseif($data[0] == "/")
 					{
 					$data = substr($data, 1);
@@ -4773,7 +4729,7 @@ function _pdf_parse_dictionary($data)
 					break;
 					}
 				else
-					die("_pdf_parse_dictionary: no other char than / allowed for key. data follows: " . $data);
+					die(__FUNCTION__ . ": no other char than / allowed for key. data follows: " . $data);
 				}
 
 			$value = "";
@@ -4781,15 +4737,13 @@ function _pdf_parse_dictionary($data)
 			while(1)
 				{
 				if(strlen($data) == 0)
-					die("_pdf_parse_dictionary: process runs out of data (value).");
+					die(__FUNCTION__ . ": process runs out of data (value).");
 				elseif(in_array($data[0], array("\t", "\n", "\r", " ")))
 					$data = substr($data, 1);
 				elseif($data[0] == "(")
 					{
 					$data = substr($data, 1);
-
 					list($value, $data) = _pdf_parse_string($data);
-
 					$data = substr($data, 1);
 
 					$value = sprintf("(%s)", $value);
@@ -4799,7 +4753,6 @@ function _pdf_parse_dictionary($data)
 				elseif($data[0] == "/")
 					{
 					$data = substr($data, 1);
-
 					list($value, $data) = _pdf_parse_name($data);
 
 					$value = sprintf("/%s", $value);
@@ -4809,9 +4762,7 @@ function _pdf_parse_dictionary($data)
 				elseif(substr($data, 0, 2) == "<<")
 					{
 					$data = substr($data, 2);
-
 					list($value, $data) = _pdf_parse_dictionary($data);
-
 					$data = substr($data, 2);
 
 					$value = sprintf("<< %s >>", _pdf_glue_dictionary($value));
@@ -4821,9 +4772,7 @@ function _pdf_parse_dictionary($data)
 				elseif($data[0] == "<")
 					{
 					$data = substr($data, 1);
-
 					list($value, $data) = _pdf_parse_hex($data);
-
 					$data = substr($data, 1);
 
 					$value = sprintf("<%s>", $value);
@@ -4833,9 +4782,7 @@ function _pdf_parse_dictionary($data)
 				elseif($data[0] == "[")
 					{
 					$data = substr($data, 1);
-
 					list($value, $data) = _pdf_parse_array($data);
-
 					$data = substr($data, 1);
 
 					$value = sprintf("[%s]", _pdf_glue_array($value));
@@ -4878,7 +4825,7 @@ function _pdf_parse_dictionary($data)
 		$loop ++;
 
 		if($loop > 1024)
-			die("_pdf_parse_dictionary: process stuck on data " . $data);
+			die(__FUNCTION__ . ": process stuck on data " . $data);
 		}
 
 	return(array($retval, $data));
@@ -4894,7 +4841,7 @@ function _pdf_parse_document($data)
 	$retval = array();
 
 	if(preg_match("/^%PDF-(\d+)\.(\d+)[\s|\n]+(.*)[\s|\n]+startxref[\s|\n]+(\d+)[\s|\n]+%%EOF(.*)/is", $data, $matches) == 0)
-		die("_pdf_parse_document: something is seriously wrong (invalid structure).");
+		die(__FUNCTION__ . ": something is seriously wrong (invalid structure).");
 
 	list($null, $major, $minor, $body, $startxref, $null) = $matches;
 
@@ -4907,6 +4854,7 @@ function _pdf_parse_document($data)
 	$offsets = array();
 
 	$table = substr($data, $startxref);
+	$mode = "";
 
 	while(1)
 		{
@@ -4914,94 +4862,101 @@ function _pdf_parse_document($data)
 			break;
 		elseif(in_array($table[0], array("\t", "\n", "\r", " ")))
 			$table = substr($table, 1);
+		elseif(preg_match("/^(\d+ \d+ obj)(.*)/is", $table, $matches) == 1)
+			{
+			list($value, $null) = _pdf_parse_object($table);
+
+			$value["stream"] = "\n" . wordwrap(bin2hex(gzuncompress($value["stream"])), 12, "\n", true);
+
+			print_r($value); exit;
+			}
+		elseif(substr($table, 0, 5) == "%%EOF")
+			break;
+		elseif(substr($table, 0, 9) == "startxref")
+			break;
+		elseif(substr($table, 0, 7) == "trailer")
+			{			
+			$table = substr($table, 7);
+
+			$mode = "trailer";
+			}
 		elseif(substr($table, 0, 4) == "xref")
 			{
 			$table = substr($table, 4);
 
-			# start
-			while(1)
-				{
-				if(strlen($table) == 0)
-					break;
-				elseif(in_array($table[0], array("\t", "\n", "\r", " ")))
-					$table = substr($table, 1);
-				else
-					{
-					list($first, $table) = _pdf_parse_numeric($table);
-
-					break;
-					}
-				}
-
-			# count
-			while(1)
-				{
-				if(strlen($table) == 0)
-					break;
-				elseif(in_array($table[0], array("\t", "\n", "\r", " ")))
-					$table = substr($table, 1);
-				else
-					{
-					list($count, $table) = _pdf_parse_numeric($table);
-
-					break;
-					}
-				}
-
-			foreach(range($first, $first + $count - 1) as $index)
-				{
-				# offset
-				while(1)
-					{
-					if(strlen($table) == 0)
-						break;
-					elseif(in_array($table[0], array("\t", "\n", "\r", " ")))
-						$table = substr($table, 1);
-					else
-						{
-						list($offset, $table) = _pdf_parse_numeric($table);
-
-						break;
-						}
-					}
-
-				# generation
-				while(1)
-					{
-					if(strlen($table) == 0)
-						break;
-					elseif(in_array($table[0], array("\t", "\n", "\r", " ")))
-						$table = substr($table, 1);
-					else
-						{
-						list($generation, $table) = _pdf_parse_numeric($table);
-
-						break;
-						}
-					}
-
-				# used
-				while(1)
-					{
-					if(strlen($table) == 0)
-						break;
-					elseif(in_array($table[0], array("\t", "\n", "\r", " ")))
-						$table = substr($table, 1);
-					else
-						{
-						list($used, $table) = _pdf_parse_name($table);
-
-						break;
-						}
-					}
-
-				if($used == "n")
-					$offsets[$index] = $offset; # _pdf_parse_object($data)
-				}
+			$mode = "first";
 			}
-		elseif(substr($table, 0, 7) == "trailer")
-			{			
-			$table = substr($table, 7);
+		elseif($mode == "first")
+			{
+			list($first, $table) = _pdf_parse_numeric($table);
+
+			$mode = "count";
+			}
+		elseif($mode == "count")
+			{
+			list($count, $table) = _pdf_parse_numeric($table);
+
+			$mode = "offset";
+			}
+		elseif($mode == "offset")
+			{
+			list($offset, $table) = _pdf_parse_numeric($table);
+
+			$mode = "generation";
+			}
+		elseif($mode == "generation")
+			{
+			list($generation, $table) = _pdf_parse_numeric($table);
+
+			$mode = "used";
+			}
+		elseif($mode == "used")
+			{
+			list($used, $table) = _pdf_parse_name($table);
+
+			if($used == "n")
+				$offsets[$first] = $offset; # _pdf_parse_object($data)
+
+			$count --;
+			$first ++;
+
+			if($count == 0)
+				$mode = "first";
+			else
+				$mode = "offset";
+			}
+		elseif($mode == "trailer")
+			{
+			################################################################################
+			# get objects by offset
+			################################################################################
+
+			foreach($offsets as $index => $offset_start)
+				{
+				$offset_stop = $startxref;
+
+				foreach($offsets as $offset_test)
+					{
+					if($offset_test >= $offset_stop)
+						continue;
+
+					if($offset_test <= $offset_start)
+						continue;
+
+					$offset_stop = $offset_test;
+					}
+
+				$help = substr($data, $offset_start, $offset_stop - $offset_start - 1);
+
+				list($value, $null) = _pdf_parse_object($help);
+
+				if($value["id"] != $index)
+					die(__FUNCTION__ . ": something is seriously wrong (invalid id).");
+
+				$retval[$index]= $value;
+				}
+
+			################################################################################
 
 			while(1)
 				{
@@ -5021,22 +4976,16 @@ function _pdf_parse_document($data)
 					}
 				}
 
-			if(isset($retval[0]["dictionary"]) === false)
-				$retval[0]["dictionary"] = $trailer;
-			}
-		elseif(substr($table, 0, 9) == "startxref")
-			{
-			if(isset($retval[0]["dictionary"]["/Prev"]))
-				{
-				$startxref = $retval[0]["dictionary"]["/Prev"];
+			$retval[0]["version"] = 65535;
+			$retval[0]["dictionary"] = $trailer;
 
-				unset($retval[0]["dictionary"]["/Prev"]);
+			if(isset($trailer["/Prev"]))
+				$table = substr($data, $trailer["/Prev"]);
+			else
+				break;
 
-				$table = substr($data, $startxref);
-				}
+#			$startxref = $trailer["/Prev"];
 			}
-		elseif(substr($table, 0, 5) == "%%EOF")
-			break;
 		else
 			{
 			$pattern = array
@@ -5048,7 +4997,7 @@ function _pdf_parse_document($data)
 				);
 
 			if(preg_match_all("/(" . implode("|", $pattern) . ")/is", $data, $matches) == 0)
-				die("_pdf_parse_document: ...");
+				die(__FUNCTION__ . ": ...");
 
 			foreach($matches[0] as $object)
 				{
@@ -5097,37 +5046,6 @@ function _pdf_parse_document($data)
 			}
 		}
 
-	################################################################################
-	# get objects by offset
-	################################################################################
-
-	foreach($offsets as $index => $offset_start)
-		{
-		$offset_stop = $startxref;
-
-		foreach($offsets as $offset_test)
-			{
-			if($offset_test >= $offset_stop)
-				continue;
-
-			if($offset_test <= $offset_start)
-				continue;
-
-			$offset_stop = $offset_test;
-			}
-
-		$help = substr($data, $offset_start, $offset_stop - $offset_start - 1);
-
-		list($value, $null) = _pdf_parse_object($help);
-
-		if($value["id"] != $index)
-			die("_pdf_parse_document: something is seriously wrong (invalid id).");
-
-		$retval[$index]= $value;
-		}
-
-	################################################################################
-
 	return($retval);
 	}
 
@@ -5143,7 +5061,7 @@ function _pdf_parse_hex($data)
 	while(1)
 		{
 		if(strlen($data) == 0)
-			die("_pdf_parse_hex: process runs out of data.");
+			die(__FUNCTION__ . ": process runs out of data.");
 		elseif($data[0] == ">")
 			break;
 
@@ -5191,7 +5109,7 @@ function _pdf_parse_numeric($data)
 	while(1)
 		{
 		if(strlen($data) == 0)
-			die("_pdf_parse_numeric: process runs out of data.");
+			die(__FUNCTION__ . ": process runs out of data.");
 		elseif(in_array($data[0], array("\t", "\n", "\r", " ", "(", "/", "<", ">", "[", "]", "f", "t")))
 			break;
 
@@ -5213,7 +5131,7 @@ function _pdf_parse_object($data)
 	$retval = array();
 
 	if(preg_match("/^(\d+)[\s|\n]+(\d+)[\s|\n]+obj[\s|\n]*(.+)[\s|\n]*endobj.*/is", $data, $matches) == 0)
-		die("_pdf_parse_object: something is seriously wrong");
+		die(__FUNCTION__ . ": something is seriously wrong.");
 
 	list($null, $id, $version, $data) = $matches;
 
@@ -5225,9 +5143,7 @@ function _pdf_parse_object($data)
  	if(substr($data, 0, 2) == "<<")
 		{		
 		$data = substr($data, 2);
-
 		list($dictionary, $data) = _pdf_parse_dictionary($data);
-
 		$data = substr($data, 2);
 
 		$retval["dictionary"] = $dictionary;
@@ -5265,7 +5181,7 @@ function _pdf_parse_string($data)
 	while(1)
 		{
 		if(strlen($data) == 0)
-			die("_pdf_parse_string: process runs out of data.");
+			die(__FUNCTION__ . ": process runs out of data.");
 		elseif($data[0] == ")")
 			break;
 		elseif($data[0] == "\\")
