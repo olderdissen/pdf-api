@@ -276,7 +276,7 @@ function pdf_arc_orient(& $pdf, $x, $y, $r, $alpha, $beta, $orient)
 	if($orient > 0)
 		{
 		while($beta < $alpha)
-			$beta = $beta + 360;
+			$beta += 360;
 
 		if($alpha == $beta)
 			return;
@@ -285,13 +285,13 @@ function pdf_arc_orient(& $pdf, $x, $y, $r, $alpha, $beta, $orient)
 			{
 			pdf_arc_short($pdf, $x, $y, $r, $alpha, $alpha - 90);
 
-			$alpha = $alpha + 90;
+			$alpha += 90;
 			}
 		}
 	else
 		{
 		while($alpha < $beta)
-			$alpha = $alpha + 360;
+			$alpha += 360;
 
 		if($alpha == $beta)
 			return;
@@ -300,7 +300,7 @@ function pdf_arc_orient(& $pdf, $x, $y, $r, $alpha, $beta, $orient)
 			{
 			pdf_arc_short($pdf, $x, $y, $r, $alpha, $alpha + 90);
 
-			$alpha = $alpha - 90;
+			$alpha -= 90;
 			}
 		}
 
@@ -1447,7 +1447,7 @@ function pdf_fit_image(& $pdf, $image, $x, $y, $optlist = [])
 	$w = $pdf["objects"][$object_id]["dictionary"]["/Width"];
 	$h = $pdf["objects"][$object_id]["dictionary"]["/Height"];
 
-	# update pracset
+	# check colorspace
 	if(sscanf($pdf["objects"][$object_id]["dictionary"]["/ColorSpace"], "[%s %s %d %s]", $a, $b, $c, $d) != 4)
 		list($a, $b, $c, $d) = ["", $pdf["objects"][$object_id]["dictionary"]["/ColorSpace"], "", ""];
 
@@ -1466,8 +1466,9 @@ function pdf_fit_image(& $pdf, $image, $x, $y, $optlist = [])
 		if(! in_array("/ImageI", $pdf["objects"][$page_id]["dictionary"]["/Resources"]["/ProcSet"]))
 			$pdf["objects"][$page_id]["dictionary"]["/Resources"]["/ProcSet"][] = "/ImageI";
 
+	# pdf-api of firefox throughs error if cm uses float (f)
 	$pdf["stream"][] = "q";
-	$pdf["stream"][] = sprintf("%f %f %f %f %f %f cm", $w * $optlist["scale"], 0, 0, $h * $optlist["scale"], $x, $y);
+	$pdf["stream"][] = sprintf("%d %d %d %d %d %d cm", $w * $optlist["scale"], 0, 0, $h * $optlist["scale"], $x, $y);
 	$pdf["stream"][] = sprintf("%s Do", $image); # Invoke named XObject
 	$pdf["stream"][] = "Q";
 	}
@@ -1734,7 +1735,7 @@ function pdf_get_value(& $pdf, $key, $modifier)
 
 			# check if image-resource is valid
 			if(sscanf($pdf["resources"]["/XObject"][$modifier], "%d %d R", $object_id, $object_version) != 2)
-				die(__FUNCTION__ . ": invalid image: " . $modifier);
+				die(__FUNCTION__ . ": invalid pointer: " . $modifier);
 
 			# check if image-resource is valid
 			if(! isset($pdf["objects"][$object_id]["dictionary"]["/Height"]))
@@ -1756,7 +1757,7 @@ function pdf_get_value(& $pdf, $key, $modifier)
 
 			# check if image-resource is valid
 			if(sscanf($pdf["resources"]["/XObject"][$modifier], "%d %d R", $object_id, $object_version) != 2)
-				die(__FUNCTION__ . ": invalid image: " . $modifier);
+				die(__FUNCTION__ . ": invalid pointer: " . $modifier);
 
 			# check if image-resource is valid
 			if(! isset($pdf["objects"][$object_id]["dictionary"]["/Width"]))
@@ -1800,6 +1801,31 @@ function pdf_get_value(& $pdf, $key, $modifier)
 
 function pdf_info_font(& $pdf, $font, $keyword, $optlist = [])
 	{
+	# workaround to allow fontname (Helvetica) instead of its alias (/Fx)
+	if(sscanf($font, "/F%d", $whatever) != 1)
+		$font = pdf_findfont($pdf, $font, "winansi", 1);
+
+	# one step above the alias was checked
+	if(sscanf($font, "/F%d", $iwhatever) != 1)
+		die(__FUNCTION__ . ": invalid font.");
+
+	# check if font is loaded
+	if(! isset($pdf["resources"]["/Font"][$font]))
+		die(__FUNCTION__ . ": font not found.");
+
+	# check if pointer of loaded font is valid
+	if(sscanf($pdf["resources"]["/Font"][$font], "%d %d R", $object_id, $object_version) != 2)
+		die(__FUNCTION__ . ": invalid pointer.");
+
+	# check if font-resource is valid
+	if(! isset($pdf["objects"][$object_id]["dictionary"]))
+		die(__FUNCTION__ . ": invalid font: " . $font);
+
+	# check if key is valid
+	if(! is_numeric($pdf["objects"][$object_id]["dictionary"][$keyword]))
+		die(__FUNCTION__ . ": invalid keyword: ". $keyword);
+
+	return($pdf["objects"][$object_id]["dictionary"][$keyword]);
 	}
 
 ################################################################################
@@ -1934,16 +1960,12 @@ function pdf_load_font(& $pdf, $fontname, $encoding = "builtin", $optlist = "")
 		return($index);
 		}
 
-	################################################################################
-
-#	$filename = "/home/nomatrix/externe_platte/daten/ttf/" . strtolower($fontname[0]) . "/" . $fontname . ".ttf";
-#	$filename = "/usr/share/fonts/truetype/freefont/" . $fontname . ".ttf";
+	# create filename
 	$filename = __DIR__ . "/" . $fontname . ".ttf";
 
+	# check font-file
 	if(! file_exists($filename))
 		return(pdf_load_font($pdf, "Courier", $encoding, $optlist));
-
-	################################################################################
 
 	# apply file with additional /Length1
 	if($optlist)
@@ -1951,8 +1973,10 @@ function pdf_load_font(& $pdf, $fontname, $encoding = "builtin", $optlist = "")
 	else
 		$file = "";
 
+	# create font-name
 	$fontname = basename($filename, ".ttf");
 
+	# apply font-descriptor
 	$descriptor = _pdf_add_font_descriptor($pdf, $fontname, $file);
 
 	# create new object id
@@ -2307,15 +2331,20 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = [])
 		}
 	else
 		{
+		# create temp file
 		$tempnam = tempnam(__DIR__, "xxx");
 
+		# check temp file
 		if(! $tempnam)
 			die(__FUNCTION__ . ": unable to create a temporary file.");
 
+		# convert file by using external component
 		exec("convert \"" . $filename . "\" -quality 50 \"" . $tempnam . ".jpg\"");
 
+		# load image
 		$index = pdf_load_image($pdf, "jpg", $tempnam . ".jpg");
 
+		# unlink temp file
 		unlink($tempnam . ".jpg");
 		unlink($tempnam);
 

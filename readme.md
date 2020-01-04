@@ -84,6 +84,16 @@ more examples can be found in manual-pages of **PDFlib**.
 
 keep in mind that some functions may work different than in the original **PDFlib**.
 
+## explanaitions ##
+
+this library stores any information inside a single multi-dimensional array.
+the most important elements are named **objects**, **resources** and **stream**.
+**resources** will contain short names and pointers to images and fonts loaded by **pdf_load_image** and **pdf_load_font**.
+**pdf_set_font** and **pdf_place_image** or **pdf_fit_image** will copy this information into the resources-dictionary of a page.
+**objects** will contains all objects of the document.
+all resources are stored in real-time as they are and can be accessed at any time.
+**stream** contains the stream of the page.
+
 ## compatibility ##
 
 this project can be used to replace **PDFlib** since basic functionality is implemented.
