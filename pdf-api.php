@@ -30,7 +30,7 @@ function pdf_activate_item(& $pdf, $id)
 	if(! isset($pdf["objects"][$id_id]))
 		die(__FUNCTION__ . ": id not found: " . $id);
 
-	$pdf["active"] = $id;
+	$pdf["active"] = sprintf("%d %d R", $id_id, $id_version);
 	}
 
 ################################################################################
@@ -131,14 +131,15 @@ function pdf_add_outline(& $pdf, $text, $parent, $open)
 
 	# create new object id
 	$outline_id = _pdf_get_free_object_id($pdf);
+	$outline_version = 0;
 
 	# create new object (outline)
 	$pdf["objects"][$outline_id] = [
 		"id" => $outline_id,
-		"version" => 0,
+		"version" => $outline_version,
 		"dictionary" => [
 			"/Title" => sprintf("(%s)", $text),
-			"/Parent" => $parent
+			"/Parent" => sprintf("%d %d R", $parent_id, $parent_version)
 			]
 		];
 
@@ -154,7 +155,7 @@ function pdf_add_outline(& $pdf, $text, $parent, $open)
 
 	# this is the first outline ... maybe
 	if(! isset($pdf["objects"][$parent_id]["dictionary"]["/First"]))
-		$pdf["objects"][$parent_id]["dictionary"]["/First"] = sprintf("%d 0 R", $outline_id);
+		$pdf["objects"][$parent_id]["dictionary"]["/First"] = sprintf("%d %d R", $outline_id, $outline_version);
 
 	# modify pointer to last outline
 	if(isset($pdf["objects"][$parent_id]["dictionary"]["/Last"]))
@@ -167,20 +168,20 @@ function pdf_add_outline(& $pdf, $text, $parent, $open)
 			die(__FUNCTION__ . ": invalid outline: " . $last);
 
 		# this outline is the next one for the previoous outline
-		$pdf["objects"][$last_id]["dictionary"]["/Next"] = sprintf("%d 0 R", $outline_id);
+		$pdf["objects"][$last_id]["dictionary"]["/Next"] = sprintf("%d %d R", $outline_id, $outline_version);
 
 		# the last outline is the previous now
 		$pdf["objects"][$outline_id]["dictionary"]["/Prev"] = $last;
 		}
 
 	# this outline is the last one
-	$pdf["objects"][$parent_id]["dictionary"]["/Last"] = sprintf("%d 0 R", $outline_id);
+	$pdf["objects"][$parent_id]["dictionary"]["/Last"] = sprintf("%d %d R", $outline_id, $outline_version);
 
 	# update counter
-	$pdf["objects"][$parent_id]["dictionary"]["/Count"] = ($count ? $count + 1 : $count - 1);
+	$pdf["objects"][$parent_id]["dictionary"]["/Count"] = ($count > 0 ? $count + 1 : $count - 1);
 
 	# return created object id
-	return(sprintf("%d 0 R", $outline_id));
+	return(sprintf("%d %d R", $outline_id, $outline_version));
 	}
 
 ################################################################################
@@ -324,7 +325,8 @@ function pdf_arc_short(& $pdf, $x, $y, $r, $alpha, $beta)
 	$cos_alpha	= cos($alpha);
 	$cos_beta	= cos($beta);
 
-	pdf_curveto(
+	pdf_curveto
+		(
 		$p,
 		$x + $r * ($cos_alpha - $bcp * $sin_alpha),
 		$y + $r * ($sin_alpha + $bcp * $cos_alpha),
@@ -357,18 +359,19 @@ function pdf_begin_document(& $pdf, $filename, $optlist = [])
 	{
 	# create new object id
 	$catalog_id = _pdf_get_free_object_id($pdf);
+	$catalog_version = 0;;
 
 	# create new object (catalog)
 	$pdf["objects"][$catalog_id] = [
 		"id" => $catalog_id,
-		"version" => 0,
+		"version" => $catalog_version,
 		"dictionary" => [
 			"/Type" => "/Catalog",
 			"/PageLayout" => "/SinglePage",
 			"/PageMode" => "/UseOutlines",
-			"/Metadata" => "0 0 R",
-			"/Outlines" => "0 0 R",
-			"/Pages" => "0 0 R"
+			"/Metadata" => sprintf("%d %d R", 0, 0),
+			"/Outlines" => sprintf("%d %d R", 0, 0),
+			"/Pages" => sprintf("%d %d R", 0, 0)
 			]
 		];
 
@@ -386,11 +389,12 @@ function pdf_begin_document(& $pdf, $filename, $optlist = [])
 
 	# create new object id
 	$metadata_id = _pdf_get_free_object_id($pdf);
+	$metadata_version = 0;;
 
 	# create new object (metadata)
 	$pdf["objects"][$metadata_id] = [
 		"id" => $metadata_id,
-		"version" => 0,
+		"version" => $metadata_version,
 		"dictionary" => [
 			"/Type" => "/Metadata",
 			"/Subtype" => "/XML",
@@ -401,11 +405,12 @@ function pdf_begin_document(& $pdf, $filename, $optlist = [])
 
 	# create new object id
 	$outlines_id = _pdf_get_free_object_id($pdf);
+	$outlines_version = 0;;
 
 	# create new object (outlines)
 	$pdf["objects"][$outlines_id] = [
 		"id" => $outlines_id,
-		"version" => 0,
+		"version" => $outlines_version,
 		"dictionary" => [
 			"/Type" => "/Outlines",
 			"/Count" => 0
@@ -414,11 +419,12 @@ function pdf_begin_document(& $pdf, $filename, $optlist = [])
 
 	# create new object id
 	$pages_id = _pdf_get_free_object_id($pdf);
+	$pages_version = 0;
 
 	# create new object (pages)
 	$pdf["objects"][$pages_id] = [
 		"id" => $pages_id,
-		"version" => 0,
+		"version" => $pages_version,
 		"dictionary" => [
 			"/Type" => "/Pages",
 			"/Kids" => "[]",
@@ -427,16 +433,16 @@ function pdf_begin_document(& $pdf, $filename, $optlist = [])
 		];
 
 	# apply location of metadata
-	$pdf["objects"][$catalog_id]["dictionary"]["/Metadata"] = sprintf("%d 0 R", $metadata_id);
+	$pdf["objects"][$catalog_id]["dictionary"]["/Metadata"] = sprintf("%d %d R", $metadata_id, $metadata_version);
 
 	# apply location of outlines to catalog
-	$pdf["objects"][$catalog_id]["dictionary"]["/Outlines"] = sprintf("%d 0 R", $outlines_id);
+	$pdf["objects"][$catalog_id]["dictionary"]["/Outlines"] = sprintf("%d %d R", $outlines_id, $outlines_version);
 
 	# apply location of pages to catalog
-	$pdf["objects"][$catalog_id]["dictionary"]["/Pages"] = sprintf("%d 0 R", $pages_id);
+	$pdf["objects"][$catalog_id]["dictionary"]["/Pages"] = sprintf("%d %d R", $pages_id, $pages_version);
 
 	# apply location of catalog
-	$pdf["objects"][0]["dictionary"]["/Root"] = sprintf("%d 0 R", $catalog_id);
+	$pdf["objects"][0]["dictionary"]["/Root"] = sprintf("%d %d R", $catalog_id, $catalog_version);
 
 	# add additional help
 	$pdf["filename"] = $filename;
@@ -547,17 +553,18 @@ function pdf_begin_page_ext(& $pdf, $width, $height, $optlist = [])
 
 	# apply page
 	$page_id = _pdf_get_free_object_id($pdf);
+	$page_version = 0;
 
 	# create new object (page)
 	$pdf["objects"][$page_id] = [
 		"id" => $page_id,
-		"version" => 0,
+		"version" => $page_version,
 		"dictionary" => [
 			"/Type" => "/Page",
 			"/Parent" => $pages,
 			"/Resources" => ["/ProcSet" => ["/PDF", "/Text"]],
 			"/MediaBox" => sprintf("[%d %d %d %d]", 0, 0 , $width, $height),
-			"/Contents" => "0 0 R"
+			"/Contents" => sprintf("%d %d R", 0, 0)
 			]
 		];
 
@@ -583,7 +590,7 @@ function pdf_begin_page_ext(& $pdf, $width, $height, $optlist = [])
 	$data = substr($data, 1);
 
 	# apply page to kids
-	$kids[] = sprintf("%d 0 R", $page_id);
+	$kids[] = sprintf("%d %d R", $page_id, $page_version);
 
 	# apply kids
 	$pdf["objects"][$pages_id]["dictionary"]["/Kids"] = sprintf("[%s]", _pdf_glue_array($kids));
@@ -592,11 +599,11 @@ function pdf_begin_page_ext(& $pdf, $width, $height, $optlist = [])
 	$pdf["objects"][$pages_id]["dictionary"]["/Count"] = $count + 1;
 
 	# update internals
-	$pdf["active"] = sprintf("%d 0 R", $page_id);
+	$pdf["active"] = sprintf("%d %d R", $page_id, $page_version);
 	$pdf["stream"] = [];
 
 	# return created object id
-	return(sprintf("%d 0 R", $page_id));
+	return(sprintf("%d %d R", $page_id, $page_version));
 	}
 
 ################################################################################
@@ -821,13 +828,14 @@ function pdf_create_action(& $pdf, $type, $optlist = [])
 
 	# create new object id
 	$action_id = _pdf_get_free_object_id($pdf);
+	$action_version = 0;;
 
 	if($type == "GoTo")
 		{
 		# create new object (action)
 		$pdf["objects"][$action_id] = [
 			"id" => $action_id,
-			"version" => 0,
+			"version" => $action_version,
 			"dictionary" => [
 				"/Type" => "/Action",
 				"/S" => "/GoTo"
@@ -844,7 +852,7 @@ function pdf_create_action(& $pdf, $type, $optlist = [])
 		# create new object (action)
 		$pdf["objects"][$action_id] = [
 			"id" => $action_id,
-			"version" => 0,
+			"version" => $action_version,
 			"dictionary" => [
 				"/Type" => "/Action",
 				"/S" => "/GoToR"
@@ -865,7 +873,7 @@ function pdf_create_action(& $pdf, $type, $optlist = [])
 		# create new object (action)
 		$pdf["objects"][$action_id] = [
 			"id" => $action_id,
-			"version" => 0,
+			"version" => $action_version,
 			"dictionary" => [
 				"/Type" => "/Action",
 				"/S" => "/Launch"
@@ -882,7 +890,7 @@ function pdf_create_action(& $pdf, $type, $optlist = [])
 		# create new object (action)
 		$pdf["objects"][$action_id] = [
 			"id" => $action_id,
-			"version" => 0,
+			"version" => $action_version,
 			"dictionary" => [
 				"/Type" => "/Action",
 				"/S" => "/URI"
@@ -895,7 +903,7 @@ function pdf_create_action(& $pdf, $type, $optlist = [])
 		}
 
 	# return created object id
-	return(sprintf("%d 0 R", $action_id));
+	return(sprintf("%d %d R", $action_id, $action_version));
 	}
 
 ################################################################################
@@ -915,13 +923,14 @@ function pdf_create_annotation(& $pdf, $llx, $lly, $urx, $ury, $type, $optlist =
 
 	# create new object id
 	$annotation_id = _pdf_get_free_object_id($pdf);
+	$annotation_version = 0;;
 
 	if($type == "Attachment")
 		{
 		# create new object (annotation)
 		$pdf["objects"][$annotation_id] = [
 			"id" => $annotation_id,
-			"version" => 0,
+			"version" => $annotation_version,
 			"dictionary" => [
 				"/Type" => "/Annot",
 				"/Subtype" => "/Attachment",
@@ -935,7 +944,7 @@ function pdf_create_annotation(& $pdf, $llx, $lly, $urx, $ury, $type, $optlist =
 		# create new object (annotation)
 		$pdf["objects"][$annotation_id] = [
 			"id" => $annotation_id,
-			"version" => 0,
+			"version" => $annotation_version,
 			"dictionary" => [
 				"/Type" => "/Annot",
 				"/Subtype" => "/Link",
@@ -957,7 +966,7 @@ function pdf_create_annotation(& $pdf, $llx, $lly, $urx, $ury, $type, $optlist =
 		# create new object (annotation)
 		$pdf["objects"][$annotation_id] = [
 			"id" => $annotation_id,
-			"version" => 0,
+			"version" => $annotation_version,
 			"dictionary" => [
 				"/Type" => "/Annot",
 				"/Subtype" => "/Text",
@@ -986,13 +995,13 @@ function pdf_create_annotation(& $pdf, $llx, $lly, $urx, $ury, $type, $optlist =
 	$data = substr($data, 1);
 
 	# apply annotation to annotations
-	$annots[] = sprintf("%d 0 R", $annotation_id);
+	$annots[] = sprintf("%d %d R", $annotation_id, $annotation_version);
 
 	# apply annotations
 	$pdf["objects"][$page_id]["dictionary"]["/Annots"] = sprintf("[%s]", _pdf_glue_array($annots));
 
 	# return created object id
-	return(sprintf("%d 0 R", $annotation_id));
+	return(sprintf("%d %d R", $annotation_id, $annotation_version));
 	}
 
 ################################################################################
@@ -1074,7 +1083,7 @@ function pdf_curveto(& $pdf, $x1, $y1, $x2, $y2, $x3, $y3)
 # This function requires PDF 1.5.
 ################################################################################
 
-function pdf_define_layer(& $pdf, $name, $optlist)
+function pdf_define_layer(& $pdf, $name, $optlist = [])
 	{
 	}
 
@@ -1140,11 +1149,12 @@ function pdf_end_document(& $pdf, $optlist = [])
 	{
 	# create new object id
 	$info_id = _pdf_get_free_object_id($pdf);
+	$info_version = 0;;
 
 	# create new object (info)
 	$pdf["objects"][$info_id] = [
 		"id" => $info_id,
-		"version" => 0,
+		"version" => $info_version,
 		"dictionary" => [
 			"/CreationDate" => sprintf("(D:%sZ)", date("YmdHis")),
 			"/ModDate" => sprintf("(D:%sZ)", date("YmdHis")),
@@ -1184,7 +1194,7 @@ function pdf_end_document(& $pdf, $optlist = [])
 			$pdf["objects"][$info_id]["dictionary"][$key] = $value;
 
 	# apply location of info
-	$pdf["objects"][0]["dictionary"]["/Info"] = sprintf("%d 0 R", $info_id);
+	$pdf["objects"][0]["dictionary"]["/Info"] = sprintf("%d %d R", $info_id, $info_version);
 	
 	# apply some filter
 	_pdf_filter_change($pdf, "/FlateDecode");
@@ -1466,9 +1476,9 @@ function pdf_fit_image(& $pdf, $image, $x, $y, $optlist = [])
 		if(! in_array("/ImageI", $pdf["objects"][$page_id]["dictionary"]["/Resources"]["/ProcSet"]))
 			$pdf["objects"][$page_id]["dictionary"]["/Resources"]["/ProcSet"][] = "/ImageI";
 
-	# pdf-api of firefox throughs error if cm uses float (f)
+	# pdf-api of firefox throughs error if cm uses float (f) ... setlocale(de_de) makes trouble
 	$pdf["stream"][] = "q";
-	$pdf["stream"][] = sprintf("%d %d %d %d %d %d cm", $w * $optlist["scale"], 0, 0, $h * $optlist["scale"], $x, $y);
+	$pdf["stream"][] = sprintf("%f %f %f %f %f %f cm", $w * $optlist["scale"], 0, 0, $h * $optlist["scale"], $x, $y);
 	$pdf["stream"][] = sprintf("%s Do", $image); # Invoke named XObject
 	$pdf["stream"][] = "Q";
 	}
@@ -1500,7 +1510,7 @@ function pdf_fit_table(& $pdf, $table, $llx, $lly, $urx, $ury, $optlist = [])
 # Formats the next portion of a textflow into a rectangular area.
 ################################################################################
 
-function pdf_fit_textflow(& $pdf, $text, $llx, $lly, $urx, $ury, $optlist)
+function pdf_fit_textflow(& $pdf, $text, $llx, $lly, $urx, $ury, $optlist = [])
 	{
 	}
 
@@ -1743,7 +1753,7 @@ function pdf_get_value(& $pdf, $key, $modifier)
 
 			# check if imageheight is valid
 			if(! is_numeric($pdf["objects"][$object_id]["dictionary"]["/Height"]))
-				die(__FUNCTION__ . ": invalid image: ". $modifier);
+				die(__FUNCTION__ . ": invalid image: " . $modifier);
 
 			return($pdf["objects"][$object_id]["dictionary"]["/Height"]);
 		case("imagewidth"):
@@ -1823,7 +1833,7 @@ function pdf_info_font(& $pdf, $font, $keyword, $optlist = [])
 
 	# check if key is valid
 	if(! is_numeric($pdf["objects"][$object_id]["dictionary"][$keyword]))
-		die(__FUNCTION__ . ": invalid keyword: ". $keyword);
+		die(__FUNCTION__ . ": invalid keyword: " . $keyword);
 
 	return($pdf["objects"][$object_id]["dictionary"][$keyword]);
 	}
@@ -1916,6 +1926,7 @@ function pdf_load_font(& $pdf, $fontname, $encoding = "builtin", $optlist = "")
 	if(! in_array($encoding, ["builtin", "winansi", "macroman", "macexpert"]))
 		die(__FUNCTION__ . ": invalid encoding: " . $encoding);
 
+	# check built-in fonts
 	foreach($pdf["core"] as $object)
 		{
 		if($object["name"] != $fontname)
@@ -1947,14 +1958,14 @@ function pdf_load_font(& $pdf, $fontname, $encoding = "builtin", $optlist = "")
 
 		
 		# apply widths ... this need to be written here, for easier access to object where we get data from
-		foreach(["/FirstChar" => 0x00, "/LastChar" => 0xFF, "/Widths" => $object["widths"]] as $k => $v)
-			$pdf["objects"][$font_id]["dictionary"][$k] = $v;
+		foreach(["/FirstChar" => 0x00, "/LastChar" => 0xFF, "/Widths" => $object["widths"]] as $key => $value)
+			$pdf["objects"][$font_id]["dictionary"][$key] = $value;
 
-		# create new font id
+		# create new font id, no object id
 		$index = _pdf_get_free_font_id($pdf);
 
 		# apply font to list of global resources
-		$pdf["resources"]["/Font"][$index] = sprintf("%d 0 R", $font_id);
+		$pdf["resources"]["/Font"][$index] = sprintf("%d %d R", $font_id, 0);
 
 		# return created font id
 		return($index);
@@ -1981,11 +1992,12 @@ function pdf_load_font(& $pdf, $fontname, $encoding = "builtin", $optlist = "")
 
 	# create new object id
 	$font_id = _pdf_get_free_object_id($pdf);
+	$font_version = 0;;
 
 	# create new object (font)
 	$pdf["objects"][$font_id] = [
 		"id" => $font_id,
-		"version" => 0,
+		"version" => $font_version,
 		"dictionary" => [
 			"/Type" => "/Font",
 			"/Subtype" => "/TrueType",
@@ -2014,13 +2026,16 @@ function pdf_load_font(& $pdf, $fontname, $encoding = "builtin", $optlist = "")
 		$widths[$char] = (($info = imagettfbbox(720, 0, $filename, chr($char))) ? $info[2] : 1000);
 
 	# apply widths
-	foreach(["/FirstChar" => 0x00, "/LastChar" => 0xFF, "/Widths" => $widths] as $k => $v)
-		$pdf["objects"][$font_id]["dictionary"][$k] = $v;
+	foreach(["/FirstChar" => 0x00, "/LastChar" => 0xFF, "/Widths" => $widths] as $key => $value)
+		$pdf["objects"][$font_id]["dictionary"][$key] = $value;
 
+	# create new font id, no object id
 	$index = _pdf_get_free_font_id($pdf);
 
-	$pdf["resources"]["/Font"][$index] = sprintf("%d 0 R", $font_id);
+	# apply font to list of global resources
+	$pdf["resources"]["/Font"][$index] = sprintf("%d %d R", $font_id, $font_version);
 
+	# return created font id
 	return($index);
 	}
 
@@ -2106,21 +2121,22 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = [])
 
 		# create new object id
 		$image_id = _pdf_get_free_object_id($pdf);
+		$image_version = 0;
 
 		# create new object (xobject)
 		$pdf["objects"][$image_id] = [
 			"id" => $image_id,
-			"version" => 0,
+			"version" => $image_version,
 			"dictionary" => [
 				"/Type" => "/XObject",
 				"/Subtype" => "/Image",
 
-				# PDF32000-1:2008 8.9.3 Sample Representtion
+				# PDF32000-1:2008 8.9.3 Sample Representation
 				# The source format for an image shall be described by four parameters:
 				"/Width" => $info[0],
 				"/Height" => $info[1],
 				"/ColorSpace" => $color_space,
-				"/BitsPerComponent" => (isset($info["bits"]) ? $info["bits"] : 8),
+				"/BitsPerComponent" => (isset($info["bits"]) ? $info["bits"] : 8), # /DeviceRGB as default ?
 
 				"/Filter" => "/DCTDecode",
 				"/Length" => filesize($filename)
@@ -2129,7 +2145,7 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = [])
 			];
 
 		# return created object id
-		$image = sprintf("%d 0 R", $image_id);
+		$image = sprintf("%d %d R", $image_id, $image_version);
 		}
 	elseif($imagetype == "png")
 		{
@@ -2207,11 +2223,15 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = [])
 
 		fclose($handle);
 
-		# palette used
+		################################################################################
+		# palette stream
+
 		if($color_type & 0x01)
 			$p = _pdf_add_stream($pdf, $plte_stream);
 
+		################################################################################
 		# alpha channel
+
 		if($color_type & 0x04)
 			{
 			$data_stream = gzuncompress($data_stream);
@@ -2239,17 +2259,18 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = [])
 
 			# create new object id
 			$smask_id = _pdf_get_free_object_id($pdf);
+			$smask_version = 0;
 
 			# create new object (image)
 			$pdf["objects"][$smask_id] = [
 				"id" => $smask_id,
-				"version" => 0,
+				"version" => $smask_version,
 				"dictionary" => [
 					# optional
 					"/Type" => "/Object",
 					"/Subtype" => "/Image",
 
-					# PDF32000-1:2008 8.9.3 Sample Representtion
+					# PDF32000-1:2008 8.9.3 Sample Representation
 					# The source format for an image shall be described by four parameters:
 					"/Width" => $width,
 					"/Height" => $height,
@@ -2270,7 +2291,7 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = [])
 				];
 
 			# return created object id
-			$smask = sprintf("%d 0 R", $smask_id);
+			$s = sprintf("%d %d R", $smask_id, $smask_version);
 			}
 
 		################################################################################
@@ -2278,16 +2299,17 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = [])
 
 		# create new object id
 		$image_id = _pdf_get_free_object_id($pdf);
+		$image_version = 0;
 
 		# create new object (image)
 		$pdf["objects"][$image_id] = [
 			"id" => $image_id,
-			"version" => 0,
+			"version" => $image_version,
 			"dictionary" => [
 				"/Type" => "/XObject",
 				"/Subtype" => "/Image",
 
-				# PDF32000-1:2008 8.9.3 Sample Representtion
+				# PDF32000-1:2008 8.9.3 Sample Representation
 				# The source format for an image shall be described by four parameters:
 				"/Width" => $width,
 				"/Height" => $height,
@@ -2296,7 +2318,7 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = [])
 
 				"/DecodeParms" => [
 					"/Predictor" => 15,
-					"/Colors" => ($color_type & 0x01 ? 1 : ($color_type & 0x02 ? 3 : 1)),
+					"/Colors" => ($color_type & 0x01 ? 1 : ($color_type & 0x02 ? 3 : 1)), # BW as default?
 					"/BitsPerComponent" => $bits_per_component,
 					"/Columns" => $width
 					],
@@ -2307,13 +2329,13 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = [])
 			"stream" => $data_stream
 			];
 
-		# RGB with palette
+		# palette stream
 		if($color_type & 0x01)
-			$pdf["objects"][$image_id]["dictionary"]["/ColorSpace"] = sprintf("[/Indexed /DeviceRGB %d %s]", strlen($plte_stream) / 3 - 1, $p);
+			$pdf["objects"][$image_id]["dictionary"]["/ColorSpace"] = sprintf("[%s %s %d %s]", "/Indexed", "/DeviceRGB", strlen($plte_stream) / 3 - 1, $p);
 
 		# alpha channel
 		if($color_type & 0x04)
-			$pdf["objects"][$image_id]["dictionary"]["/SMask"] = $smask;
+			$pdf["objects"][$image_id]["dictionary"]["/SMask"] = $s;
 
 		# transparency
 		if($trns_stream)
@@ -2327,7 +2349,7 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = [])
 			}
 
 		# return created object id
-		$image = sprintf("%d 0 R", $image_id);
+		$image = sprintf("%d %d R", $image_id, $image_version);
 		}
 	else
 		{
@@ -2352,10 +2374,10 @@ function pdf_load_image(& $pdf, $imagetype, $filename, $optlist = [])
 		return($index);
 		}
 
-	# create new xobject id
+	# create new xobject id, no object id
 	$index = _pdf_get_free_xobject_id($pdf);
 
-	# apply image id to list of global rsources
+	# apply image id to list of global resources
 	$pdf["resources"]["/XObject"][$index] = $image;
 
 	# return created xobject id
@@ -2635,7 +2657,8 @@ function pdf_new()
 		"minor" => 3,
 		"objects" => [["id" => 0, "version" => 65535, "dictionary" => ["/Size" => 0]]],
 		"resources" => [],
-		"state" => [["charspacing" => 0, "horizscaling" => 0, "leading" => 0, "linecap" => 0, "linejoin" => 0, "linewidth" => 0, "miterlimit" => 0, "textrendering" => 0, "textrise" => 0, "wordspacing" => 0]],
+		# font and fontsize should also be part of state
+#		"state" => [["charspacing" => 0, "horizscaling" => 0, "leading" => 0, "linecap" => 0, "linejoin" => 0, "linewidth" => 0, "miterlimit" => 0, "textrendering" => 0, "textrise" => 0, "wordspacing" => 0]],
 		"stream" => []
 		];
 
@@ -3222,6 +3245,7 @@ function pdf_set_text_rise(& $pdf, $textrise)
 
 function pdf_set_value(& $pdf, $key, $value)
 	{
+	# this should depend on push and pop of $pdf["state"]
 	$table = [
 		"charspacing" => "Tc",
 		"horizscaling" => "Tz",
@@ -3813,8 +3837,8 @@ function pdf_translate(& $pdf, $tx, $ty)
 
 function pdf_utf8_to_utf16(& $pdf, $utf8string, $ordering)
 	{
-	foreach($ordering as $k => $v)
-		iconv_set_encoding($k, $v);
+	foreach($ordering as $key => $value)
+		iconv_set_encoding($key, $value);
 
 	return(iconv("UTF-8", "UTF-16", $utf8string));
 	}
@@ -3838,8 +3862,8 @@ function pdf_utf16_to_utf8(& $pdf, $utf16string)
 
 function pdf_utf32_to_utf16(& $pdf, $utf32string, $ordering)
 	{
-	foreach($ordering as $k => $v)
-		iconv_set_encoding($k, $v);
+	foreach($ordering as $key => $value)
+		iconv_set_encoding($key, $value);
 
 	return(iconv("UTF-32", "UTF-16", $utf32string));
 	}
@@ -3894,30 +3918,31 @@ function _pdf_add_font_definition(& $pdf, $encoding = "builtin", $differences = 
 
 	$stream = _pdf_add_page_stream($pdf, "");
 
-	$descriptor = _pdf_add_font_descriptor($pdf, "test"); # no file
+	$font_descriptor = _pdf_add_font_descriptor($pdf, "test"); # no file
 
 	# create new object id
 	$whatever_id = _pdf_get_free_object_id($pdf);
+	$whatever_version = 0;
 
 	# create new object (font)
 	$pdf["objects"][$whatever_id] = [
 		"id" => $whatever_id,
-		"version" => 0,
+		"version" => $whatever_version,
 		"dictionary" => [
 			"/Type" => "/Font",
 			"/Subtype" => "/Type3",
 			"/FontBBox" => "[0 0 1000 1000]",
 			"/FontMatrix" => "[1 0 0 -1 0 0]",
-			"/CharProcs" => sprintf("<< /C %s /B %s /A %s >>", $stream, $stream, $stream),
+			"/CharProcs" => sprintf("<< %s %s %s %s %s %s >>", "/C", $stream, "/B", $stream, "/A", $stream),
 			"/Encoding" => $encoding,
 			"/FirstChar" => 65,
 			"/LastChar" => 67,
 			"/Widths" => "[8 8 8]",
-			"/FontDescriptor" => $descriptor
+			"/FontDescriptor" => $font_descriptor
 			]
 		];
 
-	return(sprintf("%d 0 R", $whatever_id));
+	return(sprintf("%d %d R", $whatever_id, $vatever_version));
 	}
 
 ################################################################################
@@ -3928,11 +3953,12 @@ function _pdf_add_font_descriptor(& $pdf, $fontname, $fontfile = "")
 	{
 	# create new object id
 	$whatever_id = _pdf_get_free_object_id($pdf);
+	$whatever_version = 0;
 
 	# create new object (font descriptor)
 	$pdf["objects"][$whatever_id] = [
 		"id" => $whatever_id,
-		"version" => 0,
+		"version" => $whatever_version,
 		"dictionary" => [
 			"/Type" => "/FontDescriptor",
 			"/FontName" => "/" . $fontname,
@@ -3951,7 +3977,7 @@ function _pdf_add_font_descriptor(& $pdf, $fontname, $fontfile = "")
 		$pdf["objects"][$whatever_id]["dictionary"]["/FontFile2"] = $fontfile;
 
 	# return new object id
-	return(sprintf("%d 0 R", $whatever_id));
+	return(sprintf("%d %d R", $whatever_id, $whatever_version));
 	}
 
 ################################################################################
@@ -3966,11 +3992,12 @@ function _pdf_add_font_encoding(& $pdf, $encoding = "builtin", $differences = ""
 
 	# create new object id
 	$whatever_id = _pdf_get_free_object_id($pdf);
+	$whatever_version = 0;
 
 	# create new object (encoding)
 	$pdf["objects"][$whatever_id] = [
 		"id" => $whatever_id,
-		"version" => 0,
+		"version" => $whatever_version,
 		"dictionary" => [
 			"/Type" => "/Encoding"
 			]
@@ -3991,7 +4018,7 @@ function _pdf_add_font_encoding(& $pdf, $encoding = "builtin", $differences = ""
 			$pdf["objects"][$whatever_id]["dictionary"]["/BaseEncoding"] = $encoding;
 
 	# return new object id
-	return(sprintf("%d 0 R", $whatever_id));
+	return(sprintf("%d %d R", $whatever_id, $whatever_version));
 	}
 
 ################################################################################
@@ -4007,11 +4034,12 @@ function _pdf_add_form(& $pdf, $resources, $bbox, $stream)
 
 	# create new object id
 	$whatever_id = _pdf_get_free_object_id($pdf);
+	$whatever_version = 0;
 
 	# create new object (form)
 	$pdf["objects"][$whatever_id] = [
 		"id" => $whatever_id,
-		"version" => 0,
+		"version" => $whatever_version,
 		"dictionary" => [
 			"/Type" => "/XObject",
 			"/Subtype" => "/Form",
@@ -4024,7 +4052,7 @@ function _pdf_add_form(& $pdf, $resources, $bbox, $stream)
 		];
 
 	# return new object id
-	return(sprintf("%d 0 R", $whatever_id));
+	return(sprintf("%d %d R", $whatever_id, $whatever_version));
 	}
 
 ################################################################################
@@ -4035,11 +4063,12 @@ function _pdf_add_stream(& $pdf, $stream, $optlist = [])
 	{
 	# create new object id
 	$whatever_id = _pdf_get_free_object_id($pdf);
+	$whatever_version = 0;
 
 	# create new object (default stream of no type)
 	$pdf["objects"][$whatever_id] = [
 		"id" => $whatever_id,
-		"version" => 0,
+		"version" => $whatever_version,
 		"dictionary" => [
 			"/Length" => strlen($stream)
 			],
@@ -4051,7 +4080,7 @@ function _pdf_add_stream(& $pdf, $stream, $optlist = [])
 		$pdf["objects"][$whatever_id]["dictionary"][$key] = $value;
 
 	# return new object id
-	return(sprintf("%d 0 R", $whatever_id));
+	return(sprintf("%d %d R", $whatever_id, $whatever_version));
 	}
 
 ################################################################################
